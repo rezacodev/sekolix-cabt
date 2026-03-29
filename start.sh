@@ -85,43 +85,33 @@ chmod -R 775 storage bootstrap/cache
 echo "✓  Direktori storage siap."
 
 # --------------------------------------------------------------
-# LANGKAH 3: Cache konfigurasi Laravel
+# LANGKAH 3: Migrasi & seed database
 # --------------------------------------------------------------
-# Menyimpan konfigurasi ke file cache meningkatkan performa
-# karena Laravel tidak perlu membaca puluhan file .php setiap request.
-#
-# CATATAN: Perintah ini HARUS dijalankan setelah environment
-# variables sudah tersedia (yaitu saat startup, bukan saat build).
-# Itulah mengapa ada di start.sh, bukan di nixpacks.toml phases.build.
+# HARUS dijalankan SEBELUM config:cache, karena beberapa artisan
+# command saat caching bisa mencoba query ke DB.
+# migrate:fresh menghapus semua tabel dan membuat ulang dari awal,
+# lalu seeder mengisi data demo. --force wajib di production.
 # --------------------------------------------------------------
 echo ""
-echo "=== [3/6] Men-cache konfigurasi Laravel ==="
-php artisan config:cache
-echo "   ✓ config"
-php artisan route:cache
-echo "   ✓ routes"
-php artisan view:cache
-echo "   ✓ views"
-php artisan event:cache
-echo "   ✓ events"
-echo "✓  Cache selesai."
+echo "=== [3/6] Migrasi & seed database ==="
+php artisan migrate:fresh --seed --force
+echo "✓  Migrasi & seeder selesai."
 
 # --------------------------------------------------------------
-# LANGKAH 4: Migrasi database
+# LANGKAH 4: Cache konfigurasi Laravel
 # --------------------------------------------------------------
-# Menjalankan semua migration yang belum dijalankan.
-# --force wajib digunakan di environment production.
-#
-# Jika ini adalah DEPLOY PERTAMA, migrasi akan membuat semua tabel.
-# Jika REDEPLOY, hanya migration baru yang dijalankan.
-#
-# Pastikan variabel DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME,
-# DB_PASSWORD sudah di-set di Railway Dashboard.
+# Dijalankan SETELAH migrate agar DB sudah siap jika ada service
+# provider yang query database saat bootstrap.
+# "|| true" pada tiap perintah agar satu kegagalan tidak
+# menghentikan seluruh startup (cache bersifat opsional/performa).
 # --------------------------------------------------------------
 echo ""
-echo "=== [4/6] Menjalankan migrasi database ==="
-php artisan migrate --force
-echo "✓  Migrasi selesai."
+echo "=== [4/6] Men-cache konfigurasi Laravel ==="
+php artisan config:cache && echo "   ✓ config" || echo "   ⚠ config cache gagal (dilanjutkan)"
+php artisan route:cache  && echo "   ✓ routes" || echo "   ⚠ route cache gagal (dilanjutkan)"
+php artisan view:cache   && echo "   ✓ views"  || echo "   ⚠ view cache gagal (dilanjutkan)"
+php artisan event:cache  && echo "   ✓ events" || echo "   ⚠ event cache gagal (dilanjutkan)"
+echo "✓  Cache selesai."
 
 # --------------------------------------------------------------
 # LANGKAH 5: Buat storage symlink

@@ -16,13 +16,13 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            AppSettingsSeeder::class,
             UserSeeder::class,
             RombelSeeder::class,
             QuestionSeeder::class,
             ExamPackageSeeder::class,
             ExamSessionSeeder::class,
             AttemptSeeder::class,
-            AppSettingsSeeder::class,
         ]);
     }
 }
