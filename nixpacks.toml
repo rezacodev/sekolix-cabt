@@ -2,67 +2,46 @@
 # nixpacks.toml — Konfigurasi Build untuk Railway
 # ==============================================================
 #
-# Railway menggunakan Nixpacks (https://nixpacks.com) untuk
-# mendeteksi bahasa & membangun aplikasi secara otomatis.
-# File ini mengoverride deteksi otomatis tersebut.
+# Railway menggunakan Nixpacks untuk membangun aplikasi secara
+# otomatis. File ini hanya MENAMBAH/OVERRIDE hal yang tidak bisa
+# dideteksi otomatis.
 #
-# Cara kerja:
-#   1. [phases.setup]   → install sistem & runtime
-#   2. [phases.install] → install dependensi aplikasi
-#   3. [start]          → jalankan start.sh setiap container mulai
+# Nixpacks SUDAH otomatis mendeteksi:
+#   - PHP (via composer.json) + semua ext-* yang dideklarasikan di require
+#   - Node.js (via package.json)
+#   - Composer (bundled dengan PHP provider)
 #
-# Dokumentasi Nixpacks: https://nixpacks.com/docs/configuration/file
-# Cari paket Nix      : https://search.nixos.org/packages
+# File ini hanya perlu menentukan:
+#   - Versi Node.js spesifik (auto-detect bisa pakai versi lama)
+#   - Perintah install yang tepat (--no-dev untuk production)
+#   - Perintah start
+#
+# Dokumentasi: https://nixpacks.com/docs/configuration/file
 # ==============================================================
 
 [phases.setup]
-# Paket-paket sistem yang diinstall saat build image.
-# Nixpacks menggunakan repositori NixOS untuk package management.
+# Hanya tambahkan paket yang TIDAK dideteksi otomatis.
+# PHP + semua extension diambil dari composer.json "require" (ext-*).
+# Node.js versi spesifik perlu dideklarasikan di sini.
 nixPkgs = [
-    # ── PHP Runtime ──────────────────────────────────────────
-    "php82",                         # PHP versi 8.2
-
-    # ── PHP Extensions (wajib untuk Laravel 12 + Filament) ──
-    "php82Extensions.pdo",           # PHP Data Objects (abstraksi DB)
-    "php82Extensions.pdo_mysql",     # Driver koneksi ke MySQL/MariaDB
-    "php82Extensions.mbstring",      # String multibyte (wajib Laravel)
-    "php82Extensions.openssl",       # Enkripsi, SSL, hashing
-    "php82Extensions.tokenizer",     # PHP tokenizer (wajib Laravel)
-    "php82Extensions.ctype",         # Validasi tipe karakter
-    "php82Extensions.xml",           # Parser XML
-    "php82Extensions.dom",           # Manipulasi DOM/HTML
-    "php82Extensions.bcmath",        # Matematika presisi tinggi (nilai ujian)
-    "php82Extensions.curl",          # HTTP client (Guzzle, request eksternal)
-    "php82Extensions.fileinfo",      # Deteksi MIME type file upload
-    "php82Extensions.zip",           # Baca/tulis file ZIP (Excel export)
-    "php82Extensions.gd",            # Proses gambar (intervention/image)
-    "php82Extensions.intl",          # Format angka & tanggal internasional
-    "php82Extensions.sodium",        # Enkripsi modern (dipakai Laravel)
-
-    # ── Node.js (untuk build aset Vite) ─────────────────────
-    "nodejs_20",                     # Node.js 20 LTS
+    "nodejs_20",    # Node.js 20 LTS — untuk build Vite/Tailwind
 ]
 
 [phases.install]
-# Perintah yang dijalankan SEKALI saat build image (bukan saat startup).
-# Hasilnya di-cache Railway, sehingga deploy berikutnya lebih cepat.
+# Override perintah install agar menggunakan flag production yang tepat.
+# --no-dev        : jangan install package development (hemat build size)
+# --prefer-dist   : unduh zip archive, lebih cepat dari git clone
+# npm ci          : install dari package-lock.json (tidak ubah versi)
 cmds = [
-    # Install PHP dependencies tanpa paket dev, dioptimasi untuk production.
-    # --no-interaction : tidak menampilkan prompt yang bisa menghang CI/CD
-    # --prefer-dist    : unduh archive zip (lebih cepat daripada clone git)
     "composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist",
-
-    # Install Node.js dependencies.
-    # npm ci lebih cepat & aman daripada npm install di CI/CD
-    # (membaca package-lock.json, tidak mengubah versi)
     "npm ci",
-
-    # Build aset frontend (Tailwind CSS + Alpine.js via Vite).
-    # Output: public/build/
     "npm run build",
 ]
 
 [start]
+# Dijalankan setiap container mulai. Lihat start.sh untuk detail.
+cmd = "bash start.sh"
+
 # Perintah yang dijalankan SETIAP KALI container dimulai atau restart.
 # Migrasi DB, cache config, dan web server dijalankan dari start.sh.
 # Lihat start.sh untuk detail setiap langkah.
