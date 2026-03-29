@@ -5,11 +5,12 @@ namespace App\Http\Middleware;
 use App\Models\AppSetting;
 use Closure;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
+
 
 class CheckIpWhitelist
 {
-    public function handle(Request $request, Closure $next): Response
+    /** @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse */
+    public function handle(Request $request, Closure $next)
     {
         $whitelist = AppSetting::getString('ip_whitelist', '');
 

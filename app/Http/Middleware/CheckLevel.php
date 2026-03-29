@@ -5,7 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Symfony\Component\HttpFoundation\Response;
+
 
 class CheckLevel
 {
@@ -13,7 +13,8 @@ class CheckLevel
      * Validasi bahwa user yang login memiliki level minimal yang dibutuhkan.
      * Penggunaan: Route::middleware('check.level:2') untuk mewajibkan level ≥ 2.
      */
-    public function handle(Request $request, Closure $next, int $minLevel = 1): Response
+    /** @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse */
+    public function handle(Request $request, Closure $next, int $minLevel = 1)
     {
         if (! Auth::check() || Auth::user()->level < $minLevel) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');

@@ -8,7 +8,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Symfony\Component\HttpFoundation\Response;
+
 
 class CheckSingleSession
 {
@@ -16,7 +16,8 @@ class CheckSingleSession
      * Memastikan sesi peserta (Level 1) masih valid.
      * Jika session dihapus oleh admin (Paksa Logout), user diredirect ke login.
      */
-    public function handle(Request $request, Closure $next): Response
+    /** @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse */
+    public function handle(Request $request, Closure $next)
     {
         $user = Auth::user();
 
