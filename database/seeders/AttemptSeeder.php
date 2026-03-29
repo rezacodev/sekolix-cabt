@@ -11,6 +11,7 @@ use App\Models\Question;
 use App\Models\User;
 use App\Services\ScoringService;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -80,8 +81,16 @@ class AttemptSeeder extends Seeder
 
         $this->peserta = User::where('level', User::LEVEL_PESERTA)
             ->whereIn('nomor_peserta', [
-                'PST-001', 'PST-002', 'PST-003', 'PST-004', 'PST-005',
-                'PST-006', 'PST-007', 'PST-008', 'PST-009', 'PST-010',
+                'PST-001',
+                'PST-002',
+                'PST-003',
+                'PST-004',
+                'PST-005',
+                'PST-006',
+                'PST-007',
+                'PST-008',
+                'PST-009',
+                'PST-010',
             ])
             ->get()
             ->keyBy('nomor_peserta')
@@ -92,11 +101,14 @@ class AttemptSeeder extends Seeder
             return;
         }
 
-        foreach (['s1' => 'Ujian Harian Matematika',
-                  's7' => 'Ujian Matematika — X IPA 2',
-                  's9' => 'Ujian Sejarah — X IPS 1 (Sudah Selesai)',
-                  's10' => 'Ujian B.Indonesia — X IPS 1 (Selesai, Nilai Tersembunyi)',
-                 ] as $prop => $needle) {
+        foreach (
+            [
+                's1' => 'Ujian Harian Matematika',
+                's7' => 'Ujian Matematika — X IPA 2',
+                's9' => 'Ujian Sejarah — X IPS 1 (Sudah Selesai)',
+                's10' => 'Ujian B.Indonesia — X IPS 1 (Selesai, Nilai Tersembunyi)',
+            ] as $prop => $needle
+        ) {
             $sesi = ExamSession::where('nama_sesi', 'like', "%{$needle}%")->first();
             if (! $sesi) {
                 $this->command->warn("Sesi '{$needle}' tidak ditemukan. Jalankan ExamSessionSeeder terlebih dahulu.");
@@ -126,40 +138,78 @@ class AttemptSeeder extends Seeder
 
         // ── Skenario A: URAIAN Pending Manual Grading ────────────────────────
         $this->command->info('Skenario A: URAIAN pending manual grading...');
-        $this->buatAttemptUraianPending($this->s9, $this->peserta['PST-006'], 1,
-            now()->subDay()->subHours(1)->subMinutes(50), now()->subDay()->subMinutes(55));
-        $this->buatAttemptUraianPending($this->s10, $this->peserta['PST-007'], 1,
-            now()->subDays(3)->subMinutes(55), now()->subDays(3)->subMinutes(10));
+        $this->buatAttemptUraianPending(
+            $this->s9,
+            $this->peserta['PST-006'],
+            1,
+            now()->subDay()->subHours(1)->subMinutes(50),
+            now()->subDay()->subMinutes(55)
+        );
+        $this->buatAttemptUraianPending(
+            $this->s10,
+            $this->peserta['PST-007'],
+            1,
+            now()->subDays(3)->subMinutes(55),
+            now()->subDays(3)->subMinutes(10)
+        );
 
         // ── Skenario B: URAIAN Sudah Dinilai ─────────────────────────────────
         $this->command->info('Skenario B: URAIAN sudah dinilai...');
-        $this->buatAttemptUraianGraded($this->s9, $this->peserta['PST-008'], 1,
-            now()->subDay()->subHours(1)->subMinutes(45), now()->subDay()->subMinutes(50));
+        $this->buatAttemptUraianGraded(
+            $this->s9,
+            $this->peserta['PST-008'],
+            1,
+            now()->subDay()->subHours(1)->subMinutes(45),
+            now()->subDay()->subMinutes(50)
+        );
 
         // ── Skenario C: File Upload URAIAN ───────────────────────────────────
         $this->command->info('Skenario C: File upload URAIAN...');
-        $this->buatAttemptDenganFileUpload($this->s9, $this->peserta['PST-009'], 1,
-            now()->subDay()->subHours(2), now()->subDay()->subHour()->subMinutes(10));
+        $this->buatAttemptDenganFileUpload(
+            $this->s9,
+            $this->peserta['PST-009'],
+            1,
+            now()->subDay()->subHours(2),
+            now()->subDay()->subHour()->subMinutes(10)
+        );
 
         // ── Skenario D: Zero Score (semua kosong) ────────────────────────────
         $this->command->info('Skenario D: Zero score (semua kosong)...');
-        $this->buatAttemptZeroScore($this->s9, $this->peserta['PST-010'], 1,
-            now()->subDay()->subHours(3), now()->subDay()->subHour()->subMinutes(5));
+        $this->buatAttemptZeroScore(
+            $this->s9,
+            $this->peserta['PST-010'],
+            1,
+            now()->subDay()->subHours(3),
+            now()->subDay()->subHour()->subMinutes(5)
+        );
 
         // ── Skenario E: Perfect Score ─────────────────────────────────────────
         $this->command->info('Skenario E: Perfect score...');
-        $this->buatAttemptPerfectScore($this->s10, $this->peserta['PST-006'], 1,
-            now()->subDays(3)->subHours(2), now()->subDays(3)->subMinutes(25));
+        $this->buatAttemptPerfectScore(
+            $this->s10,
+            $this->peserta['PST-006'],
+            1,
+            now()->subDays(3)->subHours(2),
+            now()->subDays(3)->subMinutes(25)
+        );
 
         // ── Skenario F: Tab Switch → Diskualifikasi ───────────────────────────
         $this->command->info('Skenario F: Tab switch → diskualifikasi...');
-        $this->buatAttemptDiskualifikasiTabSwitch($this->s1, $this->peserta['PST-007'], 1,
-            now()->subHours(1)->subMinutes(30));
+        $this->buatAttemptDiskualifikasiTabSwitch(
+            $this->s1,
+            $this->peserta['PST-007'],
+            1,
+            now()->subHours(1)->subMinutes(30)
+        );
 
         // ── Skenario G: Timeout ───────────────────────────────────────────────
         $this->command->info('Skenario G: Timeout...');
-        $this->buatAttemptTimeout($this->s7, $this->peserta['PST-008'], 1,
-            now()->subMinutes(50));
+        $this->buatAttemptTimeout(
+            $this->s7,
+            $this->peserta['PST-008'],
+            1,
+            now()->subMinutes(50)
+        );
 
         // ── Skenario H: Remidi Bertahap ───────────────────────────────────────
         $this->command->info('Skenario H: Remidi bertahap (3 attempt)...');
@@ -167,13 +217,22 @@ class AttemptSeeder extends Seeder
 
         // ── Skenario I: Ragu-Ragu Flags ───────────────────────────────────────
         $this->command->info('Skenario I: Ragu-ragu flags...');
-        $this->buatAttemptDenganRagu($this->s7, $this->peserta['PST-004'], 1,
-            now()->subMinutes(40), now()->subMinutes(5));
+        $this->buatAttemptDenganRagu(
+            $this->s7,
+            $this->peserta['PST-004'],
+            1,
+            now()->subMinutes(40),
+            now()->subMinutes(5)
+        );
 
         // ── Skenario J: Kick (Diskualifikasi Manual Admin) ────────────────────
         $this->command->info('Skenario J: Kick (diskualifikasi manual)...');
-        $this->buatAttemptKick($this->s1, $this->peserta['PST-005'], 1,
-            now()->subHours(1)->subMinutes(20));
+        $this->buatAttemptKick(
+            $this->s1,
+            $this->peserta['PST-005'],
+            1,
+            now()->subHours(1)->subMinutes(20)
+        );
 
         $this->printRingkasan();
     }
@@ -189,8 +248,8 @@ class AttemptSeeder extends Seeder
         ExamSession $session,
         User $user,
         int $attemptKe,
-        \Carbon\Carbon $mulai,
-        \Carbon\Carbon $selesai,
+        Carbon $mulai,
+        Carbon $selesai,
     ): void {
         if ($this->attemptExists($session, $user, $attemptKe)) {
             return;
@@ -242,11 +301,11 @@ class AttemptSeeder extends Seeder
                     'attempt_id'      => $attempt->id,
                     'question_id'     => $question->id,
                     'urutan'          => $urutan + 1,
-                    'jawaban_peserta' => $jawaban['jawaban'],
+                    'jawaban_peserta' => $isUraian ? $jawaban : $jawaban['jawaban'],
                     'nilai_perolehan' => $isUraian ? null : $jawaban['nilai'],
                     'is_correct'      => $isUraian ? null : $jawaban['correct'],
                     'is_ragu'         => false,
-                    'waktu_jawab'     => $mulai->copy()->addMinutes($urutan + 1),
+                    'waktu_jawab'     => (clone $mulai)->addMinutes($urutan + 1),
                 ]);
             }
 
@@ -263,8 +322,8 @@ class AttemptSeeder extends Seeder
         ExamSession $session,
         User $user,
         int $attemptKe,
-        \Carbon\Carbon $mulai,
-        \Carbon\Carbon $selesai,
+        Carbon $mulai,
+        Carbon $selesai,
     ): void {
         if ($this->attemptExists($session, $user, $attemptKe)) {
             return;
@@ -302,11 +361,11 @@ class AttemptSeeder extends Seeder
                     'attempt_id'      => $attempt->id,
                     'question_id'     => $question->id,
                     'urutan'          => $urutan + 1,
-                    'jawaban_peserta' => $jawaban['jawaban'] ?? 'Jawaban uraian telah dinilai.',
+                    'jawaban_peserta' => $isUraian ? $jawaban : $jawaban['jawaban'],
                     'nilai_perolehan' => $nilaiPerolehan,
                     'is_correct'      => $isUraian ? null : $jawaban['correct'],
                     'is_ragu'         => false,
-                    'waktu_jawab'     => $mulai->copy()->addMinutes($urutan + 1),
+                    'waktu_jawab'     => (clone $mulai)->addMinutes($urutan + 1),
                 ]);
             }
 
@@ -326,8 +385,8 @@ class AttemptSeeder extends Seeder
         ExamSession $session,
         User $user,
         int $attemptKe,
-        \Carbon\Carbon $mulai,
-        \Carbon\Carbon $selesai,
+        Carbon $mulai,
+        Carbon $selesai,
     ): void {
         if ($this->attemptExists($session, $user, $attemptKe)) {
             return;
@@ -372,7 +431,7 @@ class AttemptSeeder extends Seeder
                     'nilai_perolehan' => $isUraian ? null : $jawaban['nilai'],
                     'is_correct'      => $isUraian ? null : $jawaban['correct'],
                     'is_ragu'         => false,
-                    'waktu_jawab'     => $mulai->copy()->addMinutes($urutan + 1),
+                    'waktu_jawab'     => (clone $mulai)->addMinutes($urutan + 1),
                 ]);
             }
 
@@ -389,8 +448,8 @@ class AttemptSeeder extends Seeder
         ExamSession $session,
         User $user,
         int $attemptKe,
-        \Carbon\Carbon $mulai,
-        \Carbon\Carbon $selesai,
+        Carbon $mulai,
+        Carbon $selesai,
     ): void {
         if ($this->attemptExists($session, $user, $attemptKe)) {
             return;
@@ -439,8 +498,8 @@ class AttemptSeeder extends Seeder
         ExamSession $session,
         User $user,
         int $attemptKe,
-        \Carbon\Carbon $mulai,
-        \Carbon\Carbon $selesai,
+        Carbon $mulai,
+        Carbon $selesai,
     ): void {
         if ($this->attemptExists($session, $user, $attemptKe)) {
             return;
@@ -479,7 +538,7 @@ class AttemptSeeder extends Seeder
                     'nilai_perolehan' => $nilaiPerolehan,
                     'is_correct'      => $isUraian ? null : true,
                     'is_ragu'         => false,
-                    'waktu_jawab'     => $mulai->copy()->addMinutes($urutan + 1),
+                    'waktu_jawab'     => (clone $mulai)->addMinutes($urutan + 1),
                 ]);
             }
 
@@ -499,7 +558,7 @@ class AttemptSeeder extends Seeder
         ExamSession $session,
         User $user,
         int $attemptKe,
-        \Carbon\Carbon $mulai,
+        Carbon $mulai,
     ): void {
         if ($this->attemptExists($session, $user, $attemptKe, ExamAttempt::STATUS_DISKUALIFIKASI)) {
             return;
@@ -507,7 +566,7 @@ class AttemptSeeder extends Seeder
 
         DB::transaction(function () use ($session, $user, $attemptKe, $mulai) {
             $questions = $this->getSessionQuestions($session);
-            $waktsBuat = $mulai->copy()->addMinutes(12); // didiskualifikasi di menit ke-12
+            $waktsBuat = (clone $mulai)->addMinutes(12); // didiskualifikasi di menit ke-12
 
             $attempt = ExamAttempt::create([
                 'exam_session_id' => $session->id,
@@ -535,7 +594,7 @@ class AttemptSeeder extends Seeder
                     'nilai_perolehan' => null,
                     'is_correct'      => null,
                     'is_ragu'         => false,
-                    'waktu_jawab'     => $dijawab ? $mulai->copy()->addMinutes($urutan + 1) : null,
+                    'waktu_jawab'     => $dijawab ? (clone $mulai)->addMinutes($urutan + 1) : null,
                 ]);
             }
 
@@ -545,7 +604,7 @@ class AttemptSeeder extends Seeder
                     'attempt_id' => $attempt->id,
                     'event_type' => AttemptLog::EVENT_TAB_SWITCH,
                     'detail'     => "tab_switch_count={$i}",
-                    'created_at' => $mulai->copy()->addMinutes($i * 2),
+                    'created_at' => (clone $mulai)->addMinutes($i * 2),
                 ]);
             }
 
@@ -568,7 +627,7 @@ class AttemptSeeder extends Seeder
         ExamSession $session,
         User $user,
         int $attemptKe,
-        \Carbon\Carbon $mulai,
+        Carbon $mulai,
     ): void {
         if ($this->attemptExists($session, $user, $attemptKe, ExamAttempt::STATUS_TIMEOUT)) {
             return;
@@ -577,7 +636,7 @@ class AttemptSeeder extends Seeder
         DB::transaction(function () use ($session, $user, $attemptKe, $mulai) {
             $questions   = $this->getSessionQuestions($session);
             $durasi      = $session->package->durasi_menit ?? 45;
-            $waktuSelesai = $mulai->copy()->addMinutes($durasi); // tepat habis waktu
+            $waktuSelesai = (clone $mulai)->addMinutes($durasi); // tepat habis waktu
 
             $attempt = ExamAttempt::create([
                 'exam_session_id' => $session->id,
@@ -608,7 +667,7 @@ class AttemptSeeder extends Seeder
                     'nilai_perolehan' => $isUraian ? null : ($jawaban ? $jawaban['nilai'] : 0.0),
                     'is_correct'      => $isUraian ? null : ($jawaban ? $jawaban['correct'] : false),
                     'is_ragu'         => false,
-                    'waktu_jawab'     => $dijawab ? $mulai->copy()->addMinutes($urutan + 1) : null,
+                    'waktu_jawab'     => $dijawab ? (clone $mulai)->addMinutes($urutan + 1) : null,
                 ]);
             }
 
@@ -637,7 +696,7 @@ class AttemptSeeder extends Seeder
             DB::transaction(function () use ($session, $user, $s) {
                 $questions  = $this->getSessionQuestions($session);
                 $mulai      = now()->subHours($s['selisih_jam'] + 1);
-                $selesai    = $mulai->copy()->addMinutes(40);
+                $selesai    = (clone $mulai)->addMinutes(40);
                 $targetBenar = (int) ceil($questions->count() * ($s['benar_persen'] / 100));
 
                 $attempt = ExamAttempt::create([
@@ -670,7 +729,7 @@ class AttemptSeeder extends Seeder
                         'nilai_perolehan' => $nilaiPerolehan,
                         'is_correct'      => $isUraian ? null : $jawaban['correct'],
                         'is_ragu'         => false,
-                        'waktu_jawab'     => $mulai->copy()->addMinutes($urutan + 1),
+                        'waktu_jawab'     => (clone $mulai)->addMinutes($urutan + 1),
                     ]);
                 }
 
@@ -690,8 +749,8 @@ class AttemptSeeder extends Seeder
         ExamSession $session,
         User $user,
         int $attemptKe,
-        \Carbon\Carbon $mulai,
-        \Carbon\Carbon $selesai,
+        Carbon $mulai,
+        Carbon $selesai,
     ): void {
         if ($this->attemptExists($session, $user, $attemptKe)) {
             return;
@@ -733,7 +792,7 @@ class AttemptSeeder extends Seeder
                     'nilai_perolehan' => $nilaiPerolehan,
                     'is_correct'      => $isUraian ? null : $jawaban['correct'],
                     'is_ragu'         => $isRagu,
-                    'waktu_jawab'     => $mulai->copy()->addMinutes($urutan + 1),
+                    'waktu_jawab'     => (clone $mulai)->addMinutes($urutan + 1),
                 ]);
             }
 
@@ -752,7 +811,7 @@ class AttemptSeeder extends Seeder
         ExamSession $session,
         User $user,
         int $attemptKe,
-        \Carbon\Carbon $mulai,
+        Carbon $mulai,
     ): void {
         if ($this->attemptExists($session, $user, $attemptKe, ExamAttempt::STATUS_DISKUALIFIKASI)) {
             return;
@@ -760,7 +819,7 @@ class AttemptSeeder extends Seeder
 
         DB::transaction(function () use ($session, $user, $attemptKe, $mulai) {
             $questions    = $this->getSessionQuestions($session);
-            $waktuKick    = $mulai->copy()->addMinutes(18);
+            $waktuKick    = (clone $mulai)->addMinutes(18);
 
             $attempt = ExamAttempt::create([
                 'exam_session_id' => $session->id,
@@ -788,7 +847,7 @@ class AttemptSeeder extends Seeder
                     'nilai_perolehan' => null,
                     'is_correct'      => null,
                     'is_ragu'         => false,
-                    'waktu_jawab'     => $dijawab ? $mulai->copy()->addMinutes($urutan + 1) : null,
+                    'waktu_jawab'     => $dijawab ? (clone $mulai)->addMinutes($urutan + 1) : null,
                 ]);
             }
 
@@ -797,13 +856,13 @@ class AttemptSeeder extends Seeder
                 'attempt_id' => $attempt->id,
                 'event_type' => AttemptLog::EVENT_TAB_SWITCH,
                 'detail'     => 'tab_switch_count=1',
-                'created_at' => $mulai->copy()->addMinutes(5),
+                'created_at' => (clone $mulai)->addMinutes(5),
             ]);
             AttemptLog::create([
                 'attempt_id' => $attempt->id,
                 'event_type' => AttemptLog::EVENT_BLUR,
                 'detail'     => 'window_blur',
-                'created_at' => $mulai->copy()->addMinutes(10),
+                'created_at' => (clone $mulai)->addMinutes(10),
             ]);
             AttemptLog::create([
                 'attempt_id' => $attempt->id,
@@ -933,7 +992,7 @@ class AttemptSeeder extends Seeder
         return $query->exists();
     }
 
-    private function logEvent(int $attemptId, string $eventType, string $detail, \Carbon\Carbon $at): void
+    private function logEvent(int $attemptId, string $eventType, string $detail, Carbon $at): void
     {
         AttemptLog::create([
             'attempt_id' => $attemptId,
@@ -958,9 +1017,11 @@ class AttemptSeeder extends Seeder
     {
         $totalAttempts  = ExamAttempt::count();
         $pendingUraian  = ExamAttempt::whereIn('status', [ExamAttempt::STATUS_SELESAI, ExamAttempt::STATUS_TIMEOUT])
-            ->whereHas('questions', fn ($q) =>
-                $q->whereHas('question', fn ($q2) => $q2->where('tipe', 'URAIAN'))
-                  ->whereNull('nilai_perolehan')
+            ->whereHas(
+                'questions',
+                fn($q) =>
+                $q->whereHas('question', fn($q2) => $q2->where('tipe', 'URAIAN'))
+                    ->whereNull('nilai_perolehan')
             )->count();
 
         $this->command->newLine();
