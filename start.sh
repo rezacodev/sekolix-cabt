@@ -31,6 +31,11 @@ echo "╔═══════════════════════�
 echo "║       Sekolix CABT — Starting Up         ║"
 echo "╚══════════════════════════════════════════╝"
 
+# Pastikan working directory adalah root project Laravel.
+# Railway Nixpacks mendeploy ke /app secara default.
+# Tanpa ini, perintah "php artisan ..." tidak bisa menemukan file artisan.
+cd /app
+
 # --------------------------------------------------------------
 # LANGKAH 1: Cek APP_KEY
 # --------------------------------------------------------------
