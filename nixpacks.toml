@@ -1,0 +1,69 @@
+# ==============================================================
+# nixpacks.toml — Konfigurasi Build untuk Railway
+# ==============================================================
+#
+# Railway menggunakan Nixpacks (https://nixpacks.com) untuk
+# mendeteksi bahasa & membangun aplikasi secara otomatis.
+# File ini mengoverride deteksi otomatis tersebut.
+#
+# Cara kerja:
+#   1. [phases.setup]   → install sistem & runtime
+#   2. [phases.install] → install dependensi aplikasi
+#   3. [start]          → jalankan start.sh setiap container mulai
+#
+# Dokumentasi Nixpacks: https://nixpacks.com/docs/configuration/file
+# Cari paket Nix      : https://search.nixos.org/packages
+# ==============================================================
+
+[phases.setup]
+# Paket-paket sistem yang diinstall saat build image.
+# Nixpacks menggunakan repositori NixOS untuk package management.
+nixPkgs = [
+    # ── PHP Runtime ──────────────────────────────────────────
+    "php82",                         # PHP versi 8.2
+
+    # ── PHP Extensions (wajib untuk Laravel 12 + Filament) ──
+    "php82Extensions.pdo",           # PHP Data Objects (abstraksi DB)
+    "php82Extensions.pdo_mysql",     # Driver koneksi ke MySQL/MariaDB
+    "php82Extensions.mbstring",      # String multibyte (wajib Laravel)
+    "php82Extensions.openssl",       # Enkripsi, SSL, hashing
+    "php82Extensions.tokenizer",     # PHP tokenizer (wajib Laravel)
+    "php82Extensions.ctype",         # Validasi tipe karakter
+    "php82Extensions.xml",           # Parser XML
+    "php82Extensions.dom",           # Manipulasi DOM/HTML
+    "php82Extensions.bcmath",        # Matematika presisi tinggi (nilai ujian)
+    "php82Extensions.curl",          # HTTP client (Guzzle, request eksternal)
+    "php82Extensions.fileinfo",      # Deteksi MIME type file upload
+    "php82Extensions.zip",           # Baca/tulis file ZIP (Excel export)
+    "php82Extensions.gd",            # Proses gambar (intervention/image)
+    "php82Extensions.intl",          # Format angka & tanggal internasional
+    "php82Extensions.sodium",        # Enkripsi modern (dipakai Laravel)
+
+    # ── Node.js (untuk build aset Vite) ─────────────────────
+    "nodejs_20",                     # Node.js 20 LTS
+]
+
+[phases.install]
+# Perintah yang dijalankan SEKALI saat build image (bukan saat startup).
+# Hasilnya di-cache Railway, sehingga deploy berikutnya lebih cepat.
+cmds = [
+    # Install PHP dependencies tanpa paket dev, dioptimasi untuk production.
+    # --no-interaction : tidak menampilkan prompt yang bisa menghang CI/CD
+    # --prefer-dist    : unduh archive zip (lebih cepat daripada clone git)
+    "composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist",
+
+    # Install Node.js dependencies.
+    # npm ci lebih cepat & aman daripada npm install di CI/CD
+    # (membaca package-lock.json, tidak mengubah versi)
+    "npm ci",
+
+    # Build aset frontend (Tailwind CSS + Alpine.js via Vite).
+    # Output: public/build/
+    "npm run build",
+]
+
+[start]
+# Perintah yang dijalankan SETIAP KALI container dimulai atau restart.
+# Migrasi DB, cache config, dan web server dijalankan dari start.sh.
+# Lihat start.sh untuk detail setiap langkah.
+cmd = "bash start.sh"
