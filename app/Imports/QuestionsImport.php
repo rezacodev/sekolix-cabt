@@ -18,7 +18,7 @@ class QuestionsImport implements ToCollection, WithHeadingRow
     public array $errors = [];
     public int $imported = 0;
 
-    private array $validTipe = ['PG', 'PG_BOBOT', 'PGJ', 'JODOH', 'ISIAN', 'URAIAN'];
+    private array $validTipe = ['PG', 'PG_BOBOT', 'PGJ', 'JODOH', 'ISIAN', 'URAIAN', 'BS', 'CLOZE'];
     private array $validKesulitan = ['mudah', 'sedang', 'sulit'];
 
     public function collection(Collection $rows): void
@@ -41,6 +41,7 @@ class QuestionsImport implements ToCollection, WithHeadingRow
                 'opsi_d'       => trim($row['opsi_d'] ?? ''),
                 'opsi_e'       => trim($row['opsi_e'] ?? ''),
                 'kunci'        => strtoupper(trim($row['kunci'] ?? '')),
+                'audio_url'    => trim($row['audio_url'] ?? ''),
             ];
 
             $validator = Validator::make($data, [
@@ -75,6 +76,7 @@ class QuestionsImport implements ToCollection, WithHeadingRow
                 'bobot'             => $data['bobot'],
                 'aktif'             => true,
                 'created_by'        => Auth::id(),
+                'audio_url'         => $data['audio_url'] ?: null,
             ]);
 
             // Buat opsi jawaban untuk tipe PG/PG_BOBOT/PGJ
@@ -102,6 +104,34 @@ class QuestionsImport implements ToCollection, WithHeadingRow
                         'aktif'       => true,
                     ]);
                 }
+            }
+
+            // Buat opsi B/S untuk tipe BS (kunci harus 'B' atau 'S')
+            if ($data['tipe_soal'] === 'BS') {
+                $kunci = strtoupper(trim($data['kunci']));
+                if (! in_array($kunci, ['B', 'S'])) {
+                    $this->errors[] = "Baris {$rowNumber}: Tipe BS harus memiliki kunci 'B' atau 'S'.";
+                    $question->delete();
+                    continue;
+                }
+                QuestionOption::create([
+                    'question_id' => $question->id,
+                    'kode_opsi'   => 'B',
+                    'teks_opsi'   => 'Benar',
+                    'is_correct'  => $kunci === 'B',
+                    'bobot_persen' => 100,
+                    'urutan'      => 0,
+                    'aktif'       => true,
+                ]);
+                QuestionOption::create([
+                    'question_id' => $question->id,
+                    'kode_opsi'   => 'S',
+                    'teks_opsi'   => 'Salah',
+                    'is_correct'  => $kunci === 'S',
+                    'bobot_persen' => 100,
+                    'urutan'      => 1,
+                    'aktif'       => true,
+                ]);
             }
 
             // Buat kata kunci untuk tipe ISIAN

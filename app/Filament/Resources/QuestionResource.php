@@ -4,8 +4,12 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\QuestionResource\Pages;
 use App\Models\Category;
+use App\Models\CurriculumStandard;
 use App\Models\Question;
+use App\Models\QuestionGroup;
+use App\Models\Tag;
 use App\Models\User;
+use App\Services\AuditLogService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
@@ -48,6 +52,14 @@ class QuestionResource extends Resource
                                 $set('options', []);
                                 $set('matches', []);
                                 $set('keywords', []);
+                                $set('clozeBlank', []);
+                                // Auto-populate B/S fixed options for BS type
+                                if ($state === Question::TIPE_BS) {
+                                    $set('options', [
+                                        ['kode_opsi' => 'B', 'teks_opsi' => 'Benar', 'is_correct' => true,  'bobot_persen' => 100, 'urutan' => 0],
+                                        ['kode_opsi' => 'S', 'teks_opsi' => 'Salah', 'is_correct' => false, 'bobot_persen' => 100, 'urutan' => 1],
+                                    ]);
+                                }
                             }),
 
                         Forms\Components\Select::make('kategori_id')
@@ -80,7 +92,59 @@ class QuestionResource extends Resource
                         Forms\Components\Toggle::make('aktif')
                             ->label('Aktif')
                             ->default(true),
+
+                        Forms\Components\Select::make('visibilitas')
+                            ->label('Visibilitas')
+                            ->options(Question::VISIBILITAS_LABELS)
+                            ->default(Question::VISIBILITAS_PRIVATE)
+                            ->required()
+                            ->native(false)
+                            ->helperText('Kontrol siapa yang dapat melihat soal ini di bank soal'),
+
+                        Forms\Components\Select::make('curriculum_standard_id')
+                            ->label('KD / CP')
+                            ->options(fn() => CurriculumStandard::query()
+                                ->orderBy('mata_pelajaran')->orderBy('kode')
+                                ->get()
+                                ->mapWithKeys(fn($s) => [$s->id => "[{$s->kode}] {$s->mata_pelajaran} — {$s->nama}"]))
+                            ->searchable()
+                            ->nullable()
+                            ->native(false)
+                            ->columnSpanFull(),
+
+                        Forms\Components\Select::make('bloom_level')
+                            ->label('Level Bloom')
+                            ->options(CurriculumStandard::BLOOM_LABELS)
+                            ->nullable()
+                            ->native(false),
+
+                        Forms\Components\TagsInput::make('tags')
+                            ->label('Tag')
+                            ->relationship('tags', 'nama')
+                            ->suggestions(fn() => Tag::pluck('nama')->toArray())
+                            ->nullable(),
                     ])->columns(3),
+
+                Forms\Components\Section::make('Pengelompokan Stimulus')
+                    ->schema([
+                        Forms\Components\Select::make('question_group_id')
+                            ->label('Grup Soal (Stimulus)')
+                            ->options(fn() => QuestionGroup::pluck('judul', 'id'))
+                            ->searchable()
+                            ->nullable()
+                            ->native(false)
+                            ->helperText('Pilih grup stimulus jika soal ini bagian dari bacaan/gambar/tabel bersama'),
+
+                        Forms\Components\TextInput::make('group_urutan')
+                            ->label('Urutan dalam Grup')
+                            ->numeric()
+                            ->default(1)
+                            ->minValue(1)
+                            ->helperText('Menentukan urutan soal di dalam grup'),
+                    ])
+                    ->columns(2)
+                    ->collapsible()
+                    ->collapsed(),
 
                 Forms\Components\Section::make('Teks Soal')
                     ->schema([
@@ -117,7 +181,7 @@ class QuestionResource extends Resource
                             ->columnSpanFull(),
                     ]),
 
-                // === Opsi Jawaban (PG, PG_BOBOT, PGJ) ===
+                // === Opsi Jawaban (PG, PG_BOBOT, PGJ, BS) ===
                 Forms\Components\Section::make('Opsi Jawaban')
                     ->schema([
                         Forms\Components\Repeater::make('options')
@@ -157,12 +221,16 @@ class QuestionResource extends Resource
                             ->addActionLabel('Tambah Opsi')
                             ->reorderableWithButtons()
                             ->collapsible()
-                            ->minItems(2),
+                            ->minItems(2)
+                            ->maxItems(fn(Get $get) => $get('tipe') === Question::TIPE_BS ? 2 : PHP_INT_MAX)
+                            ->addable(fn(Get $get) => $get('tipe') !== Question::TIPE_BS)
+                            ->deletable(fn(Get $get) => $get('tipe') !== Question::TIPE_BS),
                     ])
                     ->visible(fn(Get $get) => in_array($get('tipe'), [
                         Question::TIPE_PG,
                         Question::TIPE_PG_BOBOT,
                         Question::TIPE_PGJ,
+                        Question::TIPE_BS,
                     ])),
 
                 // === Pasangan Jodoh (JODOH) ===
@@ -210,6 +278,84 @@ class QuestionResource extends Resource
                             ->minItems(1),
                     ])
                     ->visible(fn(Get $get) => $get('tipe') === Question::TIPE_ISIAN),
+
+                // === Isian Teks / Blanks (CLOZE) ===
+                Forms\Components\Section::make('Isian Teks (CLOZE)')
+                    ->description('Tandai bagian yang dikosongkan dalam soal dengan [1], [2], dst. Isi jawaban benar tiap blank di bawah.')
+                    ->schema([
+                        Forms\Components\Repeater::make('clozeBlank')
+                            ->label('')
+                            ->relationship('clozeBlank')
+                            ->schema([
+                                Forms\Components\TextInput::make('urutan')
+                                    ->label('No.')
+                                    ->numeric()
+                                    ->default(1)
+                                    ->minValue(1)
+                                    ->required()
+                                    ->columnSpan(1),
+                                Forms\Components\TextInput::make('placeholder')
+                                    ->label('Placeholder [N]')
+                                    ->maxLength(20)
+                                    ->placeholder('misal: kota')
+                                    ->columnSpan(2),
+                                Forms\Components\Textarea::make('jawaban_benar')
+                                    ->label('Jawaban Benar')
+                                    ->required()
+                                    ->rows(1)
+                                    ->columnSpan(3),
+                                Forms\Components\Textarea::make('keywords_json')
+                                    ->label('Sinonim / Variasi (JSON array)')
+                                    ->placeholder('["Jakarta","Ibukota"]')
+                                    ->rows(1)
+                                    ->helperText('JSON array string variasi jawaban yang diterima')
+                                    ->nullable()
+                                    ->columnSpan(3),
+                                Forms\Components\Toggle::make('case_sensitive')
+                                    ->label('Case-sensitive')
+                                    ->default(false)
+                                    ->columnSpan(2),
+                            ])
+                            ->columns(11)
+                            ->addActionLabel('Tambah Blank')
+                            ->reorderableWithButtons()
+                            ->orderColumn('urutan')
+                            ->minItems(1),
+                    ])
+                    ->visible(fn(Get $get) => $get('tipe') === Question::TIPE_CLOZE),
+
+                // === Audio / Listening ===
+                Forms\Components\Section::make('Audio / Listening')
+                    ->schema([
+                        Forms\Components\FileUpload::make('audio_upload_temp')
+                            ->label('Upload File Audio')
+                            ->disk('public')
+                            ->directory('audio')
+                            ->acceptedFileTypes(['audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/mp3'])
+                            ->maxSize(fn() => \App\Models\AppSetting::getInt('max_audio_mb', 20) * 1024)
+                            ->nullable()
+                            ->dehydrated(false)
+                            ->live()
+                            ->afterStateUpdated(fn($state, Forms\Set $set) => $state ? $set('audio_url', $state) : null)
+                            ->helperText('Upload MP3/OGG/WAV. Atau isi URL audio eksternal di field bawah.'),
+                        Forms\Components\TextInput::make('audio_url')
+                            ->label('URL Audio (atau path hasil upload)')
+                            ->maxLength(500)
+                            ->nullable()
+                            ->columnSpanFull(),
+                        Forms\Components\TextInput::make('audio_play_limit')
+                            ->label('Batas Pemutaran')
+                            ->numeric()
+                            ->default(0)
+                            ->minValue(0)
+                            ->helperText('0 = tidak dibatasi'),
+                        Forms\Components\Toggle::make('audio_auto_play')
+                            ->label('Auto-play saat soal tampil')
+                            ->default(false),
+                    ])
+                    ->columns(2)
+                    ->collapsible()
+                    ->collapsed(),
             ]);
     }
 
@@ -268,6 +414,57 @@ class QuestionResource extends Resource
                 Tables\Columns\ToggleColumn::make('aktif')
                     ->label('Aktif'),
 
+                Tables\Columns\TextColumn::make('group.judul')
+                    ->label('Grup')
+                    ->placeholder('—')
+                    ->badge()
+                    ->color('gray')
+                    ->limit(30)
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('bloom_level')
+                    ->label('Bloom')
+                    ->badge()
+                    ->color(fn($state) => match ($state) {
+                        'C1', 'C2' => 'gray',
+                        'C3'       => 'info',
+                        'C4'       => 'warning',
+                        'C5', 'C6' => 'danger',
+                        default    => 'gray',
+                    })
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('standard.kode')
+                    ->label('KD/CP')
+                    ->placeholder('—')
+                    ->badge()
+                    ->color('primary')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\TextColumn::make('visibilitas')
+                    ->label('Visibilitas')
+                    ->badge()
+                    ->formatStateUsing(fn($state) => Question::VISIBILITAS_LABELS[$state] ?? $state)
+                    ->color(fn($state) => match ($state) {
+                        Question::VISIBILITAS_INTERNAL => 'warning',
+                        Question::VISIBILITAS_PUBLIK   => 'success',
+                        default                        => 'gray',
+                    })
+                    ->icon(fn($state) => match ($state) {
+                        Question::VISIBILITAS_INTERNAL => 'heroicon-o-user-group',
+                        Question::VISIBILITAS_PUBLIK   => 'heroicon-o-globe-alt',
+                        default                        => 'heroicon-o-lock-closed',
+                    }),
+
+                Tables\Columns\IconColumn::make('audio_url')
+                    ->label('Audio')
+                    ->boolean()
+                    ->falsy(null)
+                    ->trueIcon('heroicon-o-musical-note')
+                    ->falseIcon('')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('creator.name')
                     ->label('Dibuat Oleh')
                     ->placeholder('—')
@@ -306,15 +503,97 @@ class QuestionResource extends Resource
                     ->trueLabel('Terkunci')
                     ->falseLabel('Bebas')
                     ->placeholder('Semua'),
+
+                Tables\Filters\Filter::make('standalone')
+                    ->label('Soal Standalone')
+                    ->query(fn(\Illuminate\Database\Eloquent\Builder $query) => $query->whereNull('question_group_id'))
+                    ->toggle(),
+
+                Tables\Filters\Filter::make('in_group')
+                    ->label('Soal dalam Grup')
+                    ->query(fn(\Illuminate\Database\Eloquent\Builder $query) => $query->whereNotNull('question_group_id'))
+                    ->toggle(),
+
+                Tables\Filters\SelectFilter::make('question_group_id')
+                    ->label('Grup Stimulus')
+                    ->options(fn() => QuestionGroup::pluck('judul', 'id'))
+                    ->searchable(),
+
+                Tables\Filters\SelectFilter::make('bloom_level')
+                    ->label('Level Bloom')
+                    ->options(CurriculumStandard::BLOOM_LABELS),
+
+                Tables\Filters\SelectFilter::make('curriculum_standard_id')
+                    ->label('KD / CP')
+                    ->options(fn() => CurriculumStandard::query()
+                        ->orderBy('mata_pelajaran')->orderBy('kode')
+                        ->get()
+                        ->mapWithKeys(fn($s) => [$s->id => "[{$s->kode}] {$s->mata_pelajaran}"]))
+                    ->searchable(),
+
+                Tables\Filters\SelectFilter::make('tags')
+                    ->label('Tag')
+                    ->relationship('tags', 'nama')
+                    ->searchable()
+                    ->preload(),
+
+                Tables\Filters\SelectFilter::make('visibilitas')
+                    ->label('Visibilitas')
+                    ->options(Question::VISIBILITAS_LABELS),
+
+                Tables\Filters\Filter::make('soal_saya')
+                    ->label('Soal Saya')
+                    ->query(fn(\Illuminate\Database\Eloquent\Builder $query) => $query->where('created_by', Auth::id()))
+                    ->toggle(),
+
+                Tables\Filters\TernaryFilter::make('punya_audio')
+                    ->label('Audio')
+                    ->trueLabel('Ada Audio')
+                    ->falseLabel('Tanpa Audio')
+                    ->placeholder('Semua')
+                    ->queries(
+                        true: fn($q) => $q->whereNotNull('audio_url')->where('audio_url', '!=', ''),
+                        false: fn($q) => $q->where(fn($s) => $s->whereNull('audio_url')->orWhere('audio_url', '')),
+                        blank: fn($q) => $q,
+                    ),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make()
-                    ->requiresConfirmation(),
+                    ->requiresConfirmation()
+                    ->after(function (Question $record) {
+                        AuditLogService::log('hapus_soal', null, "Soal dihapus: ID {$record->id}");
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\BulkAction::make('jadikan_internal')
+                        ->label('Jadikan Internal')
+                        ->icon('heroicon-o-user-group')
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->modalHeading('Jadikan Soal Internal')
+                        ->modalDescription('Visibilitas soal yang dipilih akan diubah menjadi Internal (Semua Guru).')
+                        ->visible(fn() => Auth::user()?->level >= \App\Models\User::LEVEL_ADMIN)
+                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                            $records->each->update(['visibilitas' => Question::VISIBILITAS_INTERNAL]);
+                            Notification::make()->success()->title($records->count() . ' soal dijadikan internal.')->send();
+                        })
+                        ->deselectRecordsAfterCompletion(),
+                    Tables\Actions\BulkAction::make('publish_publik')
+                        ->label('Publish Publik')
+                        ->icon('heroicon-o-globe-alt')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->modalHeading('Publish Soal ke Publik')
+                        ->modalDescription('Visibilitas soal yang dipilih akan diubah menjadi Publik (Seluruh Sekolah).')
+                        ->visible(fn() => Auth::user()?->level >= \App\Models\User::LEVEL_ADMIN)
+                        ->action(function (\Illuminate\Database\Eloquent\Collection $records) {
+                            $records->each->update(['visibilitas' => Question::VISIBILITAS_PUBLIK]);
+                            Notification::make()->success()->title($records->count() . ' soal dipublikasikan.')->send();
+                        })
+                        ->deselectRecordsAfterCompletion(),
                     Tables\Actions\BulkAction::make('bulk_toggle_aktif')
                         ->label('Toggle Aktif/Nonaktif')
                         ->icon('heroicon-o-check-circle')
@@ -337,13 +616,37 @@ class QuestionResource extends Resource
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
         $query = parent::getEloquentQuery();
-        $user  = \Illuminate\Support\Facades\Auth::user();
+        $user  = Auth::user();
 
         if ($user->level === \App\Models\User::LEVEL_GURU) {
-            return $query->where('created_by', $user->id);
+            return $query->where(function ($q) use ($user) {
+                $q->where('created_by', $user->id)
+                    ->orWhereIn('visibilitas', [
+                        Question::VISIBILITAS_INTERNAL,
+                        Question::VISIBILITAS_PUBLIK,
+                    ]);
+            });
         }
 
         return $query;
+    }
+
+    public static function canEdit(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        $user = Auth::user();
+        if ($user->level >= \App\Models\User::LEVEL_ADMIN) {
+            return true;
+        }
+        return $record->created_by === $user->id;
+    }
+
+    public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool
+    {
+        $user = Auth::user();
+        if ($user->level >= \App\Models\User::LEVEL_ADMIN) {
+            return true;
+        }
+        return $record->created_by === $user->id;
     }
 
     public static function getRelations(): array

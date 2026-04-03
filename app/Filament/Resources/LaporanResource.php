@@ -183,6 +183,12 @@ class LaporanResource extends Resource
                     ->icon('heroicon-o-chart-pie')
                     ->color('gray')
                     ->url(fn(ExamSession $r) => Pages\StatistikSoal::getUrl(['record' => $r->id])),
+
+                Tables\Actions\Action::make('rekap_kecurangan')
+                    ->label('Kecurangan')
+                    ->icon('heroicon-o-shield-exclamation')
+                    ->color('danger')
+                    ->url(fn(ExamSession $r) => Pages\LaporanKecurangan::getUrl(['record' => $r->id])),
             ])
             ->bulkActions([]);
     }
@@ -194,6 +200,8 @@ class LaporanResource extends Resource
             'nilai'          => Pages\LaporanNilai::route('/{record}/nilai'),
             'kehadiran'      => Pages\LaporanKehadiran::route('/{record}/kehadiran'),
             'statistik-soal' => Pages\StatistikSoal::route('/{record}/statistik-soal'),
+            'komparasi'      => Pages\KomparasiSesi::route('/komparasi'),
+            'kecurangan'     => Pages\LaporanKecurangan::route('/{record}/kecurangan'),
         ];
     }
 }

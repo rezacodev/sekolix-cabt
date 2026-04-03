@@ -5,6 +5,7 @@
         $package = $session->package;
         $totalSoal = $soalList->count();
         $soalCount = $soalList->filter(fn ($q) => $q->isDijawab())->count();
+        $hasSections = $package->has_sections && $seksiAktif !== null;
     @endphp
 
     <div
@@ -18,11 +19,24 @@
             <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14 gap-3">
                 <div class="min-w-0">
                     <p class="text-sm font-semibold text-white truncate exam-hd-title">{{ $session->nama_sesi }}</p>
-                    <p class="text-xs text-slate-400 exam-hd-sub">{{ auth()->user()->name }}</p>
+                    <p class="text-xs text-slate-400 exam-hd-sub">
+                        {{ auth()->user()->name }}
+                    </p>
                 </div>
 
                 {{-- Timer --}}
                 <div class="flex items-center gap-2 shrink-0">
+                    @if ($hasSections)
+                    {{-- Section timer --}}
+                    <div class="text-center">
+                        <p class="text-xs text-slate-400 mb-0.5 exam-hd-sub">Sisa Bagian</p>
+                        <div
+                            class="font-mono text-lg font-bold tabular-nums px-3 py-1 rounded-md transition-colors exam-seksi-timer"
+                            :class="sisaSeksiDetik <= 120 ? 'bg-orange-500 text-white animate-pulse' : 'bg-indigo-700 text-white'"
+                            x-text="formatWaktu(sisaSeksiDetik)"
+                        ></div>
+                    </div>
+                    @endif
                     <div class="text-center">
                         <p class="text-xs text-slate-400 mb-0.5 exam-hd-sub">Sisa Waktu</p>
                         <div
@@ -31,6 +45,16 @@
                             x-text="formatWaktu(sisaDetik)"
                         ></div>
                     </div>
+                    <template x-if="waktuPerSoalDetik > 0">
+                        <div class="text-center">
+                            <p class="text-xs text-slate-400 mb-0.5">Per Soal</p>
+                            <div
+                                class="font-mono text-lg font-bold tabular-nums px-3 py-1 rounded-md transition-colors"
+                                :class="timerSoalSisa <= 10 ? 'bg-orange-500 text-white animate-pulse' : 'bg-slate-600 text-white'"
+                                x-text="timerSoalSisa"
+                            ></div>
+                        </div>
+                    </template>
                 </div>
 
                 {{-- Progress --}}
@@ -54,12 +78,32 @@
                 </button>
 
                 {{-- Submit --}}
+                @if ($hasSections)
+                <div class="flex items-center gap-2 shrink-0">
+                    @if ($navigasiSeksi === 'urut_kembali' && $seksiAktif->urutan > 1)
+                    <button @click="kembaliSeksi()"
+                        :disabled="sectionLoading"
+                        class="bg-slate-600 hover:bg-slate-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors disabled:opacity-50">
+                        ← Kembali
+                    </button>
+                    @endif
+                    <button @click="triggerSectionComplete(false)"
+                        class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+                        @if ($seksiAktif->urutan < $seksiList->count())
+                            Selesai Bagian →
+                        @else
+                            Selesai Ujian
+                        @endif
+                    </button>
+                </div>
+                @else
                 <form @submit.prevent="konfirmasiSubmit()" class="shrink-0">
                     <button type="submit"
                         class="bg-green-600 hover:bg-green-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
                         Selesai
                     </button>
                 </form>
+                @endif
             </div>
             {{-- Progress bar --}}
             <div class="h-1 bg-slate-700 exam-pb-bg">
@@ -82,6 +126,33 @@
                 </button>
             </div>
         </div>
+
+        @if ($hasSections)
+        {{-- ── SECTION COMPLETE MODAL ── --}}
+        <div x-show="showSectionComplete" x-cloak
+            class="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4"
+        >
+            <div class="bg-white rounded-xl text-gray-900 p-8 max-w-sm w-full text-center shadow-2xl">
+                <div class="text-5xl mb-4">⏱️</div>
+                <h2 class="text-xl font-bold mb-2" x-text="sectionCompleteTitle"></h2>
+                <p class="text-gray-600 text-sm mb-6" x-text="sectionCompleteMsg"></p>
+                <div class="flex gap-3">
+                    <button x-show="!sectionCompleteIsTimeout"
+                        @click="showSectionComplete = false"
+                        class="flex-1 bg-gray-100 text-gray-700 font-semibold py-3 rounded-lg hover:bg-gray-200 transition-colors">
+                        Batal
+                    </button>
+                    <button @click="lanjutSeksi()"
+                        :disabled="sectionLoading"
+                        :class="sectionCompleteIsTimeout ? 'w-full' : 'flex-1'"
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg disabled:opacity-50 transition-colors">
+                        <span x-show="!sectionLoading">Lanjutkan →</span>
+                        <span x-show="sectionLoading">Memproses…</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        @endif
 
         {{-- ── CONFIRM SUBMIT MODAL ── --}}
         <div x-show="showConfirmSubmit" x-cloak
@@ -111,13 +182,30 @@
             {{-- Sidebar nomor soal --}}
             <aside class="w-64 bg-slate-800 border-r border-slate-700 hidden lg:flex flex-col shrink-0 exam-sidebar">
                 <div class="px-4 py-3 border-b border-slate-700 shrink-0 exam-sb-border">
-                    <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider exam-sb-title">Navigasi Soal</p>
+                    @if ($hasSections)
+                        <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider exam-sb-title">Bagian {{ $seksiAktif->urutan }}/{{ $seksiList->count() }}: {{ $seksiAktif->nama }}</p>
+                        <p class="text-xs text-slate-500 mt-0.5">{{ $totalSoal }} soal bagian ini &bull; {{ $totalSoalSemua }} total</p>
+                    @else
+                        <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider exam-sb-title">Navigasi Soal</p>
+                    @endif
                 </div>
+                @if ($hasSections && $navigasiSeksi === 'bebas')
+                <div class="px-3 py-2 border-b border-slate-700 shrink-0 space-y-1">
+                    @foreach ($seksiList->sortBy('urutan') as $s)
+                    <button @click="switchSection({{ $s->id }})"
+                        :disabled="sectionLoading"
+                        :class="activeSectionId === {{ $s->id }} ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'"
+                        class="w-full text-left text-xs font-semibold px-3 py-2 rounded-lg transition-colors disabled:opacity-50">
+                        {{ $s->urutan }}. {{ $s->nama }}
+                    </button>
+                    @endforeach
+                </div>
+                @endif
                 <div class="flex-1 overflow-y-auto p-3 grid grid-cols-5 gap-1.5 content-start">
                     @foreach ($soalList as $aq)
                         <button
                             @click="scrollToSoal({{ $loop->index }})"
-                            :class="getSoalButtonClass({{ $aq->question_id }})"
+                            :class="[getSoalButtonClass({{ $aq->question_id }}), activeSoal === {{ $loop->index }} ? 'ring-2 ring-white ring-inset' : '']"
                             class="w-full aspect-square rounded text-xs font-semibold transition-colors"
                         >{{ $loop->iteration }}</button>
                     @endforeach
@@ -154,164 +242,129 @@
             {{-- Soal list --}}
             <main class="flex-1 overflow-y-auto p-4 sm:p-6 relative" id="soal-container">
 
-                {{-- ── WATERMARK peserta (fixed over soal area, pointer-events-none) ── --}}
-                <div aria-hidden="true"
-                    class="pointer-events-none select-none fixed inset-0 z-10 overflow-hidden"
-                    style="user-select:none;-webkit-user-select:none;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
-                        <defs>
-                            <pattern id="wm" x="0" y="0" width="340" height="140" patternUnits="userSpaceOnUse" patternTransform="rotate(-35)">
-                                <text x="10" y="60" font-family="sans-serif" font-size="13" fill="rgba(255,255,255,0.045)" font-weight="600">
-                                    {{ auth()->user()->name }}
-                                </text>
-                                <text x="10" y="82" font-family="sans-serif" font-size="11" fill="rgba(255,255,255,0.035)">
-                                    {{ auth()->user()->nomor_peserta ?? '' }}
-                                </text>
-                            </pattern>
-                        </defs>
-                        <rect width="100%" height="100%" fill="url(#wm)"/>
-                    </svg>
-                </div>
-
-                <div class="max-w-3xl mx-auto space-y-6 relative z-20">
+                <div class="max-w-5xl mx-auto space-y-6">
                     @foreach ($soalList as $aq)
-                        @php $q = $aq->question; @endphp
+                        @php
+                            $q     = $aq->question;
+                            $group = $q->group;
+                        @endphp
                         <div
                             id="soal-{{ $loop->index }}"
-                            class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden exam-card"
+                            class="rounded-xl border border-slate-700 overflow-hidden exam-card"
                             :class="activeSoal === {{ $loop->index }} ? 'ring-2 ring-indigo-500' : ''"
                         >
-                            {{-- Header soal --}}
-                            <div class="flex items-center justify-between px-5 py-3 bg-slate-750 border-b border-slate-700 exam-card-hd">
-                                <span class="text-slate-300 text-sm font-medium exam-card-label">Soal {{ $loop->iteration }}</span>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xs text-slate-500 uppercase exam-card-tipe">{{ $q->tipe }}</span>
-                                    {{-- Ragu-ragu toggle --}}
-                                    <button type="button"
-                                        @click.prevent="toggleRagu({{ $aq->question_id }}, !(states[{{ $aq->question_id }}]?.is_ragu), {{ $loop->index }})"
-                                        class="flex items-center gap-1.5 focus:outline-none"
-                                        title="Tandai ragu-ragu">
-                                        <span class="w-4 h-4 rounded transition-colors"
-                                            :class="states[{{ $aq->question_id }}]?.is_ragu ? 'bg-yellow-500' : 'bg-slate-600'">
-                                        </span>
-                                        <span class="text-xs text-slate-400 exam-card-label">Ragu</span>
-                                    </button>
-                                </div>
-                            </div>
-
-                            {{-- Konten soal --}}
-                            <div class="p-5">
-                                <div class="text-gray-100 mb-5 leading-relaxed prose prose-invert prose-sm max-w-none exam-soal-text">
-                                    {!! $q->teks_soal !!}
+                            {{-- ── GROUP SPLIT-PANEL WRAPPER ── --}}
+                            @if ($group)
+                                {{-- Single x-data scope for tab state shared between mobile toggle + panels --}}
+                                <div x-data="{ stimTab: false }">
+                                {{-- Mobile: tab toggle --}}
+                                <div class="lg:hidden flex border-b border-slate-700 bg-slate-800 exam-card-hd">
+                                    <button
+                                        @click="stimTab = false"
+                                        :class="!stimTab ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'"
+                                        class="flex-1 py-2 text-xs font-semibold transition-colors">Soal</button>
+                                    <button
+                                        @click="stimTab = true"
+                                        :class="stimTab ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'"
+                                        class="flex-1 py-2 text-xs font-semibold transition-colors">Materi</button>
                                 </div>
 
-                                {{-- ── PG / PG_BOBOT ── --}}
-                                @if (in_array($q->tipe, ['PG', 'PG_BOBOT']))
-                                    <div class="space-y-2">
-                                        @foreach ($q->options as $opt)
-                                            <label class="exam-option flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors
-                                                hover:bg-slate-700 has-[:checked]:bg-indigo-900/50 has-[:checked]:border-indigo-500 border border-transparent">
-                                                <input type="radio"
-                                                    name="jawaban_{{ $aq->question_id }}"
-                                                    value="{{ $opt->id }}"
-                                                    class="mt-0.5 accent-indigo-500"
-                                                    @change="simpanJawaban({{ $attempt->id }}, {{ $aq->question_id }}, '{{ $opt->id }}', {{ $loop->parent->index }})"
-                                                    @if ($aq->jawaban_peserta == $opt->id) checked @endif
-                                                >
-                                                <span class="text-gray-200 text-sm leading-relaxed exam-opt-text">{!! $opt->teks_opsi !!}</span>
-                                            </label>
-                                        @endforeach
-                                    </div>
-
-                                {{-- ── PGJ (pilih ganda jamak) ── --}}
-                                @elseif ($q->tipe === 'PGJ')
-                                    @php $jawabanPgj = json_decode($aq->jawaban_peserta ?: '[]', true) ?: []; @endphp
-                                    <div class="space-y-2">
-                                        @foreach ($q->options as $opt)
-                                            <label class="exam-option flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-colors
-                                                hover:bg-slate-700 has-[:checked]:bg-indigo-900/50 has-[:checked]:border-indigo-500 border border-transparent">
-                                                <input type="checkbox"
-                                                    name="jawaban_{{ $aq->question_id }}[]"
-                                                    value="{{ $opt->id }}"
-                                                    class="mt-0.5 accent-indigo-500"
-                                                    @change="togglePgj({{ $attempt->id }}, {{ $aq->question_id }}, {{ $opt->id }}, $event.target.checked, {{ $loop->parent->index }})"
-                                                    @if (in_array($opt->id, $jawabanPgj)) checked @endif
-                                                >
-                                                <span class="text-gray-200 text-sm leading-relaxed exam-opt-text">{!! $opt->teks_opsi !!}</span>
-                                            </label>
-                                        @endforeach
-                                    </div>
-
-                                {{-- ── JODOH ── --}}
-                                @elseif ($q->tipe === 'JODOH')
-                                    @php $jawabanJodoh = json_decode($aq->jawaban_peserta ?: '{}', true) ?: []; @endphp
-                                    <div class="space-y-3">
-                                        @foreach ($q->matches as $match)
-                                            <div class="flex items-center gap-3">
-                                                <span class="text-gray-200 text-sm flex-1 exam-opt-text">{!! $match->premis !!}</span>
-                                                <select
-                                                    class="exam-input bg-slate-700 border-slate-600 rounded-lg text-sm text-gray-200 flex-1
-                                                        focus:ring-indigo-500 focus:border-indigo-500"
-                                                    @change="simpanJodoh({{ $attempt->id }}, {{ $aq->question_id }}, {{ $match->id }}, $event.target.value, {{ $loop->parent->index }})"
-                                                >
-                                                    <option value="">-- Pilih --</option>
-                                                    @foreach ($q->matches as $opt)
-                                                        <option value="{{ $opt->id }}"
-                                                            @if (($jawabanJodoh[$match->id] ?? null) == $opt->id) selected @endif>
-                                                            {{ $opt->respon }}
-                                                        </option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                        @endforeach
-                                    </div>
-
-                                {{-- ── ISIAN ── --}}
-                                @elseif ($q->tipe === 'ISIAN')
-                                    <input type="text"
-                                        class="exam-input w-full bg-slate-700 border-slate-600 rounded-lg text-gray-200 text-sm
-                                            focus:ring-indigo-500 focus:border-indigo-500"
-                                        placeholder="Tulis jawaban Anda…"
-                                        value="{{ $aq->jawaban_peserta ?? '' }}"
-                                        @input.debounce.800ms="simpanJawaban({{ $attempt->id }}, {{ $aq->question_id }}, $event.target.value, {{ $loop->index }})"
+                                {{-- Split panel (lg+: side-by-side) --}}
+                                <div class="flex flex-col lg:flex-row exam-card-body">
+                                    {{-- Panel stimulus (kiri 40%) --}}
+                                    <div
+                                        class="lg:w-2/5 lg:max-h-[70vh] lg:overflow-y-auto border-b border-slate-700 lg:border-b-0 lg:border-r"
+                                        :class="stimTab ? '' : 'hidden lg:block'"
                                     >
-
-                                {{-- ── URAIAN ── --}}
-                                @elseif ($q->tipe === 'URAIAN')
-                                    <textarea
-                                        rows="5"
-                                        class="exam-input w-full bg-slate-700 border-slate-600 rounded-lg text-gray-200 text-sm
-                                            focus:ring-indigo-500 focus:border-indigo-500"
-                                        placeholder="Tulis jawaban Anda…"
-                                        @input.debounce.800ms="simpanJawaban({{ $attempt->id }}, {{ $aq->question_id }}, $event.target.value, {{ $loop->index }})"
-                                    >{{ $aq->jawaban_peserta ?? '' }}</textarea>
-                                    {{-- Upload file --}}
-                                    <div class="mt-3">
-                                        <label class="text-xs text-slate-400">Atau lampirkan file (PDF/JPG/PNG, maks 5MB):</label>
-                                        <input type="file" accept=".pdf,.jpg,.jpeg,.png"
-                                            class="mt-1 w-full text-sm text-slate-300 file:mr-3 file:py-1.5 file:px-3
-                                                file:rounded file:border-0 file:text-xs file:bg-indigo-600 file:text-white
-                                                hover:file:bg-indigo-500 cursor-pointer"
-                                            @change="uploadFile({{ $attempt->id }}, {{ $aq->question_id }}, $event.target.files[0], {{ $loop->index }})"
-                                        >
-                                        @if ($aq->jawaban_file)
-                                            <p class="text-xs text-green-400 mt-1">
-                                                ✓ File sudah diunggah
-                                            </p>
+                                        <div class="px-4 py-3 border-b border-slate-700 bg-slate-750 shrink-0 exam-card-hd hidden lg:flex items-center gap-2">
+                                            <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider exam-card-label">Stimulus</span>
+                                            <span class="text-xs text-slate-500 exam-card-tipe">{{ \App\Models\QuestionGroup::TIPE_STIMULUS_LABELS[$group->tipe_stimulus] ?? $group->tipe_stimulus }}</span>
+                                        </div>
+                                        @if ($group->deskripsi)
+                                            <p class="px-4 pt-3 text-xs text-slate-400 italic exam-card-label">{{ $group->deskripsi }}</p>
                                         @endif
+                                        <div class="p-4">
+                                            @if (in_array($group->tipe_stimulus, ['teks', 'tabel']))
+                                                <div class="prose prose-invert prose-sm max-w-none text-gray-200 exam-soal-text">
+                                                    {!! $group->konten !!}
+                                                </div>
+                                            @elseif ($group->tipe_stimulus === 'gambar')
+                                                <img src="{{ $group->konten }}" alt="Stimulus" class="max-w-full rounded-lg">
+                                            @elseif ($group->tipe_stimulus === 'audio')
+                                                <audio controls class="w-full">
+                                                    <source src="{{ $group->konten }}">
+                                                    Browser tidak mendukung audio.
+                                                </audio>
+                                            @elseif ($group->tipe_stimulus === 'video')
+                                                @php
+                                                    // detect YouTube embed
+                                                    $isYoutube = str_contains($group->konten, 'youtube.com') || str_contains($group->konten, 'youtu.be');
+                                                    $videoSrc  = $group->konten;
+                                                    if ($isYoutube) {
+                                                        preg_match('/(?:v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/', $videoSrc, $ytMatch);
+                                                        $videoSrc = isset($ytMatch[1]) ? 'https://www.youtube.com/embed/' . $ytMatch[1] : $videoSrc;
+                                                    }
+                                                @endphp
+                                                @if ($isYoutube)
+                                                    <div class="aspect-video">
+                                                        <iframe src="{{ $videoSrc }}" class="w-full h-full rounded-lg"
+                                                            allowfullscreen></iframe>
+                                                    </div>
+                                                @else
+                                                    <video controls class="w-full rounded-lg">
+                                                        <source src="{{ $group->konten }}">
+                                                        Browser tidak mendukung video.
+                                                    </video>
+                                                @endif
+                                            @endif
+                                        </div>
                                     </div>
-                                @endif
-                            </div>
+
+                                    {{-- Panel soal (kanan 60%) --}}
+                                    <div class="lg:w-3/5 lg:max-h-[70vh] lg:overflow-y-auto flex flex-col"
+                                        :class="stimTab ? 'hidden lg:flex' : 'flex flex-col'">
+                                        @include('peserta._soal-card', ['aq' => $aq, 'q' => $q, 'attempt' => $attempt, 'loop' => $loop])
+                                    </div>
+                                </div>
+                                </div>{{-- end x-data="{ stimTab }" --}}
+
+                            @else
+                                {{-- Standalone: layout full-width --}}
+                                <div class="exam-card-body">
+                                    @include('peserta._soal-card', ['aq' => $aq, 'q' => $q, 'attempt' => $attempt, 'loop' => $loop])
+                                </div>
+                            @endif
                         </div>
                     @endforeach
 
                     {{-- Bottom submit button --}}
                     <div class="pb-8 text-center">
+                        @if ($hasSections)
+                        <div class="inline-flex items-center gap-3 flex-wrap justify-center">
+                            @if ($navigasiSeksi === 'urut_kembali' && $seksiAktif->urutan > 1)
+                            <button @click="kembaliSeksi()"
+                                :disabled="sectionLoading"
+                                class="inline-flex items-center gap-2 bg-slate-600 hover:bg-slate-500 text-white font-semibold px-8 py-3 rounded-xl transition-colors text-base disabled:opacity-50">
+                                ← Kembali ke Bagian Sebelumnya
+                            </button>
+                            @endif
+                            <button @click="triggerSectionComplete(false)"
+                                class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold
+                                    px-8 py-3 rounded-xl transition-colors text-base">
+                                @if ($seksiAktif->urutan < $seksiList->count())
+                                    → Selesaikan Bagian {{ $seksiAktif->urutan }} &amp; Lanjut
+                                @else
+                                    ✓ Selesaikan Ujian
+                                @endif
+                            </button>
+                        </div>
+                        @else
                         <button @click="konfirmasiSubmit()"
                             class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white font-semibold
                                 px-8 py-3 rounded-xl transition-colors text-base">
                             ✓ Selesaikan Ujian
                         </button>
+                        @endif
                     </div>
                 </div>
             </main>
@@ -360,10 +413,17 @@
             {{-- Handle + header --}}
             <div class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-slate-700 shrink-0">
                 <div>
-                    <p class="text-sm font-semibold text-white">Navigasi Soal</p>
-                    <p class="text-xs text-slate-400 mt-0.5">
-                        <span class="font-bold text-white" x-text="soalTerjawab"></span> / {{ $totalSoal }} terjawab
-                    </p>
+                    @if ($hasSections)
+                        <p class="text-sm font-semibold text-white">Bagian {{ $seksiAktif->urutan }}/{{ $seksiList->count() }}: {{ $seksiAktif->nama }}</p>
+                        <p class="text-xs text-slate-400 mt-0.5">
+                            <span class="font-bold text-white" x-text="soalTerjawab"></span>/{{ $totalSoal }} bagian ini &bull; {{ $totalSoalSemua }} soal total
+                        </p>
+                    @else
+                        <p class="text-sm font-semibold text-white">Navigasi Soal</p>
+                        <p class="text-xs text-slate-400 mt-0.5">
+                            <span class="font-bold text-white" x-text="soalTerjawab"></span> / {{ $totalSoal }} terjawab
+                        </p>
+                    @endif
                 </div>
                 <button @click="showMobileNav = false" class="p-1.5 rounded-lg hover:bg-slate-700 text-slate-400 hover:text-white transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -372,12 +432,26 @@
                 </button>
             </div>
 
+            @if ($hasSections && $navigasiSeksi === 'bebas')
+            {{-- Section switcher for bebas mode --}}
+            <div class="px-4 py-2.5 border-b border-slate-700 shrink-0 flex flex-wrap gap-1.5">
+                @foreach ($seksiList->sortBy('urutan') as $s)
+                <button @click="switchSection({{ $s->id }}); showMobileNav = false"
+                    :disabled="sectionLoading"
+                    :class="activeSectionId === {{ $s->id }} ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-300'"
+                    class="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50">
+                    {{ $s->urutan }}. {{ $s->nama }}
+                </button>
+                @endforeach
+            </div>
+            @endif
+
             {{-- Soal grid --}}
             <div class="flex-1 overflow-y-auto p-4 grid grid-cols-8 sm:grid-cols-10 gap-2">
                 @foreach ($soalList as $aq)
                     <button
                         @click="scrollToSoal({{ $loop->index }}); showMobileNav = false"
-                        :class="getSoalButtonClass({{ $aq->question_id }})"
+                        :class="[getSoalButtonClass({{ $aq->question_id }}), activeSoal === {{ $loop->index }} ? 'ring-2 ring-white ring-inset' : '']"
                         class="w-full aspect-square rounded text-xs font-semibold transition-colors"
                     >{{ $loop->iteration }}</button>
                 @endforeach
@@ -410,6 +484,10 @@
         background-color: #e2e8f0 !important;
         color: #1e293b !important;
     }
+    body[data-theme="light"] .exam-seksi-timer:not(.bg-orange-500):not(.animate-pulse) {
+        background-color: #e0e7ff !important;
+        color: #3730a3 !important;
+    }
     body[data-theme="light"] .exam-pb-bg { background-color: #e2e8f0; }
     body[data-theme="light"] .exam-theme-btn { color: #64748b; }
     body[data-theme="light"] .exam-theme-btn:hover { background-color: #f1f5f9; color: #1e293b; }
@@ -432,6 +510,9 @@
     }
     body[data-theme="light"] .exam-nav-empty:hover {
         background-color: #cbd5e1 !important;
+    }
+    body[data-theme="light"] .exam-card-body {
+        background-color: #ffffff;
     }
     /* Soal cards */
     body[data-theme="light"] .exam-card {
@@ -492,6 +573,20 @@
                 ->mapWithKeys(fn ($aq) => [
                     $aq->question_id => json_decode($aq->jawaban_peserta ?: '{}') ?? (object)[],
                 ])->all(),
+            'hasSections'    => $hasSections,
+            'sisaSeksiDetik' => $hasSections ? $sisaSeksiDetik : null,
+            'sectionId'      => $hasSections ? $seksiAktif->id : null,
+            'sectionNama'    => $hasSections ? $seksiAktif->nama : null,
+            'sectionUrutan'  => $hasSections ? $seksiAktif->urutan : null,
+            'totalSeksi'      => $hasSections ? $seksiList->count() : null,
+            'navigasiSeksi'   => $hasSections ? $navigasiSeksi : null,
+            'visitedSections' => $hasSections ? $visitedSections->values()->all() : [],
+            'seksiList'       => $hasSections ? $seksiList->sortBy('urutan')->map(fn ($s) => [
+                'id'           => $s->id,
+                'nama'         => $s->nama,
+                'urutan'       => $s->urutan,
+                'durasi_menit' => $s->durasi_menit,
+            ])->values()->all() : [],
             'routes'         => [
                 'jawab'      => route('ujian.jawab'),
                 'uploadFile' => route('ujian.upload-file'),
@@ -505,6 +600,8 @@
             'pesertaName'        => auth()->user()->name,
             'pesertaNomor'       => auth()->user()->nomor_peserta ?? '',
             'maxTabSwitch'       => $maxTabSwitch ?? 3,
+            'waktuPerSoalDetik'  => $waktuPerSoalDetik ?? 0,
+            'navigasiPerSoal'    => $navigasiPerSoal ?? 'bebas',
         ];
     @endphp
     {{-- Exam init data (not parsed as JS by IDE) --}}
@@ -517,12 +614,21 @@
         return {
             attemptId: _d.attemptId,
             sisaDetik: _d.sisaDetik,
+            sisaSeksiDetik: _d.sisaSeksiDetik ?? 0,
+            navigasiSeksi: _d.navigasiSeksi,
+            activeSectionId: _d.sectionId,
+            visitedSections: _d.visitedSections ?? [],
             soalTerjawab: _d.soalTerjawab,
             totalSoal: _d.totalSoal,
             activeSoal: 0,
             tabWarning: false,
             tabWarningMsg: '',
             showConfirmSubmit: false,
+            showSectionComplete: false,
+            sectionCompleteTitle: '',
+            sectionCompleteMsg: '',
+            sectionLoading: false,
+            sectionCompleteIsTimeout: false,
             tabSwitchCount: _d.tabSwitchCount,
             maxTabSwitch: _d.maxTabSwitch,
             lightMode: localStorage.getItem('examTheme') === 'light',
@@ -530,6 +636,9 @@
             states: _d.states,
             pgjStates: _d.pgjStates,
             jodohStates: _d.jodohStates,
+            waktuPerSoalDetik: _d.waktuPerSoalDetik ?? 0,
+            navigasiPerSoal: _d.navigasiPerSoal ?? 'bebas',
+            timerSoalSisa: _d.waktuPerSoalDetik ?? 0,
 
             init() {
                 document.body.dataset.theme = this.lightMode ? 'light' : 'dark';
@@ -544,7 +653,46 @@
                         this.doAutoSubmit('timeout');
                     }
                 }, 1000);
+
+                // Section timer
+                // Hanya mode 'urut' yang force-advance saat timer habis.
+                // Mode urut_kembali / bebas: hitung mundur saja, tidak paksa pindah.
+                if (_d.hasSections) {
+                    const strictTimer = _d.navigasiSeksi === 'urut';
+                    const seksiInterval = setInterval(() => {
+                        if (this.sisaSeksiDetik > 0) this.sisaSeksiDetik--;
+                        if (this.sisaSeksiDetik <= 0) {
+                            clearInterval(seksiInterval);
+                            if (strictTimer) this.triggerSectionComplete(true);
+                        }
+                    }, 1000);
+                }
+
                 setInterval(() => this.pollStatus(), 30000);
+
+                // Per-question timer
+                if (this.waktuPerSoalDetik > 0) {
+                    this.timerSoalSisa = this.waktuPerSoalDetik;
+                    this._soalTimerInterval = setInterval(() => {
+                        if (this.timerSoalSisa > 0) this.timerSoalSisa--;
+                        if (this.timerSoalSisa <= 0) {
+                            if (this.navigasiPerSoal === 'maju') {
+                                // Auto-advance to next question
+                                const next = this.activeSoal + 1;
+                                if (next < this.totalSoal) {
+                                    this.activeSoal = next;
+                                }
+                            }
+                            // Reset timer for next soal
+                            this.timerSoalSisa = this.waktuPerSoalDetik;
+                        }
+                    }, 1000);
+
+                    // Reset timer when active question changes
+                    this.$watch('activeSoal', () => {
+                        this.timerSoalSisa = this.waktuPerSoalDetik;
+                    });
+                }
 
                 // Anti-kecurangan client-side
                 if (_d.preventCopyPaste) {
@@ -561,6 +709,76 @@
                     document.addEventListener('fullscreenchange', () => {
                         if (!document.fullscreenElement) { this.handleVisibility(); }
                     });
+                }
+            },
+
+            triggerSectionComplete(timeout = false) {
+                if (this._submitted || this.showSectionComplete) return;
+                this.sectionCompleteIsTimeout = timeout;
+                const canReturn = _d.navigasiSeksi === 'urut_kembali' || _d.navigasiSeksi === 'bebas';
+                const isLast = _d.sectionUrutan === _d.totalSeksi;
+                if (isLast) {
+                    this.sectionCompleteTitle = timeout ? 'Waktu Habis' : 'Selesaikan Ujian?';
+                    this.sectionCompleteMsg = timeout
+                        ? 'Waktu untuk bagian terakhir telah habis. Ujian akan dikumpulkan.'
+                        : 'Anda akan mengakhiri ujian ini. Seluruh jawaban akan dikumpulkan dan tidak dapat diubah lagi.';
+                } else if (timeout) {
+                    this.sectionCompleteTitle = 'Waktu Bagian Ini Habis';
+                    this.sectionCompleteMsg = `Waktu untuk Bagian ${_d.sectionUrutan} (${_d.sectionNama}) telah habis. Klik untuk melanjutkan ke bagian berikutnya.`;
+                } else if (canReturn) {
+                    this.sectionCompleteTitle = 'Pindah Bagian?';
+                    this.sectionCompleteMsg = `Anda akan pindah dari Bagian ${_d.sectionUrutan} (${_d.sectionNama}). Anda masih dapat kembali ke bagian ini kapan saja.`;
+                } else {
+                    this.sectionCompleteTitle = 'Selesaikan Bagian Ini?';
+                    this.sectionCompleteMsg = `Anda akan mengakhiri Bagian ${_d.sectionUrutan} (${_d.sectionNama}). Jawaban tidak dapat diubah setelah ini.`;
+                }
+                this.showSectionComplete = true;
+            },
+
+            async lanjutSeksi() {
+                await this._doSeksiRequest(null);
+            },
+
+            async kembaliSeksi() {
+                if (this.sectionLoading) return;
+                const seksiList = _d.seksiList ?? [];
+                const prev = seksiList.slice().reverse().find(s => s.urutan < _d.sectionUrutan);
+                if (!prev) return;
+                await this._doSeksiRequest(prev.id);
+            },
+
+            async switchSection(targetId) {
+                if (this.sectionLoading || targetId === this.activeSectionId) return;
+                await this._doSeksiRequest(targetId);
+            },
+
+            async _doSeksiRequest(targetSectionId) {
+                this.sectionLoading = true;
+                try {
+                    const body = {};
+                    if (targetSectionId !== null && targetSectionId !== undefined) {
+                        body.target_section_id = targetSectionId;
+                    }
+                    const res = await fetch(`${_d.routes.baseUrl}/${this.attemptId}/seksi/${_d.sectionId}/selesai`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                        },
+                        body: JSON.stringify(body),
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        if (data.is_last) {
+                            window.location.href = data.redirect_url;
+                        } else {
+                            window.location.reload();
+                        }
+                    } else {
+                        this.sectionLoading = false;
+                    }
+                } catch (e) {
+                    this.sectionLoading = false;
                 }
             },
 
@@ -599,15 +817,19 @@
             },
 
             scrollToSoal(index) {
+                // When navigasiPerSoal=maju and per-question timer is active, disallow going back
+                if (this.waktuPerSoalDetik > 0 && this.navigasiPerSoal === 'maju' && index < this.activeSoal) {
+                    return;
+                }
                 this.activeSoal = index;
                 const main = document.getElementById('soal-container');
-                const el = document.getElementById('soal-' + index);
+                const el   = document.getElementById('soal-' + index);
                 if (el && main) {
-                    const top = el.getBoundingClientRect().top
+                    const targetTop = el.getBoundingClientRect().top
                         - main.getBoundingClientRect().top
                         + main.scrollTop
                         - 16;
-                    main.scrollTo({ top, behavior: 'smooth' });
+                    main.scrollTo({ top: targetTop, behavior: 'smooth' });
                 }
             },
 
@@ -624,10 +846,11 @@
                     });
                     const data = await res.json();
                     if (data.success) {
-                        this.soalTerjawab = data.soal_terjawab;
+                        this.soalTerjawab = this.countDijawab();
                         this.sisaDetik = data.sisa_waktu_detik;
                         if (this.states[questionId]) {
                             this.states[questionId].dijawab = jawaban !== null && jawaban !== '';
+                            this.soalTerjawab = this.countDijawab();
                         }
                     }
                 } catch (e) {}
@@ -702,6 +925,9 @@
                     const data = await res.json();
                     if (data.success) {
                         this.sisaDetik = data.sisa_detik;
+                        if (_d.hasSections && data.sisa_seksi_detik !== undefined) {
+                            this.sisaSeksiDetik = data.sisa_seksi_detik;
+                        }
                         if (data.sisa_detik <= 0 && data.redirect_url) {
                             this.doAutoSubmit('timeout');
                         }

@@ -15,10 +15,12 @@ return new class extends Migration
             $table->id();
             $table->string('nama', 150);
             $table->unsignedBigInteger('parent_id')->nullable();
+            $table->unsignedBigInteger('created_by')->nullable();
             $table->text('deskripsi')->nullable();
             $table->timestamp('created_at')->useCurrent();
 
             $table->foreign('parent_id')->references('id')->on('categories')->nullOnDelete();
+            $table->foreign('created_by')->references('id')->on('users')->nullOnDelete();
         });
     }
 

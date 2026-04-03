@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\RombelResource\Pages;
 use App\Filament\Resources\RombelResource\RelationManagers;
 use App\Models\Rombel;
+use App\Services\AuditLogService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -158,7 +159,10 @@ class RombelResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->after(function (Rombel $record) {
+                        AuditLogService::log('hapus_rombel', null, "Rombel dihapus: {$record->kode} — {$record->nama}");
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

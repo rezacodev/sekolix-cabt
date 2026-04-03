@@ -21,6 +21,11 @@ return new class extends Migration
             $table->boolean('aktif')->default(true);
             $table->timestamps();
         });
+
+        // FK rombel_id on users — applied here because rombels did not exist when users was created
+        Schema::table('users', function (Blueprint $table) {
+            $table->foreign('rombel_id')->references('id')->on('rombels')->nullOnDelete();
+        });
     }
 
     /**
@@ -28,6 +33,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropForeign(['rombel_id']);
+        });
         Schema::dropIfExists('rombels');
     }
 };

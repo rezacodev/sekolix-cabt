@@ -11,8 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('exam_packages', function (Blueprint $table) {
-            $table->unsignedInteger('max_pengulangan')->default(1)->change();
+        Schema::create('tags', function (Blueprint $table) {
+            $table->id();
+            $table->string('nama', 100)->unique();
         });
     }
 
@@ -21,8 +22,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('exam_packages', function (Blueprint $table) {
-            $table->unsignedInteger('max_pengulangan')->default(0)->change();
-        });
+        Schema::dropIfExists('tags');
     }
 };

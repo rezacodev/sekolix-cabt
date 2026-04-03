@@ -70,7 +70,29 @@
     @endif
 
     <p class="section-title">CATATAN KEJADIAN</p>
+    @php $notes = $session->notes()->with('author')->orderBy('created_at')->get(); @endphp
+    @if ($notes->isEmpty())
     <p style="min-height:80px; border: 1px solid #000; padding: 8px; text-align:left">&nbsp;</p>
+    @else
+    <table style="width:100%; border-collapse:collapse; font-size:11px; margin-bottom:4px">
+        <thead>
+            <tr style="background:#f3f4f6">
+                <th style="border:1px solid #ccc; padding:4px 8px; width:18%; text-align:left">Waktu</th>
+                <th style="border:1px solid #ccc; padding:4px 8px; width:20%; text-align:left">Pengawas</th>
+                <th style="border:1px solid #ccc; padding:4px 8px; text-align:left">Catatan</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach ($notes as $note)
+            <tr>
+                <td style="border:1px solid #ccc; padding:4px 8px; vertical-align:top">{{ $note->created_at?->format('H:i, d M Y') }}</td>
+                <td style="border:1px solid #ccc; padding:4px 8px; vertical-align:top">{{ $note->author?->name ?? '—' }}</td>
+                <td style="border:1px solid #ccc; padding:4px 8px; vertical-align:top; white-space:pre-line">{{ $note->catatan }}</td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+    @endif
 
     <p style="margin-top:16px">
         Demikian Berita Acara ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.

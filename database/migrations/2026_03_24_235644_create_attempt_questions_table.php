@@ -13,11 +13,13 @@ return new class extends Migration
             $table->foreignId('attempt_id')->constrained('exam_attempts')->cascadeOnDelete();
             $table->foreignId('question_id')->constrained('questions')->cascadeOnDelete();
             $table->unsignedSmallInteger('urutan');
+            $table->unsignedBigInteger('section_id')->nullable()->index(); // FK applied in create_exam_sections_table
             $table->text('jawaban_peserta')->nullable();
             $table->string('jawaban_file', 255)->nullable();
             $table->decimal('nilai_perolehan', 5, 2)->nullable();
             $table->boolean('is_correct')->nullable();
             $table->boolean('is_ragu')->default(false);
+            $table->unsignedInteger('audio_play_count')->default(0);
             $table->dateTime('waktu_jawab')->nullable();
         });
     }

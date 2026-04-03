@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\AppSetting;
 use App\Models\User;
+use App\Services\AuditLogService;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -60,6 +61,7 @@ class GeneralSetting extends Page implements HasForms
             'prevent_right_click'          => AppSetting::getBool('prevent_right_click', false),
             'require_fullscreen'           => AppSetting::getBool('require_fullscreen', false),
             'max_upload_mb'                => AppSetting::getInt('max_upload_mb', 5),
+            'max_audio_mb'                 => AppSetting::getInt('max_audio_mb', 20),
             'ip_whitelist'                 => AppSetting::getString('ip_whitelist', ''),
 
             // Penilaian & Tampilan
@@ -70,6 +72,10 @@ class GeneralSetting extends Page implements HasForms
             // Livescore
             'show_livescore'               => AppSetting::getBool('show_livescore', true),
             'livescore_public'             => AppSetting::getBool('livescore_public', true),
+
+            // Notifikasi Email
+            'email_notifikasi_sesi'        => AppSetting::getBool('email_notifikasi_sesi', false),
+            'email_reminder_h1'            => AppSetting::getBool('email_reminder_h1', false),
         ]);
     }
 
@@ -195,6 +201,16 @@ class GeneralSetting extends Page implements HasForms
                             ->helperText('Ukuran maksimal file jawaban URAIAN yang dapat diunggah peserta.')
                             ->columnSpan(1),
 
+                        TextInput::make('max_audio_mb')
+                            ->label('Batas Ukuran File Audio')
+                            ->numeric()
+                            ->minValue(1)
+                            ->maxValue(100)
+                            ->default(20)
+                            ->suffix('MB')
+                            ->helperText('Ukuran maksimal file audio soal yang dapat diunggah guru.')
+                            ->columnSpan(1),
+
                         Textarea::make('ip_whitelist')
                             ->label('IP Whitelist Ujian')
                             ->rows(3)
@@ -237,6 +253,21 @@ class GeneralSetting extends Page implements HasForms
                             ->helperText('Jika nonaktif, livescore hanya dapat diakses oleh pengguna yang sudah login.')
                             ->columnSpan(1),
                     ]),
+
+                Section::make('Notifikasi Email')
+                    ->icon('heroicon-o-envelope')
+                    ->columns(2)
+                    ->schema([
+                        Toggle::make('email_notifikasi_sesi')
+                            ->label('Kirim Email Saat Peserta Ditetapkan ke Sesi')
+                            ->helperText('Peserta akan mendapat email berisi info sesi ujian saat di-assign. Membutuhkan konfigurasi MAIL_* di .env.')
+                            ->columnSpan(1),
+
+                        Toggle::make('email_reminder_h1')
+                            ->label('Kirim Reminder H-1 Ujian')
+                            ->helperText('Jalankan scheduler (exam:reminder) setiap hari pukul 07.00.')
+                            ->columnSpan(1),
+                    ]),
             ])
             ->statePath('data');
     }
@@ -265,6 +296,7 @@ class GeneralSetting extends Page implements HasForms
         AppSetting::set('prevent_right_click',          $state['prevent_right_click'],            'bool');
         AppSetting::set('require_fullscreen',           $state['require_fullscreen'],             'bool');
         AppSetting::set('max_upload_mb',                $state['max_upload_mb'],                  'int');
+        AppSetting::set('max_audio_mb',                 $state['max_audio_mb'],                   'int');
         AppSetting::set('ip_whitelist',                 $state['ip_whitelist'] ?? '',             'string');
 
         // Penilaian & Tampilan
@@ -275,6 +307,12 @@ class GeneralSetting extends Page implements HasForms
         // Livescore
         AppSetting::set('show_livescore',               $state['show_livescore'],                 'bool');
         AppSetting::set('livescore_public',             $state['livescore_public'],               'bool');
+
+        // Notifikasi Email
+        AppSetting::set('email_notifikasi_sesi',        $state['email_notifikasi_sesi'],          'bool');
+        AppSetting::set('email_reminder_h1',            $state['email_reminder_h1'],              'bool');
+
+        AuditLogService::log('update_pengaturan', null, 'Pengaturan umum diperbarui');
 
         Notification::make()
             ->success()

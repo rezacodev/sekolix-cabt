@@ -87,15 +87,14 @@ echo "✓  Direktori storage siap."
 # --------------------------------------------------------------
 # LANGKAH 3: Migrasi & seed database
 # --------------------------------------------------------------
-# HARUS dijalankan SEBELUM config:cache, karena beberapa artisan
-# command saat caching bisa mencoba query ke DB.
-# migrate:fresh menghapus semua tabel dan membuat ulang dari awal,
-# lalu seeder mengisi data demo. --force wajib di production.
+# migrate:fresh men-drop semua tabel lalu jalankan ulang semua migrasi
+# dan seeder. Data demo akan selalu fresh setiap redeploy (demo mode).
+# --force wajib di production agar tidak ditanya konfirmasi.
 # --------------------------------------------------------------
 echo ""
 echo "=== [3/6] Migrasi & seed database ==="
 php artisan migrate:fresh --seed --force
-echo "✓  Migrasi & seeder selesai."
+echo "✓  Migrasi & seed selesai."
 
 # --------------------------------------------------------------
 # LANGKAH 4: Cache konfigurasi Laravel

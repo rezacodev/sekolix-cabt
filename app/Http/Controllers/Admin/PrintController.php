@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\ExamBlueprint;
 use App\Models\ExamSession;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
@@ -48,6 +49,16 @@ class PrintController extends Controller
         $schoolLogoUrl = \App\Models\AppSetting::getString('school_logo_url', '');
 
         return view('print.berita-acara', compact('session', 'kehadiran', 'rekap', 'schoolName', 'schoolLogoUrl'));
+    }
+
+    /** Cetak kisi-kisi blueprint — printable */
+    public function blueprint(ExamBlueprint $blueprint)
+    {
+        $schoolName    = \App\Models\AppSetting::getString('school_name', '');
+        $schoolLogoUrl = \App\Models\AppSetting::getString('school_logo_url', '');
+        $blueprint->load(['items.category', 'items.standard', 'items.tag', 'creator']);
+
+        return view('print.kisi-kisi', compact('blueprint', 'schoolName', 'schoolLogoUrl'));
     }
 
     /** Pastikan Guru hanya cetak sesi miliknya. */

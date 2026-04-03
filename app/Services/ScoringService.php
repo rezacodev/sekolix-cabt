@@ -6,6 +6,7 @@ use App\Models\AttemptQuestion;
 use App\Models\ExamAttempt;
 use App\Models\ExamPackage;
 use App\Models\Question;
+use App\Models\QuestionClozeBlank;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -19,7 +20,14 @@ use Illuminate\Support\Facades\DB;
  *  PGJ      → bobot_soal × max(0, (benar_dipilih − salah_dipilih) / total_kunci_benar)
  *  JODOH    → bobot_soal × (pasangan_benar / total_pasangan)
  *  ISIAN    → bobot soal jika keyword cocok (case-insensitive/trim), 0 jika tidak
+ *  BS       → bobot soal jika jawaban benar (B/S), 0 jika salah/kosong
+ *  CLOZE    → bobot_soal × (blank_benar / total_blank) — partial credit per isian
  *  URAIAN   → null / null (tunggu penilaian manual)
+ *
+ * Poin negatif (nilai_negatif > 0):
+ *  Setiap jawaban salah dikurangi nilai_negatif.
+ *  Jika nilai_negatif_kosong = true, jawaban kosong pun dikurangi.
+ *  Jika nilai_negatif_clamp = true, nilai_perolehan tidak pernah < 0.
  *
  * nilai_akhir = (Σ nilai_perolehan / Σ bobot_max) × 100
  *
@@ -64,8 +72,13 @@ class ScoringService
     private function calculate(ExamAttempt $attempt, bool $skipAlreadyScored): ExamAttempt
     {
         $attemptQuestions = $attempt->questions()
-            ->with(['question.options', 'question.matches', 'question.keywords'])
+            ->with(['question.options', 'question.matches', 'question.keywords', 'question.clozeBlank'])
             ->get();
+
+        $package          = $attempt->examSession->package ?? null;
+        $nilaiNegatif     = (float) ($package?->nilai_negatif ?? 0);
+        $negatifKosong    = (bool) ($package?->nilai_negatif_kosong ?? false);
+        $negatifClamp     = (bool) ($package?->nilai_negatif_clamp ?? true);
 
         $sumNilai         = 0.0;
         $sumBobot         = 0.0;
@@ -91,14 +104,27 @@ class ScoringService
 
             // ── Soal kosong ───────────────────────────────────────────────────
             if ($aq->jawaban_peserta === null || $aq->jawaban_peserta === '') {
-                $aq->update(['nilai_perolehan' => 0.0, 'is_correct' => false]);
+                $penalty = ($nilaiNegatif > 0 && $negatifKosong) ? -$nilaiNegatif : 0.0;
+                if ($negatifClamp) {
+                    $penalty = max(0.0, $penalty);
+                }
+                $aq->update(['nilai_perolehan' => $penalty, 'is_correct' => false]);
                 $jumlahKosong++;
+                $sumNilai += $penalty;
                 continue;
             }
 
             // ── Hitung nilai per tipe ─────────────────────────────────────────
             $nilai     = $this->scoreQuestion($aq, $question);
             $isCorrect = $this->determineIsCorrect($question->tipe, $nilai, $bobot);
+
+            // ── Poin negatif untuk jawaban salah ─────────────────────────────
+            if ($nilaiNegatif > 0 && ! $isCorrect) {
+                $nilai = $nilai - $nilaiNegatif;
+                if ($negatifClamp) {
+                    $nilai = max(0.0, $nilai);
+                }
+            }
 
             $aq->update([
                 'nilai_perolehan' => round($nilai, 2),
@@ -141,6 +167,8 @@ class ScoringService
             Question::TIPE_PGJ      => $this->scorePgj($aq, $question),
             Question::TIPE_JODOH    => $this->scoreJodoh($aq, $question),
             Question::TIPE_ISIAN    => $this->scoreIsian($aq, $question),
+            Question::TIPE_BS       => $this->scoreBs($aq, $question),
+            Question::TIPE_CLOZE    => $this->scoreCloze($aq, $question),
             default                 => 0.0,
         };
     }
@@ -227,9 +255,68 @@ class ScoringService
         $jawaban  = mb_strtolower(trim($aq->jawaban_peserta ?? ''));
         $keywords = $question->keywords
             ->pluck('keyword')
-            ->map(fn ($k) => mb_strtolower(trim($k)));
+            ->map(fn($k) => mb_strtolower(trim($k)));
 
         return $keywords->contains($jawaban) ? (float) $question->bobot : 0.0;
+    }
+
+    /**
+     * BS — jawaban berupa teks 'B' atau 'S'.
+     */
+    private function scoreBs(AttemptQuestion $aq, Question $question): float
+    {
+        $jawaban   = strtoupper(trim($aq->jawaban_peserta ?? ''));
+        $isCorrect = $question->options
+            ->where('kode_opsi', $jawaban)
+            ->where('is_correct', true)
+            ->isNotEmpty();
+
+        return $isCorrect ? (float) $question->bobot : 0.0;
+    }
+
+    /**
+     * CLOZE — jawaban berupa JSON {"1": "...", "2": "..."}.
+     * Setiap blank dinilai seperti ISIAN (partial credit, per blank).
+     * Nilai = bobot × (blank_benar / total_blank).
+     */
+    private function scoreCloze(AttemptQuestion $aq, Question $question): float
+    {
+        $blanks = $question->clozeBlank;
+        if ($blanks->isEmpty()) {
+            return 0.0;
+        }
+
+        $answers = json_decode($aq->jawaban_peserta ?? '{}', true) ?? [];
+        $benar   = 0;
+
+        foreach ($blanks as $blank) {
+            $userAnswer = $blank->case_sensitive
+                ? trim($answers[(string) $blank->urutan] ?? '')
+                : mb_strtolower(trim($answers[(string) $blank->urutan] ?? ''));
+
+            if ($userAnswer === '') {
+                continue;
+            }
+
+            $correctAnswer = $blank->case_sensitive
+                ? trim($blank->jawaban_benar)
+                : mb_strtolower(trim($blank->jawaban_benar));
+
+            $keywords = [];
+            if ($blank->keywords_json) {
+                $raw      = json_decode($blank->keywords_json, true) ?? [];
+                $keywords = array_map(
+                    fn($k) => $blank->case_sensitive ? trim($k) : mb_strtolower(trim($k)),
+                    $raw
+                );
+            }
+
+            if ($userAnswer === $correctAnswer || in_array($userAnswer, $keywords, true)) {
+                $benar++;
+            }
+        }
+
+        return (float) $question->bobot * ($benar / $blanks->count());
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -249,10 +336,11 @@ class ScoringService
         return match ($tipe) {
             // PG_BOBOT: "benar" hanya jika dapat semua poin (100%)
             Question::TIPE_PG_BOBOT => abs($nilai - $bobot) < 0.001,
-            // PGJ, JODOH: "benar" jika dapat nilai > 0 (partial credit tetap benar)
+            // PGJ, JODOH, CLOZE: "benar" jika dapat nilai > 0 (partial credit tetap benar)
             Question::TIPE_PGJ,
-            Question::TIPE_JODOH    => $nilai > 0,
-            // PG, ISIAN: full or nothing
+            Question::TIPE_JODOH,
+            Question::TIPE_CLOZE    => $nilai > 0,
+            // PG, ISIAN, BS: full or nothing
             default                 => abs($nilai - $bobot) < 0.001,
         };
     }

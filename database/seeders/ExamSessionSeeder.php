@@ -57,8 +57,16 @@ class ExamSessionSeeder extends Seeder
         // Peserta untuk sesi (10 orang)
         $this->pesertaRombel = User::where('level', User::LEVEL_PESERTA)
             ->whereIn('nomor_peserta', [
-                'PST-001', 'PST-002', 'PST-003', 'PST-004', 'PST-005',
-                'PST-006', 'PST-007', 'PST-008', 'PST-009', 'PST-010',
+                'PST-001',
+                'PST-002',
+                'PST-003',
+                'PST-004',
+                'PST-005',
+                'PST-006',
+                'PST-007',
+                'PST-008',
+                'PST-009',
+                'PST-010',
             ])
             ->get()
             ->keyBy('nomor_peserta')
@@ -72,10 +80,11 @@ class ExamSessionSeeder extends Seeder
             'sejarah'    => ExamPackage::where('nama', 'like', 'Sejarah%')->first(),
             'tik'        => ExamPackage::where('nama', 'like', 'TIK%')->first(),
             'tryout'     => ExamPackage::where('nama', 'like', 'Tryout%')->first(),
+            'stimulus'   => ExamPackage::where('nama', 'Demo Soal Kelompok Stimulus')->first(),
         ];
 
         foreach ($this->packages as $key => $pkg) {
-            if (! $pkg) {
+            if (! $pkg && $key !== 'stimulus') {
                 $this->command->warn("Paket '{$key}' tidak ditemukan. Jalankan ExamPackageSeeder terlebih dahulu.");
                 return;
             }
@@ -95,6 +104,9 @@ class ExamSessionSeeder extends Seeder
         $s9  = $this->buatSesi('S9',  $this->packages['sejarah'],     'Ujian Sejarah — X IPS 1 (Sudah Selesai)', ExamSession::STATUS_SELESAI, now()->subDay()->subHours(2), now()->subDay(), null);
         $s10 = $this->buatSesi('S10', $this->packages['bindo'],       'Ujian B.Indonesia — X IPS 1 (Selesai, Nilai Tersembunyi)', ExamSession::STATUS_SELESAI, now()->subDays(3)->subHour(), now()->subDays(3), null);
         $s11 = $this->buatSesi('S11', $this->packages['tik'],         'Ujian TIK — X IPA 2 (Dibatalkan)', ExamSession::STATUS_DIBATALKAN, now()->subDay(), now()->subDay()->addHours(2), null);
+        $s12 = $this->packages['stimulus']
+            ? $this->buatSesi('S12', $this->packages['stimulus'], 'Demo Soal Kelompok Stimulus — Semua Kelas', ExamSession::STATUS_AKTIF, now()->subMinutes(10), now()->addHours(1), null)
+            : null;
 
         // ─── Daftarkan peserta ke masing-masing sesi ─────────────────────────
         $this->command->info('Mendaftarkan peserta...');
@@ -132,6 +144,11 @@ class ExamSessionSeeder extends Seeder
 
         // S11 — dibatalkan, tidak ada aktivitas
         $this->daftarPeserta($s11, array_values(array_slice($this->pesertaRombel, 0, 5)));
+
+        // S12 — demo stimulus, semua peserta terdaftar
+        if ($s12) {
+            $this->daftarPeserta($s12, array_values($this->pesertaRombel));
+        }
 
         // ─── Buat skenario attempt untuk Andi ────────────────────────────────
         $this->command->info('Membuat skenario attempt Andi...');
@@ -172,8 +189,8 @@ class ExamSessionSeeder extends Seeder
         ExamPackage $paket,
         string $namaSesi,
         string $status,
-        \Carbon\Carbon $mulai,
-        \Carbon\Carbon $selesai,
+        $mulai,
+        $selesai,
         ?string $token,
     ): ExamSession {
         $session = ExamSession::firstOrCreate(
@@ -218,8 +235,8 @@ class ExamSessionSeeder extends Seeder
         int $jumlahSalah,
         int $jumlahKosong,
         string $status,
-        \Carbon\Carbon $waktuMulai,
-        \Carbon\Carbon $waktuSelesai,
+        $waktuMulai,
+        $waktuSelesai,
     ): ?ExamAttempt {
         // Idempotent: skip jika attempt ke-X sudah ada
         $existing = ExamAttempt::where('exam_session_id', $session->id)
@@ -260,7 +277,7 @@ class ExamSessionSeeder extends Seeder
                     'nilai_perolehan' => $jawaban['nilai'],
                     'is_correct'      => $jawaban['correct'],
                     'is_ragu'         => $jawaban['ragu'],
-                    'waktu_jawab'     => $waktuMulai->copy()->addMinutes($urutan + 1),
+                    'waktu_jawab'     => (clone $waktuMulai)->addMinutes($urutan + 1),
                 ]);
             }
 
@@ -328,7 +345,7 @@ class ExamSessionSeeder extends Seeder
                     'nilai_perolehan' => null,
                     'is_correct'      => null,
                     'is_ragu'         => $dijawab && $urutan % 4 === 0, // beberapa soal ragu
-                    'waktu_jawab'     => $dijawab ? $waktuMulai->copy()->addMinutes($urutan + 1) : null,
+                    'waktu_jawab'     => $dijawab ? (clone $waktuMulai)->addMinutes($urutan + 1) : null,
                 ]);
             }
 

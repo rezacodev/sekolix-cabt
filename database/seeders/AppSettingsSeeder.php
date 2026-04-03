@@ -25,11 +25,12 @@ class AppSettingsSeeder extends Seeder
             // Anti-Kecurangan
             ['key' => 'max_tab_switch',               'value' => '3',            'tipe' => 'int'],
             ['key' => 'tab_switch_action',            'value' => 'warn',         'tipe' => 'string'],
-            ['key' => 'auto_submit_on_max_tab',       'value' => '1',            'tipe' => 'bool'],
+            ['key' => 'auto_submit_on_max_tab',       'value' => '0',            'tipe' => 'bool'],
             ['key' => 'prevent_copy_paste',           'value' => '0',            'tipe' => 'bool'],
             ['key' => 'prevent_right_click',          'value' => '0',            'tipe' => 'bool'],
             ['key' => 'require_fullscreen',           'value' => '0',            'tipe' => 'bool'],
             ['key' => 'max_upload_mb',                'value' => '5',            'tipe' => 'int'],
+            ['key' => 'max_audio_mb',                 'value' => '20',           'tipe' => 'int'],
             ['key' => 'ip_whitelist',                 'value' => '',             'tipe' => 'string'],
 
             // Penilaian & Tampilan
@@ -40,6 +41,10 @@ class AppSettingsSeeder extends Seeder
             // Livescore
             ['key' => 'show_livescore',               'value' => '1',            'tipe' => 'bool'],
             ['key' => 'livescore_public',             'value' => '1',            'tipe' => 'bool'],
+
+            // Notifikasi Email
+            ['key' => 'email_notifikasi_sesi',        'value' => '0',            'tipe' => 'bool'],
+            ['key' => 'email_reminder_h1',            'value' => '0',            'tipe' => 'bool'],
         ];
 
         foreach ($defaults as $row) {

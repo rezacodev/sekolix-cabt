@@ -65,6 +65,16 @@
                             <p class="text-sm font-semibold text-gray-800 truncate">{{ auth()->user()->name }}</p>
                             <p class="text-xs text-gray-500">{{ auth()->user()->email }}</p>
                         </div>
+                        <div class="px-2 py-1">
+                            <a href="{{ route('peserta.portofolio') }}"
+                                class="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                                </svg>
+                                Riwayat Saya
+                            </a>
+                        </div>
                         <form method="POST" action="{{ route('logout') }}" class="px-2 py-1">
                             @csrf
                             <button type="submit"

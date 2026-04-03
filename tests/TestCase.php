@@ -5,6 +5,7 @@ namespace Tests;
 use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
 
 /**
+ * @mixin \PHPUnit\Framework\Assert
  * @method void assertTrue(mixed $condition, string $message = '')
  * @method void assertFalse(mixed $condition, string $message = '')
  * @method void assertEquals(mixed $expected, mixed $actual, string $message = '')
@@ -18,6 +19,8 @@ use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
  * @method void assertContains(mixed $needle, iterable $haystack, string $message = '')
  * @method void assertStringContainsString(string $needle, string $haystack, string $message = '')
  * @method void assertArrayHasKey(string|int $key, array $array, string $message = '')
+ * @method void assertLessThan(mixed $expected, mixed $actual, string $message = '')
+ * @method void assertGreaterThan(mixed $expected, mixed $actual, string $message = '')
  * @method void assertInstanceOf(string $expected, mixed $actual, string $message = '')
  */
 abstract class TestCase extends BaseTestCase

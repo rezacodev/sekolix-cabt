@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\LaporanResource\Pages;
 
 use App\Filament\Resources\LaporanResource;
+use Filament\Actions\Action;
 use Filament\Resources\Pages\ListRecords;
 
 class ListLaporan extends ListRecords
@@ -11,7 +12,13 @@ class ListLaporan extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [];
+        return [
+            Action::make('komparasi')
+                ->label('Bandingkan Sesi')
+                ->icon('heroicon-o-scale')
+                ->color('info')
+                ->url(KomparasiSesi::getUrl()),
+        ];
     }
 
     public function getTitle(): string

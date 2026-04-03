@@ -18,6 +18,24 @@ class ExamPackage extends Model
         self::GRADING_MANUAL   => 'Manual',
     ];
 
+    const NAV_SEKSI_URUT         = 'urut';
+    const NAV_SEKSI_URUT_KEMBALI = 'urut_kembali';
+    const NAV_SEKSI_BEBAS        = 'bebas';
+
+    const NAV_SEKSI_LABELS = [
+        self::NAV_SEKSI_URUT         => 'Urut — wajib selesaikan tiap bagian, tidak bisa kembali',
+        self::NAV_SEKSI_URUT_KEMBALI => 'Urut + Kembali — wajib urut, tapi bisa kembali ke bagian sebelumnya',
+        self::NAV_SEKSI_BEBAS        => 'Bebas — bisa pindah ke bagian mana saja kapan saja',
+    ];
+
+    const NAV_SOAL_BEBAS = 'bebas';
+    const NAV_SOAL_MAJU  = 'maju';
+
+    const NAV_SOAL_LABELS = [
+        self::NAV_SOAL_BEBAS => 'Bebas — bisa kembali ke soal sebelumnya',
+        self::NAV_SOAL_MAJU  => 'Hanya Maju — tidak bisa kembali ke soal sebelumnya',
+    ];
+
     protected $fillable = [
         'nama',
         'deskripsi',
@@ -30,16 +48,34 @@ class ExamPackage extends Model
         'tampilkan_review',
         'grading_mode',
         'created_by',
+        'blueprint_id',
+        'has_sections',
+        'navigasi_seksi',
+        'nilai_negatif',
+        'nilai_negatif_kosong',
+        'nilai_negatif_clamp',
+        'waktu_per_soal_detik',
+        'waktu_per_soal_navigasi',
     ];
 
     protected function casts(): array
     {
         return [
-            'acak_soal'        => 'boolean',
-            'acak_opsi'        => 'boolean',
-            'tampilkan_hasil'  => 'boolean',
-            'tampilkan_review' => 'boolean',
+            'acak_soal'              => 'boolean',
+            'acak_opsi'              => 'boolean',
+            'tampilkan_hasil'        => 'boolean',
+            'tampilkan_review'       => 'boolean',
+            'has_sections'           => 'boolean',
+            'nilai_negatif'          => 'decimal:2',
+            'nilai_negatif_kosong'   => 'boolean',
+            'nilai_negatif_clamp'    => 'boolean',
+            'waktu_per_soal_detik'   => 'integer',
         ];
+    }
+
+    public function blueprint(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(ExamBlueprint::class, 'blueprint_id');
     }
 
     public function creator(): \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -60,6 +96,11 @@ class ExamPackage extends Model
     public function questionPivots(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(ExamPackageQuestion::class)->orderBy('urutan');
+    }
+
+    public function sections(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ExamSection::class, 'exam_package_id')->orderBy('urutan');
     }
 
     public function examSessions(): \Illuminate\Database\Eloquent\Relations\HasMany

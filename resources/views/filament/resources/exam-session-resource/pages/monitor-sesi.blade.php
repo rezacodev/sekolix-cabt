@@ -220,6 +220,50 @@
 
 </div>{{-- /wire:poll --}}
 
+{{-- ── Catatan Pengawas ─────────────────────────────────────────────────────── --}}
+<div class="rounded-xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 overflow-hidden mt-4">
+    <div class="px-5 py-4 border-b border-gray-100 dark:border-white/10 flex items-center gap-2">
+        <x-heroicon-o-pencil-square class="w-4 h-4 text-gray-400"/>
+        <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Catatan Pengawas</h3>
+    </div>
+
+    {{-- Daftar catatan --}}
+    <div class="divide-y divide-gray-50 dark:divide-white/5 max-h-64 overflow-y-auto">
+        @forelse ($notes as $note)
+        <div class="px-5 py-3">
+            <div class="flex items-center gap-2 mb-0.5">
+                <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">{{ $note->author?->name ?? '—' }}</span>
+                <span class="text-xs text-gray-400">{{ $note->created_at?->format('H:i, d M Y') }}</span>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">{{ $note->catatan }}</p>
+        </div>
+        @empty
+        <div class="px-5 py-6 text-center text-sm text-gray-400 dark:text-gray-500">
+            Belum ada catatan.
+        </div>
+        @endforelse
+    </div>
+
+    {{-- Form tambah catatan --}}
+    <div class="px-5 py-4 border-t border-gray-100 dark:border-white/10">
+        <textarea
+            wire:model="newNote"
+            rows="2"
+            placeholder="Tulis catatan pengawas…"
+            class="w-full rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-800 text-sm text-gray-700 dark:text-gray-200 placeholder-gray-400 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 resize-none"></textarea>
+        <div class="mt-2 flex justify-end">
+            <button
+                wire:click="addNote"
+                wire:loading.attr="disabled"
+                type="button"
+                class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold disabled:opacity-60 transition-colors">
+                <span wire:loading wire:target="addNote" class="animate-spin inline-block w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full"></span>
+                Simpan Catatan
+            </button>
+        </div>
+    </div>
+</div>
+
 {{-- ── Kick Confirmation Modal ─────────────────────────────────────────────── --}}
 <div
     x-data="{ open: $wire.entangle('showKickModal') }"

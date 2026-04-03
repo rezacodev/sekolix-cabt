@@ -45,6 +45,54 @@
                         <p class="font-bold text-gray-900">{{ $session->package->acak_soal ? 'Ya' : 'Tidak' }}</p>
                     </div>
                 </div>
+
+                @if ($seksiInfo !== null)
+                {{-- Tabel bagian ujian --}}
+                <div class="mt-5 border-t border-gray-100 pt-5">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-sm font-semibold text-gray-700">
+                            Ujian ini terdiri dari <span class="text-indigo-600">{{ $seksiInfo->count() }} bagian</span>
+                            — total <span class="text-indigo-600">{{ $seksiInfo->sum('questions_count') }} soal</span>
+                        </p>
+                        @php $navLabel = \App\Models\ExamPackage::NAV_SEKSI_LABELS[$session->package->navigasi_seksi] ?? '—'; @endphp
+                        <span class="text-xs px-2 py-1 rounded-full font-medium
+                            {{ $session->package->navigasi_seksi === 'bebas' ? 'bg-green-100 text-green-700' :
+                               ($session->package->navigasi_seksi === 'urut_kembali' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600') }}">
+                            @if ($session->package->navigasi_seksi === 'bebas') 🔀 Bebas
+                            @elseif ($session->package->navigasi_seksi === 'urut_kembali') ↩ Bisa Kembali
+                            @else ➡ Wajib Urut @endif
+                        </span>
+                    </div>
+                    <div class="space-y-2">
+                        @foreach ($seksiInfo as $seksi)
+                        <div class="flex items-center gap-3 bg-indigo-50 rounded-xl px-4 py-3">
+                            <span class="w-7 h-7 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center shrink-0">
+                                {{ $seksi->urutan }}
+                            </span>
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-gray-900 text-sm">{{ $seksi->nama }}</p>
+                                <p class="text-xs text-gray-500 mt-0.5">
+                                    {{ $seksi->questions_count }} soal &bull; {{ $seksi->durasi_menit }} menit
+                                    @if ($seksi->acak_soal) &bull; acak @endif
+                                </p>
+                            </div>
+                            <span class="text-sm font-mono font-semibold text-indigo-700 shrink-0">
+                                {{ str_pad($seksi->durasi_menit, 2, '0', STR_PAD_LEFT) }}:00
+                            </span>
+                        </div>
+                        @endforeach
+                    </div>
+                    <p class="text-xs text-gray-400 mt-3 leading-relaxed">
+                        @if ($session->package->navigasi_seksi === 'bebas')
+                            Anda dapat berpindah ke bagian mana saja kapan saja. Timer tiap bagian berjalan sejak pertama kali dibuka.
+                        @elseif ($session->package->navigasi_seksi === 'urut_kembali')
+                            Kerjakan bagian secara berurutan. Setelah melanjutkan, Anda masih bisa kembali ke bagian sebelumnya selama waktu belum habis.
+                        @else
+                            Kerjakan bagian secara berurutan. Setelah selesai satu bagian, <strong class="text-gray-600">tidak bisa kembali</strong> ke bagian sebelumnya.
+                        @endif
+                    </p>
+                </div>
+                @endif
             </div>
         </div>
 
@@ -78,13 +126,31 @@
                                 <span>Anda tidak dapat submit sebelum <strong>{{ $session->package->waktu_minimal_menit }} menit</strong> berlalu.</span>
                             </li>
                         @endif
+                        @if (($session->package->nilai_negatif ?? 0) > 0)
+                            <li class="flex items-start gap-2 text-red-700 font-medium">
+                                <span class="shrink-0 mt-0.5">•</span>
+                                <span>Ujian ini menggunakan <strong>penilaian negatif</strong>: setiap jawaban yang salah
+                                    akan dikurangi <strong>{{ $session->package->nilai_negatif }}</strong> poin.
+                                    {{ $session->package->nilai_negatif_kosong ? 'Jawaban kosong pun ikut dikurangi.' : 'Jawaban kosong tidak dikurangi.' }}
+                                </span>
+                            </li>
+                        @endif
+                        @if (($session->package->waktu_per_soal_detik ?? 0) > 0)
+                            <li class="flex items-start gap-2">
+                                <span class="shrink-0 mt-0.5">•</span>
+                                <span>Setiap soal memiliki batas waktu <strong>{{ $session->package->waktu_per_soal_detik }} detik</strong>.
+                                    {{ $session->package->waktu_per_soal_navigasi === 'maju' ? 'Saat waktu habis, soal otomatis pindah ke berikutnya dan Anda tidak bisa kembali.' : 'Saat waktu habis, Anda masih bisa jawab soal lain.' }}
+                                </span>
+                            </li>
+                        @endif
                     </ul>
                 </div>
             </div>
         </div>
 
         {{-- Form --}}
-        <form action="{{ route('ujian.mulai', $session->id) }}" method="POST">
+        <form action="{{ route('ujian.mulai', $session->id) }}" method="POST"
+            x-data="{ loading: false }" @submit="loading = true">
             @csrf
 
             @if ($session->token_akses)
@@ -116,10 +182,9 @@
                 </div>
             @endif
 
-            <div x-data="{ loading: false }">
+            <div>
                 <button
                     type="submit"
-                    @click="loading = true"
                     :disabled="loading"
                     :class="loading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-indigo-700 active:bg-indigo-800'"
                     class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-2xl shadow-sm transition-colors text-base flex items-center justify-center gap-2">

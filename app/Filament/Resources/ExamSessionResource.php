@@ -7,6 +7,7 @@ use App\Filament\Resources\ExamSessionResource\RelationManagers;
 use App\Models\ExamPackage;
 use App\Models\ExamSession;
 use App\Models\User;
+use App\Services\AuditLogService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -190,6 +191,7 @@ class ExamSessionResource extends Resource
                     ->visible(fn(ExamSession $record) => $record->canBuka())
                     ->action(function (ExamSession $record) {
                         $record->update(['status' => ExamSession::STATUS_AKTIF]);
+                        AuditLogService::log('buka_sesi', $record, "Sesi dibuka: {$record->nama_sesi}");
                         Notification::make()->success()->title('Sesi dibuka')->send();
                     }),
 
@@ -204,6 +206,7 @@ class ExamSessionResource extends Resource
                     ->visible(fn(ExamSession $record) => $record->canTutup())
                     ->action(function (ExamSession $record) {
                         $record->update(['status' => ExamSession::STATUS_SELESAI]);
+                        AuditLogService::log('tutup_sesi', $record, "Sesi ditutup: {$record->nama_sesi}");
                         Notification::make()->success()->title('Sesi ditutup')->send();
                     }),
 

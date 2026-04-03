@@ -166,16 +166,58 @@ class ExamPackageSeeder extends Seeder
                 // Campuran: Matematika (7) + B.Indo (6) + IPA (6) + Sejarah (5) + TIK (6) = 30
                 'soal_ids'            => [
                     // Matematika mix: Aljabar PG + PGJ + ISIAN + URAIAN; Geometri JODOH; Trigonometri PG
-                    1, 3, 6, 18, 21, 23, 25,
+                    1,
+                    3,
+                    6,
+                    18,
+                    21,
+                    23,
+                    25,
                     // Bahasa Indonesia: PG + PGJ + JODOH + ISIAN + URAIAN
-                    27, 31, 32, 33, 35, 36,
+                    27,
+                    31,
+                    32,
+                    33,
+                    35,
+                    36,
                     // IPA: Fisika PG + Biologi PG + URAIAN + Kimia PG + URAIAN
-                    37, 42, 47, 49, 50, 56,
+                    37,
+                    42,
+                    47,
+                    49,
+                    50,
+                    56,
                     // Sejarah: PG + PGJ + ISIAN + URAIAN
-                    57, 62, 63, 64, 66,
+                    57,
+                    62,
+                    63,
+                    64,
+                    66,
                     // TIK: Jaringan PG + PGJ + JODOH + Algoritma PGJ + ISIAN + URAIAN
-                    67, 71, 72, 76, 78, 80,
+                    67,
+                    71,
+                    72,
+                    76,
+                    78,
+                    80,
                 ],
+            ],
+
+            // ── 7. Demo Soal Kelompok (Stimulus) ───────────────────────────────
+            [
+                'nama'                => 'Demo Soal Kelompok Stimulus',
+                'deskripsi'           => 'Paket khusus demonstrasi fitur soal kelompok (stimulus). Berisi 9 soal yang terbagi dalam 3 grup stimulus: Teks Bacaan (B.Indo), Tabel Distribusi Frekuensi (Matematika), dan Sistem Peredaran Darah (IPA). Cocok untuk menguji tampilan split-panel.',
+                'durasi_menit'        => 30,
+                'waktu_minimal_menit' => 5,
+                'acak_soal'           => false,
+                'acak_opsi'           => false,
+                'max_pengulangan'     => 0,
+                'tampilkan_hasil'     => true,
+                'tampilkan_review'    => true,
+                'grading_mode'        => 'realtime',
+                'created_by'          => $adminId,
+                // B.Indo stimulus: 81,82,83,84 | Statistika stimulus: 85,86,87 | Biologi stimulus: 88,89
+                'soal_ids'            => [81, 82, 83, 84, 85, 86, 87, 88, 89],
             ],
 
         ];

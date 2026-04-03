@@ -81,6 +81,11 @@ class ExamSession extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function notes(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(SessionNote::class, 'exam_session_id')->orderBy('created_at');
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     public function isDraft(): bool

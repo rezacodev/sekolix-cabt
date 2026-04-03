@@ -14,6 +14,11 @@ return new class extends Migration
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->tinyInteger('level')->default(1); // 1=peserta,2=guru,3=admin,4=super_admin
+            $table->string('username')->unique()->nullable();
+            $table->string('nomor_peserta')->unique()->nullable();
+            $table->unsignedBigInteger('rombel_id')->nullable()->index(); // FK applied in create_rombels_table
+            $table->boolean('aktif')->default(true);
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');

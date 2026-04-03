@@ -2,7 +2,7 @@
     <x-slot name="title">Dashboard — {{ config('app.name') }}</x-slot>
 
     {{-- Welcome Banner --}}
-    <div class="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl px-6 py-6 mb-8 flex items-center justify-between gap-4 shadow-sm">
+    <div class="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl px-6 py-6 mb-6 flex items-center justify-between gap-4 shadow-sm">
         <div>
             <p class="text-indigo-200 text-sm font-medium mb-0.5">Selamat datang kembali,</p>
             <h1 class="text-2xl font-bold text-white">{{ auth()->user()->name }}</h1>
@@ -16,6 +16,114 @@
             </span>
         </div>
     </div>
+
+    {{-- Pengumuman --}}
+    @if ($announcements->isNotEmpty())
+    <div class="mb-6 flex flex-col gap-3" x-data="pengumuman()">
+        @foreach ($announcements as $ann)
+        @php
+            $annId     = 'ann_' . $ann->id;
+            $tipeCss   = match ($ann->tipe) {
+                'warning' => 'bg-amber-50 border-amber-300 text-amber-800',
+                'penting' => 'bg-red-50 border-red-300 text-red-800',
+                default   => 'bg-blue-50 border-blue-300 text-blue-800',
+            };
+            $iconColor = match ($ann->tipe) {
+                'warning' => 'text-amber-500',
+                'penting' => 'text-red-500',
+                default   => 'text-blue-500',
+            };
+        @endphp
+        <div
+            x-show="!dismissed('{{ $annId }}')"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 -translate-y-1"
+            class="flex items-start gap-3 border rounded-xl px-4 py-3 {{ $tipeCss }}">
+            <svg class="w-5 h-5 {{ $iconColor }} shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+            </svg>
+            <div class="flex-1 min-w-0">
+                <p class="font-semibold text-sm">{{ $ann->judul }}</p>
+                <p class="text-sm mt-0.5 whitespace-pre-line">{{ $ann->isi }}</p>
+            </div>
+            <button @click="dismiss('{{ $annId }}')" class="shrink-0 opacity-60 hover:opacity-100 transition-opacity ml-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        @endforeach
+    </div>
+    @push('scripts')
+    <script>
+    function pengumuman() {
+        return {
+            dismissed(id) {
+                try { return JSON.parse(localStorage.getItem('ann_dismissed') || '[]').includes(id); }
+                catch { return false; }
+            },
+            dismiss(id) {
+                try {
+                    const list = JSON.parse(localStorage.getItem('ann_dismissed') || '[]');
+                    if (!list.includes(id)) list.push(id);
+                    localStorage.setItem('ann_dismissed', JSON.stringify(list));
+                } catch {}
+            },
+        };
+    }
+    </script>
+    @endpush
+    @endif
+
+    {{-- Ujian 7 Hari ke Depan --}}
+    @php
+        $upcoming = $sessions->filter(function ($item) {
+            $waktu = $item['session']->waktu_mulai;
+            return $waktu && $waktu->isFuture() && $waktu->diffInDays(now()) <= 7;
+        })->sortBy(fn($item) => $item['session']->waktu_mulai)->values();
+    @endphp
+    @if ($upcoming->isNotEmpty())
+    <div class="mb-6">
+        <h2 class="font-semibold text-gray-700 mb-3">
+            <span class="inline-flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                Jadwal 7 Hari ke Depan
+            </span>
+        </h2>
+        <div class="flex flex-col gap-2">
+            @foreach ($upcoming as $item)
+            @php
+                $s = $item['session'];
+                $daysLeft = (int) now()->diffInDays($s->waktu_mulai, false);
+                $dayLabel = $daysLeft === 0 ? 'Hari ini' : ($daysLeft === 1 ? 'Besok' : "{{ $daysLeft }} hari lagi");
+                $dayColor = $daysLeft === 0 ? 'text-red-600 bg-red-50' : ($daysLeft <= 2 ? 'text-amber-600 bg-amber-50' : 'text-indigo-600 bg-indigo-50');
+            @endphp
+            <div class="flex items-center gap-3 bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-sm">
+                <div class="shrink-0 text-center min-w-[52px]">
+                    <p class="text-xs font-bold uppercase text-gray-400">{{ $s->waktu_mulai->translatedFormat('D') }}</p>
+                    <p class="text-lg font-extrabold text-gray-900 leading-none">{{ $s->waktu_mulai->format('d') }}</p>
+                    <p class="text-xs text-gray-400">{{ $s->waktu_mulai->translatedFormat('M') }}</p>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-gray-900 truncate">{{ $s->nama_sesi }}</p>
+                    <p class="text-xs text-gray-400">{{ $s->waktu_mulai->format('H:i') }} — {{ $s->waktu_selesai?->format('H:i') }}</p>
+                </div>
+                <span class="shrink-0 text-xs font-semibold px-2.5 py-1 rounded-full {{ $dayColor }}">
+                    @if ($daysLeft === 0) Hari ini
+                    @elseif ($daysLeft === 1) Besok
+                    @else {{ $daysLeft }} hari lagi
+                    @endif
+                </span>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
 
     @if ($sessions->isEmpty())
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-12 text-center">

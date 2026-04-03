@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\Rombel;
 use App\Models\User;
+use App\Services\AuditLogService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -172,6 +173,12 @@ class UserResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('lihat_portofolio')
+                    ->label('Portofolio')
+                    ->icon('heroicon-o-chart-bar')
+                    ->color('info')
+                    ->visible(fn(User $record) => $record->level === User::LEVEL_PESERTA)
+                    ->url(fn(User $record) => Pages\PesertaPortfolio::getUrl(['record' => $record->id])),
                 Tables\Actions\Action::make('reset_password')
                     ->label('Reset Password')
                     ->icon('heroicon-o-key')
@@ -186,6 +193,7 @@ class UserResource extends Resource
                     ])
                     ->action(function (User $record, array $data) {
                         $record->update(['password' => Hash::make($data['new_password'])]);
+                        AuditLogService::log('reset_password', $record, "Reset password user: {$record->name}");
                         Notification::make()
                             ->title('Password berhasil direset.')
                             ->success()
@@ -205,6 +213,7 @@ class UserResource extends Resource
                         \Illuminate\Support\Facades\DB::table('sessions')
                             ->where('user_id', $record->id)
                             ->delete();
+                        AuditLogService::log('paksa_logout', $record, "Paksa logout user: {$record->name}");
                         Notification::make()
                             ->title("Sesi {$record->name} berhasil dihapus.")
                             ->success()
@@ -247,6 +256,7 @@ class UserResource extends Resource
                             foreach ($records as $record) {
                                 $record->update(['password' => $hashed]);
                             }
+                            AuditLogService::log('bulk_reset_password', null, 'Bulk reset password untuk ' . $records->count() . ' user');
                             Notification::make()->success()->title('Password berhasil direset untuk ' . $records->count() . ' user.')->send();
                         })
                         ->modalHeading('Reset Password Massal')
@@ -263,9 +273,10 @@ class UserResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListUsers::route('/'),
-            'create' => Pages\CreateUser::route('/create'),
-            'edit'   => Pages\EditUser::route('/{record}/edit'),
+            'index'      => Pages\ListUsers::route('/'),
+            'create'     => Pages\CreateUser::route('/create'),
+            'edit'       => Pages\EditUser::route('/{record}/edit'),
+            'portofolio' => Pages\PesertaPortfolio::route('/{record}/portofolio'),
         ];
     }
 }

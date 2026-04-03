@@ -4,8 +4,11 @@ namespace Tests\Unit\Services;
 
 use App\Models\AttemptLog;
 use App\Models\AttemptQuestion;
+use App\Models\AttemptSectionStart;
 use App\Models\ExamAttempt;
 use App\Models\ExamPackage;
+use App\Models\ExamSection;
+use App\Models\ExamSectionQuestion;
 use App\Models\ExamSession;
 use App\Models\ExamSessionParticipant;
 use App\Models\Question;
@@ -326,5 +329,170 @@ class ExamServiceTest extends TestCase
 
         $attempt->refresh();
         $this->assertEquals(2, $attempt->jumlah_kosong);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // mulai — has_sections (14.5 Unit Tests)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    public function test_mulai_dengan_has_sections_mengisi_section_id_di_attempt_questions(): void
+    {
+        [$package, $session, $seksi1, $seksi2, $soalSeksi1, $soalSeksi2] = $this->buatPaketMultiSeksi();
+
+        $attempt = $this->examService->mulai($session->id, $this->peserta->id);
+
+        $aqs = AttemptQuestion::where('attempt_id', $attempt->id)->get();
+
+        // Setiap attempt_question harus memiliki section_id (tidak null)
+        $aqs->each(fn($aq) => $this->assertNotNull($aq->section_id));
+
+        // Soal dari seksi 1 harus terhubung ke seksi 1
+        foreach ($soalSeksi1 as $q) {
+            $aq = $aqs->firstWhere('question_id', $q->id);
+            $this->assertNotNull($aq, "AttemptQuestion untuk soal seksi 1 (id={$q->id}) tidak ditemukan");
+            $this->assertEquals(
+                $seksi1->id,
+                $aq->section_id,
+                "section_id untuk soal seksi 1 seharusnya {$seksi1->id}"
+            );
+        }
+
+        // Soal dari seksi 2 harus terhubung ke seksi 2
+        foreach ($soalSeksi2 as $q) {
+            $aq = $aqs->firstWhere('question_id', $q->id);
+            $this->assertNotNull($aq, "AttemptQuestion untuk soal seksi 2 (id={$q->id}) tidak ditemukan");
+            $this->assertEquals(
+                $seksi2->id,
+                $aq->section_id,
+                "section_id untuk soal seksi 2 seharusnya {$seksi2->id}"
+            );
+        }
+    }
+
+    public function test_mulai_dengan_has_sections_mencatat_mulai_seksi_pertama(): void
+    {
+        [$package, $session, $seksi1, $seksi2] = $this->buatPaketMultiSeksi();
+
+        $attempt = $this->examService->mulai($session->id, $this->peserta->id);
+
+        $starts = AttemptSectionStart::where('attempt_id', $attempt->id)->get();
+
+        // Tepat satu AttemptSectionStart dibuat saat mulai
+        $this->assertCount(
+            1,
+            $starts,
+            'Tepat satu AttemptSectionStart harus dibuat saat ujian dimulai'
+        );
+
+        // Harus untuk seksi pertama (urutan=1)
+        $this->assertEquals(
+            $seksi1->id,
+            $starts->first()->section_id,
+            'AttemptSectionStart pertama harus merujuk ke seksi dengan urutan=1'
+        );
+
+        // waktu_mulai harus terisi
+        $this->assertNotNull($starts->first()->waktu_mulai);
+    }
+
+    public function test_mulai_dengan_has_sections_soal_berurutan_per_seksi(): void
+    {
+        [$package, $session, $seksi1, $seksi2, $soalSeksi1, $soalSeksi2] = $this->buatPaketMultiSeksi();
+
+        $attempt = $this->examService->mulai($session->id, $this->peserta->id);
+
+        $aqs = AttemptQuestion::where('attempt_id', $attempt->id)->orderBy('urutan')->get();
+
+        // Total soal = gabungan dua seksi
+        $this->assertCount(count($soalSeksi1) + count($soalSeksi2), $aqs);
+
+        // Urutan bersifat sekuensial mulai dari 1
+        $this->assertEquals(1, $aqs->first()->urutan);
+        $this->assertEquals($aqs->count(), $aqs->last()->urutan);
+
+        // Soal seksi 1 (urutan seksi lebih kecil) harus muncul sebelum soal seksi 2
+        $seksi1QuestionIds = collect($soalSeksi1)->pluck('id');
+        $seksi2QuestionIds = collect($soalSeksi2)->pluck('id');
+
+        $maxUrutanSeksi1 = $aqs->whereIn('question_id', $seksi1QuestionIds->all())->max('urutan');
+        $minUrutanSeksi2 = $aqs->whereIn('question_id', $seksi2QuestionIds->all())->min('urutan');
+
+        $this->assertLessThan(
+            $minUrutanSeksi2,
+            $maxUrutanSeksi1,
+            'Semua soal seksi 1 harus muncul sebelum soal seksi 2 dalam urutan attempt_questions'
+        );
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Helper
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Buat paket multi-seksi: 2 seksi, masing-masing 2 soal PG.
+     * Peserta ($this->peserta) sudah terdaftar di sesi yang dikembalikan.
+     *
+     * @return array{ExamPackage, ExamSession, ExamSection, ExamSection, array, array}
+     */
+    private function buatPaketMultiSeksi(): array
+    {
+        $package = ExamPackage::factory()->create([
+            'created_by'      => $this->guru->id,
+            'has_sections'    => true,
+            'navigasi_seksi'  => ExamPackage::NAV_SEKSI_URUT,
+            'durasi_menit'    => 60,
+            'acak_soal'       => false,
+            'max_pengulangan' => 0,
+        ]);
+
+        $session = ExamSession::factory()->create([
+            'exam_package_id' => $package->id,
+            'created_by'      => $this->guru->id,
+            'status'          => ExamSession::STATUS_AKTIF,
+            'token_akses'     => null,
+        ]);
+
+        $session->participants()->create([
+            'user_id' => $this->peserta->id,
+            'status'  => ExamSessionParticipant::STATUS_BELUM,
+        ]);
+
+        $seksi1 = ExamSection::create([
+            'exam_package_id'     => $package->id,
+            'nama'                => 'Bagian 1',
+            'urutan'              => 1,
+            'durasi_menit'        => 10,
+            'waktu_minimal_menit' => 0,
+            'acak_soal'           => false,
+        ]);
+
+        $seksi2 = ExamSection::create([
+            'exam_package_id'     => $package->id,
+            'nama'                => 'Bagian 2',
+            'urutan'              => 2,
+            'durasi_menit'        => 10,
+            'waktu_minimal_menit' => 0,
+            'acak_soal'           => false,
+        ]);
+
+        $soalSeksi1 = Question::factory()->pg()->count(2)->create();
+        $soalSeksi1->each(function ($q, $i) use ($seksi1) {
+            ExamSectionQuestion::create([
+                'section_id'  => $seksi1->id,
+                'question_id' => $q->id,
+                'urutan'      => $i + 1,
+            ]);
+        });
+
+        $soalSeksi2 = Question::factory()->pg()->count(2)->create();
+        $soalSeksi2->each(function ($q, $i) use ($seksi2) {
+            ExamSectionQuestion::create([
+                'section_id'  => $seksi2->id,
+                'question_id' => $q->id,
+                'urutan'      => $i + 1,
+            ]);
+        });
+
+        return [$package, $session, $seksi1, $seksi2, $soalSeksi1->all(), $soalSeksi2->all()];
     }
 }

@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\JawabSoalRequest;
 use App\Models\AttemptLog;
 use App\Models\AttemptQuestion;
+use App\Models\AttemptSectionStart;
 use App\Models\ExamAttempt;
+use App\Models\ExamSection;
 use App\Models\ExamSession;
 use App\Models\ExamSessionParticipant;
 use App\Services\ExamService;
@@ -58,7 +60,16 @@ class UjianController extends Controller
                 ->withErrors(['attempt' => 'Batas percobaan ujian telah habis.']);
         }
 
-        return view('peserta.konfirmasi', compact('session', 'participant', 'attemptCount', 'sisaAttempt'));
+        // Info bagian untuk multi-section
+        $seksiInfo = null;
+        if ($package->has_sections) {
+            $seksiInfo = $package->sections()
+                ->withCount('questions')
+                ->orderBy('urutan')
+                ->get();
+        }
+
+        return view('peserta.konfirmasi', compact('session', 'participant', 'attemptCount', 'sisaAttempt', 'seksiInfo'));
     }
 
     // ─── Mulai ujian ──────────────────────────────────────────────────────
@@ -107,7 +118,8 @@ class UjianController extends Controller
         if ($attempt->sisaWaktuDetik() <= 0) {
             try {
                 $this->examService->autoSubmit($attempt->id, \App\Models\AttemptLog::EVENT_TIMEOUT);
-            } catch (\Throwable) {}
+            } catch (\Throwable) {
+            }
 
             $package = $attempt->session->package;
             if ($package->tampilkan_hasil) {
@@ -120,15 +132,54 @@ class UjianController extends Controller
 
         // Load soal beserta relasi yang diperlukan untuk tampil
         $soalList = AttemptQuestion::with([
-                'question.options',
-                'question.matches',
-                'question.keywords',
-            ])
+            'question.options',
+            'question.matches',
+            'question.keywords',
+            'question.group',
+        ])
             ->where('attempt_id', $attempt->id)
             ->orderBy('urutan')
             ->get();
 
         $session = $attempt->session()->with('package')->first();
+
+        // Total soal keseluruhan (sebelum filter per-seksi)
+        $totalSoalSemua = $soalList->count();
+
+        // Multi-seksi: tentukan seksi aktif dan filter soal
+        $seksiAktif      = null;
+        $seksiList       = collect();
+        $sisaSeksiDetik  = null;
+        $navigasiSeksi   = null;
+        $visitedSections = collect();
+
+        if ($session->package->has_sections) {
+            $navigasiSeksi = $session->package->navigasi_seksi ?? \App\Models\ExamPackage::NAV_SEKSI_URUT;
+
+            $sectionStart = AttemptSectionStart::with('section')
+                ->where('attempt_id', $attempt->id)
+                ->latest('waktu_mulai')
+                ->first();
+
+            if ($sectionStart) {
+                $seksiAktif     = $sectionStart->section;
+                $sisaSeksiDetik = $sectionStart->sisaWaktuDetik();
+            }
+
+            $seksiList = $session->package->sections;
+
+            // Seksi yang sudah pernah dibuka (untuk urut_kembali: tombol kembali)
+            $visitedSections = AttemptSectionStart::where('attempt_id', $attempt->id)
+                ->pluck('section_id');
+
+            if ($navigasiSeksi === \App\Models\ExamPackage::NAV_SEKSI_BEBAS) {
+                // Bebas: tampilkan semua soal, dikelompokkan per seksi
+                // soalList sudah berisi semua soal (tidak difilter)
+            } elseif ($seksiAktif) {
+                // Urut / Urut+Kembali: tampilkan hanya soal seksi aktif
+                $soalList = $soalList->where('section_id', $seksiAktif->id)->values();
+            }
+        }
 
         $maxTabSwitch       = \App\Models\AppSetting::getInt('max_tab_switch', 3);
         $tabSwitchAction    = \App\Models\AppSetting::getString('tab_switch_action', 'warn');
@@ -137,10 +188,61 @@ class UjianController extends Controller
         $preventRightClick  = \App\Models\AppSetting::getBool('prevent_right_click', false);
         $requireFullscreen  = \App\Models\AppSetting::getBool('require_fullscreen', false);
 
+        $waktuPerSoalDetik   = (int) ($session->package->waktu_per_soal_detik ?? 0);
+        $navigasiPerSoal     = $session->package->waktu_per_soal_navigasi ?? \App\Models\ExamPackage::NAV_SOAL_BEBAS;
+
         return view('peserta.ujian', compact(
-            'attempt', 'soalList', 'session', 'maxTabSwitch',
-            'tabSwitchAction', 'autoSubmitOnMaxTab', 'preventCopyPaste', 'preventRightClick', 'requireFullscreen'
+            'attempt',
+            'soalList',
+            'session',
+            'seksiAktif',
+            'seksiList',
+            'sisaSeksiDetik',
+            'navigasiSeksi',
+            'visitedSections',
+            'totalSoalSemua',
+            'maxTabSwitch',
+            'tabSwitchAction',
+            'autoSubmitOnMaxTab',
+            'preventCopyPaste',
+            'preventRightClick',
+            'requireFullscreen',
+            'waktuPerSoalDetik',
+            'navigasiPerSoal'
         ));
+    }
+
+    // ─── Selesaikan seksi (AJAX) ───────────────────────────────────────────
+
+    public function selesaikanSeksi(Request $request, int $attemptId, int $sectionId): JsonResponse
+    {
+        $attempt = ExamAttempt::where('id', $attemptId)
+            ->where('user_id', $request->user()->id)
+            ->where('status', ExamAttempt::STATUS_BERLANGSUNG)
+            ->first();
+
+        if (! $attempt) {
+            return response()->json(['success' => false, 'message' => 'Attempt tidak valid.'], 403);
+        }
+
+        $targetSectionId = $request->integer('target_section_id') ?: null;
+
+        try {
+            $result = $this->examService->selesaikanSeksi($attemptId, $sectionId, $targetSectionId);
+
+            if ($result['is_last']) {
+                $attempt->refresh();
+                $package     = $attempt->session->package;
+                $redirectUrl = $package->tampilkan_hasil
+                    ? route('ujian.hasil', $attemptId)
+                    : route('peserta.dashboard');
+                return response()->json(array_merge(['success' => true, 'redirect_url' => $redirectUrl], $result));
+            }
+
+            return response()->json(array_merge(['success' => true, 'redirect_url' => null], $result));
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['success' => false, 'errors' => $e->errors()], 422);
+        }
     }
 
     // ─── Simpan jawaban (AJAX) ─────────────────────────────────────────────
@@ -160,15 +262,15 @@ class UjianController extends Controller
 
         try {
             $aq = $this->examService->simpanJawaban(
-                attemptId:  $attemptId,
+                attemptId: $attemptId,
                 questionId: $request->integer('question_id'),
-                jawaban:    $request->input('jawaban'),
-                isRagu:     (bool) $request->input('is_ragu', false),
+                jawaban: $request->input('jawaban'),
+                isRagu: (bool) $request->input('is_ragu', false),
             );
 
             $attempt->load('questions');
             $total    = $attempt->questions()->count();
-            $terjawab = $attempt->questions->filter(fn ($q) => $q->isDijawab())->count();
+            $terjawab = $attempt->questions->filter(fn($q) => $q->isDijawab())->count();
 
             return response()->json([
                 'success'         => true,
@@ -243,7 +345,8 @@ class UjianController extends Controller
             try {
                 $this->examService->autoSubmit($attemptId, AttemptLog::EVENT_TAB_SWITCH);
                 $submitted = true;
-            } catch (\Throwable) {}
+            } catch (\Throwable) {
+            }
         }
 
         return response()->json([
@@ -322,10 +425,10 @@ class UjianController extends Controller
         abort_unless($attempt->session->package->tampilkan_review, 403, 'Review jawaban tidak diizinkan untuk paket ini.');
 
         $soalList = $attempt->questions()->with([
-                'question.options',
-                'question.matches',
-                'question.keywords',
-            ])->orderBy('urutan')->get();
+            'question.options',
+            'question.matches',
+            'question.keywords',
+        ])->orderBy('urutan')->get();
 
         $showPembahasan = true;
         if (\App\Models\AppSetting::getBool('show_pembahasan_setelah_sesi', false)) {
@@ -380,9 +483,40 @@ class UjianController extends Controller
         ]);
     }
 
+    // ─── Catat pemutaran audio ─────────────────────────────────────────────
+
+    public function audioPlay(Request $request, int $questionId): JsonResponse
+    {
+        $request->validate([
+            'attempt_id' => ['required', 'integer', 'exists:exam_attempts,id'],
+        ]);
+
+        $attempt = ExamAttempt::where('id', $request->integer('attempt_id'))
+            ->where('user_id', $request->user()->id)
+            ->where('status', ExamAttempt::STATUS_BERLANGSUNG)
+            ->firstOrFail();
+
+        $aq = AttemptQuestion::where('attempt_id', $attempt->id)
+            ->where('question_id', $questionId)
+            ->firstOrFail();
+
+        $limit = (int) ($aq->question->audio_play_limit ?? 0);
+
+        if ($limit > 0 && $aq->audio_play_count >= $limit) {
+            return response()->json(['allowed' => false, 'remaining' => 0], 403);
+        }
+
+        $aq->increment('audio_play_count');
+
+        return response()->json([
+            'allowed'   => true,
+            'remaining' => $limit > 0 ? max(0, $limit - $aq->audio_play_count) : null,
+        ]);
+    }
+
     // ─── Serve private URAIAN file ────────────────────────────────────────
 
-    public function serveFile(Request $request, int $attemptId, string $filename): \Illuminate\Http\Response|\Symfony\Component\HttpFoundation\BinaryFileResponse
+    public function serveFile(Request $request, int $attemptId, string $filename): mixed
     {
         // Prevent path traversal
         $filename = basename($filename);

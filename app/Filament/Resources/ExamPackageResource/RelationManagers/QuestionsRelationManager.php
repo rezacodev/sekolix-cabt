@@ -46,7 +46,7 @@ class QuestionsRelationManager extends RelationManager
 
                 Tables\Columns\BadgeColumn::make('tipe')
                     ->label('Tipe')
-                    ->formatStateUsing(fn ($state) => Question::TIPE_LABELS[$state] ?? $state)
+                    ->formatStateUsing(fn($state) => Question::TIPE_LABELS[$state] ?? $state)
                     ->colors([
                         'primary'   => 'PG',
                         'info'      => 'PG_BOBOT',
@@ -67,7 +67,7 @@ class QuestionsRelationManager extends RelationManager
 
                 Tables\Columns\BadgeColumn::make('tingkat_kesulitan')
                     ->label('Kesulitan')
-                    ->formatStateUsing(fn ($state) => Question::KESULITAN_LABELS[$state] ?? $state)
+                    ->formatStateUsing(fn($state) => Question::KESULITAN_LABELS[$state] ?? $state)
                     ->colors([
                         'success' => 'mudah',
                         'warning' => 'sedang',
@@ -76,6 +76,14 @@ class QuestionsRelationManager extends RelationManager
 
                 Tables\Columns\TextColumn::make('bobot')
                     ->label('Bobot'),
+
+                Tables\Columns\TextColumn::make('group.judul')
+                    ->label('Grup')
+                    ->placeholder('—')
+                    ->badge()
+                    ->color('gray')
+                    ->limit(25)
+                    ->toggleable(),
 
                 Tables\Columns\IconColumn::make('lock_position')
                     ->label('Lock')
@@ -98,7 +106,7 @@ class QuestionsRelationManager extends RelationManager
                     ->icon('heroicon-o-plus')
                     ->color('primary')
                     ->preloadRecordSelect()
-                    ->recordSelectOptionsQuery(fn (Builder $query) => $query->where('aktif', true))
+                    ->recordSelectOptionsQuery(fn(Builder $query) => $query->where('aktif', true))
                     ->recordSelectSearchColumns(['teks_soal'])
                     ->after(function ($livewire) {
                         // set urutan = max + 1
@@ -120,7 +128,7 @@ class QuestionsRelationManager extends RelationManager
                     ->form([
                         Forms\Components\Select::make('kategori_id')
                             ->label('Kategori')
-                            ->options(fn () => Category::whereNull('parent_id')->pluck('nama', 'id'))
+                            ->options(fn() => Category::whereNull('parent_id')->pluck('nama', 'id'))
                             ->nullable()
                             ->searchable(),
 
@@ -159,7 +167,7 @@ class QuestionsRelationManager extends RelationManager
                         if (! empty($data['kategori_id'])) {
                             $query->whereHas('category', function ($q) use ($data) {
                                 $q->where('id', $data['kategori_id'])
-                                  ->orWhere('parent_id', $data['kategori_id']);
+                                    ->orWhere('parent_id', $data['kategori_id']);
                             });
                         }
 

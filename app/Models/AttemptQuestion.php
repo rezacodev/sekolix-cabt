@@ -16,11 +16,13 @@ class AttemptQuestion extends Model
         'attempt_id',
         'question_id',
         'urutan',
+        'section_id',
         'jawaban_peserta',
         'jawaban_file',
         'nilai_perolehan',
         'is_correct',
         'is_ragu',
+        'audio_play_count',
         'waktu_jawab',
     ];
 
@@ -42,6 +44,11 @@ class AttemptQuestion extends Model
     public function question(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Question::class, 'question_id');
+    }
+
+    public function section(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(ExamSection::class, 'section_id');
     }
 
     public function isDijawab(): bool

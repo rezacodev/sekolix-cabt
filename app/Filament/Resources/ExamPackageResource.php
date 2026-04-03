@@ -4,8 +4,10 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ExamPackageResource\Pages;
 use App\Filament\Resources\ExamPackageResource\RelationManagers;
+use App\Models\ExamBlueprint;
 use App\Models\ExamPackage;
 use App\Models\User;
+use Filament\Notifications\Notification;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -44,6 +46,21 @@ class ExamPackageResource extends Resource
                             ->nullable()
                             ->columnSpanFull(),
                     ]),
+
+                // ── Blueprint Kisi-kisi ──────────────────────────────
+                Forms\Components\Section::make('Blueprint / Kisi-kisi')
+                    ->columns(1)
+                    ->schema([
+                        Forms\Components\Select::make('blueprint_id')
+                            ->label('Blueprint Ujian (opsional)')
+                            ->options(fn() => ExamBlueprint::orderBy('nama')->pluck('nama', 'id'))
+                            ->searchable()
+                            ->nullable()
+                            ->native(false)
+                            ->helperText('Pilih blueprint untuk mengaktifkan fitur "Generate Soal dari Kisi-kisi"'),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
 
                 // ── Pengaturan Waktu ─────────────────────────────────
                 Forms\Components\Section::make('Pengaturan Waktu')
@@ -84,6 +101,23 @@ class ExamPackageResource extends Resource
                             ->default(1)
                             ->helperText('0 = tidak dibatasi. 1 = hanya 1 kali (tanpa remidi). 2 = boleh remidi 1 kali. dst.'),
 
+                        Forms\Components\Toggle::make('has_sections')
+                            ->label('Ujian Multi-Bagian (Seksi)')
+                            ->helperText('Aktifkan untuk membagi ujian menjadi beberapa bagian dengan timer masing-masing. Soal disusun per seksi, bukan dari daftar soal paket.')
+                            ->default(false)
+                            ->columnSpanFull()
+                            ->live(),
+
+                        Forms\Components\Select::make('navigasi_seksi')
+                            ->label('Mode Navigasi Antar-Bagian')
+                            ->options(\App\Models\ExamPackage::NAV_SEKSI_LABELS)
+                            ->default(\App\Models\ExamPackage::NAV_SEKSI_URUT)
+                            ->required()
+                            ->native(false)
+                            ->columnSpanFull()
+                            ->visible(fn(Forms\Get $get) => (bool) $get('has_sections'))
+                            ->helperText('Urut: harus selesaikan bagian sebelum lanjut. Bebas: bisa pindah kapan saja.'),
+
                         Forms\Components\Toggle::make('acak_soal')
                             ->label('Acak Urutan Soal')
                             ->default(false),
@@ -100,6 +134,56 @@ class ExamPackageResource extends Resource
                             ->label('Peserta Bisa Review Jawaban')
                             ->default(false),
                     ]),
+
+                // ── Penilaian Negatif ────────────────────────────────
+                Forms\Components\Section::make('Penilaian Negatif')
+                    ->description('Kurangi poin untuk setiap jawaban yang salah. Kosongkan / 0 untuk menonaktifkan.')
+                    ->columns(3)
+                    ->schema([
+                        Forms\Components\TextInput::make('nilai_negatif')
+                            ->label('Pengurangan per Jawaban Salah')
+                            ->numeric()
+                            ->default(0)
+                            ->minValue(0)
+                            ->step(0.25)
+                            ->suffix('poin')
+                            ->helperText('0 = tidak ada pengurangan'),
+
+                        Forms\Components\Toggle::make('nilai_negatif_kosong')
+                            ->label('Kurangi Jawaban Kosong')
+                            ->helperText('Berlaku hanya jika pengurangan > 0')
+                            ->default(false),
+
+                        Forms\Components\Toggle::make('nilai_negatif_clamp')
+                            ->label('Nilai Minimum 0')
+                            ->helperText('Nilai per soal tidak pernah negatif')
+                            ->default(true),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
+
+                // ── Waktu Per Soal ───────────────────────────────────
+                Forms\Components\Section::make('Waktu Per Soal')
+                    ->description('Batasi waktu pengerjaan tiap soal secara individual. 0 = tidak dibatasi.')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\TextInput::make('waktu_per_soal_detik')
+                            ->label('Waktu per Soal (detik)')
+                            ->numeric()
+                            ->default(0)
+                            ->minValue(0)
+                            ->suffix('detik')
+                            ->helperText('0 = tidak ada batas waktu per soal'),
+
+                        Forms\Components\Select::make('waktu_per_soal_navigasi')
+                            ->label('Mode Setelah Waktu Habis')
+                            ->options(\App\Models\ExamPackage::NAV_SOAL_LABELS)
+                            ->default(\App\Models\ExamPackage::NAV_SOAL_BEBAS)
+                            ->native(false)
+                            ->helperText('Hanya Maju: otomatis pindah ke soal berikutnya saat waktu habis'),
+                    ])
+                    ->collapsible()
+                    ->collapsed(),
             ]);
     }
 
@@ -170,6 +254,51 @@ class ExamPackageResource extends Resource
                     ->hidden(fn(): bool => Auth::user()->level < User::LEVEL_ADMIN),
             ])
             ->actions([
+                Tables\Actions\Action::make('generate_dari_blueprint')
+                    ->label('Generate Soal')
+                    ->icon('heroicon-o-sparkles')
+                    ->color('success')
+                    ->visible(fn($record) => $record->blueprint_id !== null)
+                    ->requiresConfirmation()
+                    ->modalHeading(fn($record) => 'Generate Soal dari Blueprint: ' . optional($record->blueprint)->nama)
+                    ->modalDescription('Soal akan dipilih secara acak sesuai kisi-kisi. Soal yang sudah ada di paket tidak akan dipilih ulang.')
+                    ->action(function ($record) {
+                        $blueprint = $record->blueprint;
+                        if (! $blueprint) return;
+
+                        $existingIds  = $record->questions()->pluck('questions.id')->all();
+                        $newIds       = [];
+                        $missing      = [];
+
+                        foreach ($blueprint->items as $item) {
+                            $picked = $item->pickQuestions($item->jumlah_soal, array_merge($existingIds, $newIds));
+                            if (count($picked) < $item->jumlah_soal) {
+                                $missing[] = "Baris {$item->urutan} ({$item->kriteria_label}): butuh {$item->jumlah_soal}, tersedia " . count($picked);
+                            }
+                            $newIds = array_merge($newIds, $picked);
+                        }
+
+                        if (! empty($newIds)) {
+                            $attach = [];
+                            foreach ($newIds as $qid) {
+                                $attach[$qid] = ['urutan' => count($existingIds) + count($attach) + 1];
+                            }
+                            $record->questions()->attach($attach);
+                        }
+
+                        if (empty($missing)) {
+                            Notification::make()
+                                ->title('Berhasil!')
+                                ->body(count($newIds) . ' soal ditambahkan ke paket.')
+                                ->success()->send();
+                        } else {
+                            Notification::make()
+                                ->title('Generate Sebagian')
+                                ->body(count($newIds) . ' soal ditambahkan. Kekurangan: ' . implode('; ', $missing))
+                                ->warning()->send();
+                        }
+                    }),
+
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
@@ -196,6 +325,7 @@ class ExamPackageResource extends Resource
     {
         return [
             RelationManagers\QuestionsRelationManager::class,
+            RelationManagers\SectionsRelationManager::class,
         ];
     }
 

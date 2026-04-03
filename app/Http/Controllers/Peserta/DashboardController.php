@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Peserta;
 
 use App\Http\Controllers\Controller;
+use App\Models\Announcement;
 use App\Models\ExamAttempt;
 use App\Models\ExamSessionParticipant;
 use Illuminate\Http\Request;
@@ -11,14 +12,15 @@ class DashboardController extends Controller
 {
     public function index(Request $request): \Illuminate\View\View
     {
-        $userId = $request->user()->id;
+        $user   = $request->user();
+        $userId = $user->id;
 
         $participations = ExamSessionParticipant::with([
-                'session.package',
-                'session.attempts' => function ($q) use ($userId) {
-                    $q->where('user_id', $userId)->latest('waktu_mulai');
-                },
-            ])
+            'session.package',
+            'session.attempts' => function ($q) use ($userId) {
+                $q->where('user_id', $userId)->latest('waktu_mulai');
+            },
+        ])
             ->where('user_id', $userId)
             ->get();
 
@@ -44,6 +46,18 @@ class DashboardController extends Controller
             ];
         });
 
-        return view('peserta.dashboard', compact('sessions'));
+        // Pengumuman aktif yang relevan untuk peserta ini
+        $announcements = Announcement::aktif()
+            ->where(function ($q) use ($user) {
+                $q->where('target', Announcement::TARGET_SEMUA)
+                    ->orWhere(function ($q2) use ($user) {
+                        $q2->where('target', Announcement::TARGET_PER_ROMBEL)
+                            ->where('rombel_id', $user->rombel_id);
+                    });
+            })
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('peserta.dashboard', compact('sessions', 'announcements'));
     }
 }

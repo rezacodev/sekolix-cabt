@@ -58,9 +58,9 @@ class MonitorSesi extends Page
                 ->label('Livescore')
                 ->icon('heroicon-o-chart-bar')
                 ->color('info')
-                ->url(fn () => route('livescore.show', $this->record->id))
+                ->url(fn() => route('livescore.show', $this->record->id))
                 ->openUrlInNewTab()
-                ->visible(fn () => in_array($this->record->status, [
+                ->visible(fn() => in_array($this->record->status, [
                     ExamSession::STATUS_AKTIF,
                     ExamSession::STATUS_SELESAI,
                 ])),
@@ -132,7 +132,7 @@ class MonitorSesi extends Page
             ->whereIn('user_id', $participants->pluck('user_id'))
             ->get()
             ->groupBy('user_id')
-            ->map(fn ($g) => $g->sortByDesc('id')->first());
+            ->map(fn($g) => $g->sortByDesc('id')->first());
 
         $list = $participants->map(function ($p) use ($attempts, $totalSoal) {
             $attempt   = $attempts->get($p->user_id);
@@ -141,7 +141,7 @@ class MonitorSesi extends Page
             $tabSwitch = 0;
 
             if ($attempt) {
-                $dijawab   = $attempt->questions->filter(fn ($q) => $q->isDijawab())->count();
+                $dijawab   = $attempt->questions->filter(fn($q) => $q->isDijawab())->count();
                 $sisaWaktu = $attempt->sisaWaktuDetik();
                 $tabSwitch = $attempt->tabSwitchCount();
             }
@@ -165,7 +165,7 @@ class MonitorSesi extends Page
 
         // Assign rank based on nilai_sementara desc (objects are shared by reference)
         $rankCounter = 1;
-        foreach ($list->sortByDesc(fn ($p) => $p->nilai_sementara ?? -1)->values() as $item) {
+        foreach ($list->sortByDesc(fn($p) => $p->nilai_sementara ?? -1)->values() as $item) {
             if ($item->nilai_sementara !== null) {
                 $item->rank = $rankCounter++;
             }
@@ -200,6 +200,25 @@ class MonitorSesi extends Page
             'stats'        => $stats,
             'totalSoal'    => $totalSoal,
             'livescoreUrl' => $livescoreUrl,
+            'notes'        => $session->notes()->with('author')->orderByDesc('created_at')->get(),
         ];
+    }
+
+    // ── Catatan Pengawas (Livewire AJAX) ─────────────────────────────────────
+    public string $newNote = '';
+
+    public function addNote(): void
+    {
+        $this->validate(['newNote' => 'required|string|max:1000']);
+
+        \App\Models\SessionNote::create([
+            'exam_session_id' => $this->record->id,
+            'user_id'         => \Illuminate\Support\Facades\Auth::id(),
+            'catatan'         => $this->newNote,
+            'created_at'      => now(),
+        ]);
+
+        $this->newNote = '';
+        Notification::make()->success()->title('Catatan berhasil disimpan')->send();
     }
 }

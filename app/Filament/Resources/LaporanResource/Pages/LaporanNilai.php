@@ -46,28 +46,35 @@ class LaporanNilai extends Page
                 ->label('Export Excel')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
-                ->action(fn () => Excel::download(
+                ->action(fn() => Excel::download(
                     new NilaiExport($this->record),
                     'rekap-nilai-' . str($this->record->nama_sesi)->slug() . '.xlsx'
                 )),
+
+            Action::make('export_pdf')
+                ->label('Export PDF')
+                ->icon('heroicon-o-document-arrow-down')
+                ->color('danger')
+                ->url(fn() => route('laporan.pdf.nilai', $this->record->id))
+                ->openUrlInNewTab(),
 
             ActionGroup::make([
                 Action::make('cetak_nilai')
                     ->label('Cetak Rekap Nilai')
                     ->icon('heroicon-o-printer')
-                    ->url(fn () => route('laporan.cetak.nilai', $this->record->id))
+                    ->url(fn() => route('laporan.cetak.nilai', $this->record->id))
                     ->openUrlInNewTab(),
 
                 Action::make('cetak_daftar_hadir')
                     ->label('Cetak Daftar Hadir')
                     ->icon('heroicon-o-clipboard-document-check')
-                    ->url(fn () => route('laporan.cetak.daftar-hadir', $this->record->id))
+                    ->url(fn() => route('laporan.cetak.daftar-hadir', $this->record->id))
                     ->openUrlInNewTab(),
 
                 Action::make('cetak_berita_acara')
                     ->label('Cetak Berita Acara')
                     ->icon('heroicon-o-document-text')
-                    ->url(fn () => route('laporan.cetak.berita-acara', $this->record->id))
+                    ->url(fn() => route('laporan.cetak.berita-acara', $this->record->id))
                     ->openUrlInNewTab(),
             ])
                 ->label('Cetak')
@@ -87,13 +94,15 @@ class LaporanNilai extends Page
     {
         $reportService = app(ReportService::class);
 
-        $rekap    = $reportService->rekapNilai($this->record->id);
-        $statistik = $reportService->statistikNilai($this->record->id);
+        $rekap         = $reportService->rekapNilai($this->record->id);
+        $statistik     = $reportService->statistikNilai($this->record->id);
+        $distribusiData = $reportService->distribusiNilai($this->record->id);
 
         return [
-            'session'  => $this->record,
-            'rekap'    => $rekap,
-            'statistik' => $statistik,
+            'session'        => $this->record,
+            'rekap'          => $rekap,
+            'statistik'      => $statistik,
+            'distribusiData' => $distribusiData,
         ];
     }
 }

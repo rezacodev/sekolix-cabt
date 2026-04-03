@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\ExamSessionResource\RelationManagers;
 
+use App\Mail\SesiDijadwalkanMail;
+use App\Models\AppSetting;
 use App\Models\ExamSession;
 use App\Models\ExamSessionParticipant;
 use App\Models\Rombel;
@@ -25,7 +27,7 @@ class ParticipantsRelationManager extends RelationManager
         return $form->schema([
             Forms\Components\Select::make('user_id')
                 ->label('Peserta')
-                ->options(fn () => User::where('level', User::LEVEL_PESERTA)
+                ->options(fn() => User::where('level', User::LEVEL_PESERTA)
                     ->where('aktif', true)
                     ->orderBy('name')
                     ->pluck('name', 'id'))
@@ -65,14 +67,14 @@ class ParticipantsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->badge()
-                    ->color(fn ($state) => match ($state) {
+                    ->color(fn($state) => match ($state) {
                         ExamSessionParticipant::STATUS_BELUM           => 'gray',
                         ExamSessionParticipant::STATUS_SEDANG          => 'warning',
                         ExamSessionParticipant::STATUS_SELESAI         => 'success',
                         ExamSessionParticipant::STATUS_DISKUALIFIKASI  => 'danger',
                         default                                        => 'gray',
                     })
-                    ->formatStateUsing(fn ($state) => ExamSessionParticipant::STATUS_LABELS[$state] ?? $state),
+                    ->formatStateUsing(fn($state) => ExamSessionParticipant::STATUS_LABELS[$state] ?? $state),
             ])
             ->headerActions([
                 // ── Tambah peserta individual ────────────────────────────
@@ -100,12 +102,22 @@ class ParticipantsRelationManager extends RelationManager
                         /** @var ExamSession $session */
                         $session = $this->getOwnerRecord();
                         $added   = 0;
+                        $notifEnabled = AppSetting::getBool('email_notifikasi_sesi', false);
                         foreach ($data['user_ids'] as $userId) {
-                            ExamSessionParticipant::firstOrCreate(
+                            $participant = ExamSessionParticipant::firstOrCreate(
                                 ['exam_session_id' => $session->id, 'user_id' => $userId],
                                 ['status' => ExamSessionParticipant::STATUS_BELUM]
                             );
-                            $added++;
+                            if ($participant->wasRecentlyCreated) {
+                                $added++;
+                                if ($notifEnabled) {
+                                    $user = User::find($userId);
+                                    if ($user && $user->email) {
+                                        \Illuminate\Support\Facades\Mail::to($user->email)
+                                            ->queue(new SesiDijadwalkanMail($user, $session));
+                                    }
+                                }
+                            }
                         }
                         Notification::make()->success()
                             ->title("{$added} peserta berhasil ditambahkan")
@@ -120,12 +132,13 @@ class ParticipantsRelationManager extends RelationManager
                     ->form([
                         Forms\Components\Select::make('rombel_ids')
                             ->label('Pilih Rombel')
-                            ->options(fn () => Rombel::where('aktif', true)
-                                ->orderBy('nama')
-                                ->get()
-                                ->mapWithKeys(fn ($r) => [
-                                    $r->id => $r->nama . ' — ' . ($r->tahun_ajaran ?? '—'),
-                                ])
+                            ->options(
+                                fn() => Rombel::where('aktif', true)
+                                    ->orderBy('nama')
+                                    ->get()
+                                    ->mapWithKeys(fn($r) => [
+                                        $r->id => $r->nama . ' — ' . ($r->tahun_ajaran ?? '—'),
+                                    ])
                             )
                             ->multiple()
                             ->searchable()
@@ -142,6 +155,7 @@ class ParticipantsRelationManager extends RelationManager
                             ->pluck('id');
 
                         $added = 0;
+                        $notifEnabled = AppSetting::getBool('email_notifikasi_sesi', false);
                         foreach ($peserta as $userId) {
                             $created = ExamSessionParticipant::firstOrCreate(
                                 ['exam_session_id' => $session->id, 'user_id' => $userId],
@@ -149,6 +163,13 @@ class ParticipantsRelationManager extends RelationManager
                             );
                             if ($created->wasRecentlyCreated) {
                                 $added++;
+                                if ($notifEnabled) {
+                                    $user = User::find($userId);
+                                    if ($user && $user->email) {
+                                        \Illuminate\Support\Facades\Mail::to($user->email)
+                                            ->queue(new SesiDijadwalkanMail($user, $session));
+                                    }
+                                }
                             }
                         }
                         Notification::make()->success()
