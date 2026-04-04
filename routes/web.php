@@ -42,7 +42,7 @@ Route::middleware(['auth', 'check.level:2'])->prefix('cabt')->name('cabt.')->gro
     Route::get('/kalender/data',                           [KalenderController::class, 'data'])->name('kalender.data');
 });
 
-// Livescore — public (no auth required, settable in GeneralSetting later)
+// Livescore — akses dikontrol via AppSetting (show_livescore & livescore_public)
 Route::prefix('sesi')->name('livescore.')->group(function () {
     Route::get('/{session}/livescore',       [LivescoreController::class, 'show'])->name('show');
     Route::get('/{session}/livescore/data',  [LivescoreController::class, 'data'])->name('data');

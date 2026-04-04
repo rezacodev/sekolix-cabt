@@ -91,17 +91,23 @@ class GeneralSetting extends Page implements HasForms
                             ->label('Nama Aplikasi')
                             ->required()
                             ->maxLength(60)
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Nama yang ditampilkan di seluruh antarmuka, email notifikasi, header cetak dokumen, dan laporan PDF. Ganti dengan nama sistem ujian sekolah Anda.')
+                            ->hintColor('info')
                             ->columnSpan(1),
 
                         Toggle::make('maintenance_mode')
                             ->label('Mode Maintenance')
                             ->helperText('Aktifkan untuk menonaktifkan akses peserta sementara.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Saat aktif, semua peserta tidak bisa mengakses halaman ujian dan melihat pesan "Sistem sedang dalam pemeliharaan". Admin & Guru tetap bisa login normal.')
+                            ->hintColor('info')
                             ->columnSpan(1),
 
                         TextInput::make('school_name')
                             ->label('Nama Sekolah')
                             ->maxLength(120)
                             ->helperText('Ditampilkan di header laporan, cetak, dan cover.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Nama sekolah/institusi yang ditampilkan di header laporan, berita acara, kartu peserta, dan email. Kosongkan jika tidak ingin ditampilkan.')
+                            ->hintColor('info')
                             ->columnSpan(1),
 
                         TextInput::make('school_logo_url')
@@ -109,6 +115,8 @@ class GeneralSetting extends Page implements HasForms
                             ->url()
                             ->maxLength(255)
                             ->helperText('URL/path logo sekolah untuk header laporan.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'URL gambar logo sekolah (link eksternal atau path relatif ke storage/public). Ditampilkan di sudut kiri atas dokumen cetak dan PDF.')
+                            ->hintColor('info')
                             ->columnSpan(1),
                     ]),
 
@@ -119,6 +127,8 @@ class GeneralSetting extends Page implements HasForms
                         Toggle::make('allow_multi_login')
                             ->label('Izinkan Multi-Login Peserta')
                             ->helperText('Jika aktif, peserta dapat login dari lebih dari satu perangkat sekaligus.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Jika nonaktif, peserta yang login dari perangkat baru akan otomatis mengeluarkan sesi sebelumnya (single session enforcement). Direkomendasikan nonaktif saat ujian berlangsung untuk mencegah berbagi akun.')
+                            ->hintColor('info')
                             ->columnSpan('full'),
 
                         TextInput::make('login_max_attempts')
@@ -128,6 +138,8 @@ class GeneralSetting extends Page implements HasForms
                             ->maxValue(99)
                             ->suffix('kali')
                             ->helperText('Jumlah percobaan login salah sebelum akun dikunci sementara.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Setelah N kali login gagal berturut-turut, akun dikunci sementara selama durasi lockout yang ditentukan. Berlaku untuk semua peran. Default: 5 kali.')
+                            ->hintColor('info')
                             ->columnSpan(1),
 
                         TextInput::make('login_lockout_minutes')
@@ -137,6 +149,8 @@ class GeneralSetting extends Page implements HasForms
                             ->maxValue(1440)
                             ->suffix('menit')
                             ->helperText('Lama akun dikunci setelah melebihi maks percobaan login.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Durasi kunci akun setelah melebihi batas percobaan login. Selama periode ini, user tidak bisa login meskipun password benar. Default: 15 menit.')
+                            ->hintColor('info')
                             ->columnSpan(1),
 
                         TextInput::make('session_timeout_minutes')
@@ -146,6 +160,8 @@ class GeneralSetting extends Page implements HasForms
                             ->maxValue(480)
                             ->suffix('menit')
                             ->helperText('Sesi otomatis berakhir jika tidak ada aktivitas. Isi 0 untuk menonaktifkan.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Peserta yang tidak melakukan aktivitas apapun selama N menit akan otomatis dikeluarkan (logout). Berguna untuk lab komputer bersama. Isi 0 untuk menonaktifkan fitur ini.')
+                            ->hintColor('info')
                             ->columnSpan(1),
                     ]),
 
@@ -160,6 +176,8 @@ class GeneralSetting extends Page implements HasForms
                             ->maxValue(99)
                             ->suffix('kali')
                             ->helperText('Jumlah maksimal perpindahan tab/jendela sebelum aksi dijalankan.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Setiap kali peserta berpindah ke tab/jendela lain, minimize browser, atau kehilangan fokus, dihitung sebagai 1 kejadian. Setelah mencapai batas ini, aksi yang ditentukan di bawah dijalankan.')
+                            ->hintColor('info')
                             ->columnSpan(1),
 
                         Select::make('tab_switch_action')
@@ -170,26 +188,36 @@ class GeneralSetting extends Page implements HasForms
                                 'submit' => 'Kumpulkan ujian otomatis',
                             ])
                             ->helperText('Tindakan yang diambil saat peserta mencapai batas tab switch.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'log = hanya dicatat di audit log tanpa notifikasi ke peserta; warn = peserta melihat popup peringatan; submit = ujian langsung dikumpulkan tanpa konfirmasi. Semua kejadian selalu dicatat ke audit log.')
+                            ->hintColor('info')
                             ->columnSpan(1),
 
                         Toggle::make('auto_submit_on_max_tab')
                             ->label('Auto-Submit Saat Batas Tercapai')
                             ->helperText('Langsung kumpulkan ujian otomatis saat batas tab switch terlampaui, tanpa menunggu aksi lain.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Jika aktif, ujian langsung dikumpulkan saat batas tercapai terlepas dari pilihan aksi di atas. Jika nonaktif, hanya aksi yang dipilih (warn/log) yang dijalankan. Pastikan konsisten dengan pilihan Aksi di atas.')
+                            ->hintColor('info')
                             ->columnSpan('full'),
 
                         Toggle::make('prevent_copy_paste')
                             ->label('Nonaktifkan Copy-Paste')
                             ->helperText('Menonaktifkan copy, paste, dan cut di seluruh area soal via JavaScript.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Menonaktifkan Ctrl+C, Ctrl+V, Ctrl+X, dan menu salin/tempel via klik kanan di halaman ujian. Catatan: tidak dapat mencegah screenshot, foto layar, atau penggunaan perangkat lain.')
+                            ->hintColor('info')
                             ->columnSpan(1),
 
                         Toggle::make('prevent_right_click')
                             ->label('Nonaktifkan Klik Kanan')
                             ->helperText('Menonaktifkan klik kanan dan seleksi teks di area soal.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Menonaktifkan menu konteks klik kanan di seluruh area soal. Mengurangi kemudahan menyalin teks soal secara langsung. Dapat dikombinasikan dengan Nonaktifkan Copy-Paste.')
+                            ->hintColor('info')
                             ->columnSpan(1),
 
                         Toggle::make('require_fullscreen')
                             ->label('Wajib Fullscreen')
                             ->helperText('Peserta diwajibkan berada di mode fullscreen. Keluar dari fullscreen dicatat sebagai tab switch event.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Saat aktif, peserta diminta masuk mode fullscreen saat memulai ujian. Jika keluar dari fullscreen (tekan Escape/F11/klik di luar), event dicatat sebagai tab switch. Efektivitas tergantung browser dan perangkat.')
+                            ->hintColor('info')
                             ->columnSpan(1),
 
                         TextInput::make('max_upload_mb')
@@ -199,6 +227,8 @@ class GeneralSetting extends Page implements HasForms
                             ->maxValue(50)
                             ->suffix('MB')
                             ->helperText('Ukuran maksimal file jawaban URAIAN yang dapat diunggah peserta.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Batas ukuran file jawaban URAIAN (PDF, JPG, PNG) yang diunggah peserta saat ujian. Pastikan nilai ini tidak melebihi nilai upload_max_filesize dan post_max_size di php.ini server.')
+                            ->hintColor('info')
                             ->columnSpan(1),
 
                         TextInput::make('max_audio_mb')
@@ -209,12 +239,16 @@ class GeneralSetting extends Page implements HasForms
                             ->default(20)
                             ->suffix('MB')
                             ->helperText('Ukuran maksimal file audio soal yang dapat diunggah guru.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Batas ukuran file audio (MP3, WAV, OGG, M4A) untuk soal tipe Listening/Audio yang diunggah guru di Bank Soal. Pastikan sesuai dengan upload_max_filesize di php.ini server.')
+                            ->hintColor('info')
                             ->columnSpan(1),
 
                         Textarea::make('ip_whitelist')
                             ->label('IP Whitelist Ujian')
                             ->rows(3)
                             ->helperText('Daftar IP yang diizinkan mengakses halaman ujian, pisahkan dengan koma. Kosongkan untuk mengizinkan semua IP.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Jika diisi, hanya perangkat dengan IP yang tercantum yang bisa mengakses halaman ujian. Cocok untuk lab komputer dengan IP tetap. Mendukung CIDR (mis: 192.168.1.0/24). Kosongkan untuk mengizinkan dari semua IP.')
+                            ->hintColor('info')
                             ->placeholder('192.168.1.1, 192.168.1.2')
                             ->columnSpan('full'),
                     ]),
@@ -224,18 +258,24 @@ class GeneralSetting extends Page implements HasForms
                     ->columns(2)
                     ->schema([
                         Toggle::make('realtime_grading')
-                            ->label('Grading Real-time')
+                            ->label('Grading Real-time (Default Paket Baru)')
                             ->helperText('Jika aktif, nilai dihitung otomatis saat peserta selesai. Jika nonaktif, perlu trigger manual di halaman Grading.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Menentukan nilai default grading_mode saat membuat paket ujian baru. Jika aktif, default ke Realtime (nilai langsung dihitung); jika nonaktif, default ke Manual (perlu trigger grading). Setiap paket tetap bisa diubah secara individual.')
+                            ->hintColor('info')
                             ->columnSpan(1),
 
                         Toggle::make('show_ranking_hasil')
                             ->label('Tampilkan Ranking di Hasil')
                             ->helperText('Tampilkan posisi ranking peserta di antara peserta satu sesi di halaman hasil ujian.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Setelah peserta selesai ujian, halaman hasil akan menampilkan posisi ranking mereka dibandingkan peserta lain di sesi yang sama. Nonaktifkan jika tidak ingin peserta saling membandingkan nilai.')
+                            ->hintColor('info')
                             ->columnSpan(1),
 
                         Toggle::make('show_pembahasan_setelah_sesi')
                             ->label('Pembahasan Hanya Setelah Sesi Selesai')
                             ->helperText('Jika aktif, peserta hanya dapat melihat pembahasan jawaban setelah status sesi berubah menjadi Selesai.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Jika aktif, peserta TIDAK bisa melihat pembahasan/kunci jawaban selama sesi masih berstatus Aktif. Pembahasan baru tersedia setelah admin mengubah status sesi ke Selesai. Berguna untuk ujian paralel agar soal tidak bocor ke peserta lain.')
+                            ->hintColor('info')
                             ->columnSpan('full'),
                     ]),
 
@@ -244,13 +284,17 @@ class GeneralSetting extends Page implements HasForms
                     ->columns(2)
                     ->schema([
                         Toggle::make('show_livescore')
-                            ->label('Tampilkan Tombol Livescore')
-                            ->helperText('Tampilkan tombol Livescore di halaman Monitor Sesi.')
+                            ->label('Aktifkan Fitur Livescore')
+                            ->helperText('Aktifkan untuk menampilkan tombol livescore dan mengizinkan akses ke halaman livescore.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Mengaktifkan/menonaktifkan fitur livescore secara penuh. Jika nonaktif: tombol livescore disembunyikan di halaman Monitor Sesi DAN URL langsung /sesi/{id}/livescore akan mengembalikan 404.')
+                            ->hintColor('info')
                             ->columnSpan(1),
 
                         Toggle::make('livescore_public')
                             ->label('Livescore Dapat Diakses Publik')
                             ->helperText('Jika nonaktif, livescore hanya dapat diakses oleh pengguna yang sudah login.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Jika aktif, siapapun (tanpa login) bisa membuka URL livescore langsung — cocok untuk ditampilkan di layar monitor kelas. Jika nonaktif, harus login terlebih dahulu. Hanya berlaku jika fitur Livescore aktif.')
+                            ->hintColor('info')
                             ->columnSpan(1),
                     ]),
 
@@ -261,11 +305,15 @@ class GeneralSetting extends Page implements HasForms
                         Toggle::make('email_notifikasi_sesi')
                             ->label('Kirim Email Saat Peserta Ditetapkan ke Sesi')
                             ->helperText('Peserta akan mendapat email berisi info sesi ujian saat di-assign. Membutuhkan konfigurasi MAIL_* di .env.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Saat peserta ditambahkan ke sesi ujian, sistem otomatis mengirim email berisi nama paket, jadwal, token (jika ada), dan instruksi masuk. Membutuhkan konfigurasi MAIL_HOST, MAIL_USERNAME, MAIL_PASSWORD, dan MAIL_FROM_ADDRESS di file .env.')
+                            ->hintColor('info')
                             ->columnSpan(1),
 
                         Toggle::make('email_reminder_h1')
                             ->label('Kirim Reminder H-1 Ujian')
                             ->helperText('Jalankan scheduler (exam:reminder) setiap hari pukul 07.00.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Sistem mengirim email pengingat kepada peserta sehari sebelum tanggal ujian dimulai. Membutuhkan Laravel Scheduler aktif: tambahkan cronjob "* * * * * php /path/to/artisan schedule:run" di server atau di Railway/Render gunakan cron job.')
+                            ->hintColor('info')
                             ->columnSpan(1),
                     ]),
             ])

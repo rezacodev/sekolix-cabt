@@ -13,6 +13,11 @@ class LivescoreController extends Controller
     // ── GET /sesi/{session}/livescore ────────────────────────────────────────
     public function show(ExamSession $session)
     {
+        // Fitur livescore dinonaktifkan dari Pengaturan Umum
+        if (! AppSetting::getBool('show_livescore', true)) {
+            abort(404);
+        }
+
         if (!in_array($session->status, [ExamSession::STATUS_AKTIF, ExamSession::STATUS_SELESAI])) {
             abort(404);
         }
@@ -28,6 +33,11 @@ class LivescoreController extends Controller
     // ── GET /sesi/{session}/livescore/data ───────────────────────────────────
     public function data(ExamSession $session)
     {
+        // Fitur livescore dinonaktifkan dari Pengaturan Umum
+        if (! AppSetting::getBool('show_livescore', true)) {
+            return response()->json(['error' => 'Livescore tidak aktif'], 404);
+        }
+
         if (!in_array($session->status, [ExamSession::STATUS_AKTIF, ExamSession::STATUS_SELESAI])) {
             return response()->json(['error' => 'Sesi tidak tersedia'], 404);
         }
