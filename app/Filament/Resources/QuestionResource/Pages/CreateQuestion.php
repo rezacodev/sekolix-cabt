@@ -15,4 +15,9 @@ class CreateQuestion extends CreateRecord
         $data['created_by'] = Auth::id();
         return $data;
     }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Soal berhasil dibuat';
+    }
 }

@@ -10,10 +10,16 @@ class EditUser extends EditRecord
 {
     protected static string $resource = UserResource::class;
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Pengguna berhasil diperbarui';
+    }
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()
+                ->successNotificationTitle('Pengguna berhasil dihapus'),
         ];
     }
 }

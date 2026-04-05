@@ -101,7 +101,9 @@
                     </x-filament::badge>
                 </div>
 
-                <x-heroicon-o-chevron-down class="w-4 h-4 text-gray-400 transition-transform" :class="open === {{ $i }} ? 'rotate-180' : ''"/>
+                <span class="transition-transform" :class="open === {{ $i }} ? 'rotate-180' : ''">
+                    <x-heroicon-o-chevron-down class="w-4 h-4 text-gray-400"/>
+                </span>
             </div>
 
             {{-- Timeline expand --}}

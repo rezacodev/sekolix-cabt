@@ -10,10 +10,16 @@ class EditQuestionGroup extends EditRecord
 {
   protected static string $resource = QuestionGroupResource::class;
 
+  protected function getSavedNotificationTitle(): ?string
+  {
+    return 'Grup soal berhasil diperbarui';
+  }
+
   protected function getHeaderActions(): array
   {
     return [
-      Actions\DeleteAction::make(),
+      Actions\DeleteAction::make()
+          ->successNotificationTitle('Grup soal berhasil dihapus'),
     ];
   }
 }

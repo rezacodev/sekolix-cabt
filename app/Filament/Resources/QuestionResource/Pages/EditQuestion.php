@@ -10,10 +10,16 @@ class EditQuestion extends EditRecord
 {
     protected static string $resource = QuestionResource::class;
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Soal berhasil diperbarui';
+    }
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()
+                ->successNotificationTitle('Soal berhasil dihapus'),
         ];
     }
 }

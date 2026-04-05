@@ -174,7 +174,9 @@ class ExamBlueprintResource extends Resource
                     ->openUrlInNewTab(),
 
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make()->requiresConfirmation(),
+                Tables\Actions\DeleteAction::make()
+                    ->requiresConfirmation()
+                    ->successNotificationTitle('Kisi-kisi ujian berhasil dihapus'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

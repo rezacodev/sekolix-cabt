@@ -20,4 +20,9 @@ class CreateExamSession extends CreateRecord
     {
         return $this->getResource()::getUrl('edit', ['record' => $this->record]);
     }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Sesi ujian berhasil dibuat';
+    }
 }

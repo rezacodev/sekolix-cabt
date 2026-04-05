@@ -15,4 +15,9 @@ class CreateQuestionGroup extends CreateRecord
     $data['created_by'] = Auth::id();
     return $data;
   }
+
+  protected function getCreatedNotificationTitle(): ?string
+  {
+    return 'Grup soal berhasil dibuat';
+  }
 }

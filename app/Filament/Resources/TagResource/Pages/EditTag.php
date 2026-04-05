@@ -10,10 +10,16 @@ class EditTag extends EditRecord
 {
     protected static string $resource = TagResource::class;
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Tag berhasil diperbarui';
+    }
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()
+                ->successNotificationTitle('Tag berhasil dihapus'),
         ];
     }
 }

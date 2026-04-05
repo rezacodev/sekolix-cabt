@@ -11,6 +11,11 @@ class EditExamPackage extends EditRecord
 {
     protected static string $resource = ExamPackageResource::class;
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Paket ujian berhasil diperbarui';
+    }
+
     protected function getHeaderActions(): array
     {
         return [
@@ -42,7 +47,8 @@ class EditExamPackage extends EditRecord
                 }),
 
             Actions\DeleteAction::make()
-                ->disabled(fn () => $this->record->isSoftLocked()),
+                ->disabled(fn () => $this->record->isSoftLocked())
+                ->successNotificationTitle('Paket ujian berhasil dihapus'),
         ];
     }
 }

@@ -46,7 +46,7 @@
             </svg>
             <div class="flex-1 min-w-0">
                 <p class="font-semibold text-sm">{{ $ann->judul }}</p>
-                <p class="text-sm mt-0.5 whitespace-pre-line">{{ $ann->isi }}</p>
+                <div class="text-sm mt-0.5 prose prose-sm max-w-none">{!! $ann->isi !!}</div>
             </div>
             <button @click="dismiss('{{ $annId }}')" class="shrink-0 opacity-60 hover:opacity-100 transition-opacity ml-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -59,17 +59,21 @@
     @push('scripts')
     <script>
     function pengumuman() {
+        const storageKey = 'ann_dismissed_{{ auth()->id() }}';
         return {
+            dismissedIds: [],
+            init() {
+                try { this.dismissedIds = JSON.parse(localStorage.getItem(storageKey) || '[]'); }
+                catch { this.dismissedIds = []; }
+            },
             dismissed(id) {
-                try { return JSON.parse(localStorage.getItem('ann_dismissed') || '[]').includes(id); }
-                catch { return false; }
+                return this.dismissedIds.includes(id);
             },
             dismiss(id) {
-                try {
-                    const list = JSON.parse(localStorage.getItem('ann_dismissed') || '[]');
-                    if (!list.includes(id)) list.push(id);
-                    localStorage.setItem('ann_dismissed', JSON.stringify(list));
-                } catch {}
+                if (!this.dismissedIds.includes(id)) {
+                    this.dismissedIds.push(id);
+                    try { localStorage.setItem(storageKey, JSON.stringify(this.dismissedIds)); } catch {}
+                }
             },
         };
     }

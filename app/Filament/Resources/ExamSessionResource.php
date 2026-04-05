@@ -221,7 +221,8 @@ class ExamSessionResource extends Resource
 
                 Tables\Actions\DeleteAction::make()
                     ->requiresConfirmation()
-                    ->visible(fn(ExamSession $record) => $record->isDraft()),
+                    ->visible(fn(ExamSession $record) => $record->isDraft())
+                    ->successNotificationTitle('Sesi ujian berhasil dihapus'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

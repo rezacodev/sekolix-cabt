@@ -197,7 +197,8 @@ class CurriculumStandardResource extends Resource
                                 ->send();
                             $action->cancel();
                         }
-                    }),
+                    })
+                    ->successNotificationTitle('Standar kurikulum berhasil dihapus'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

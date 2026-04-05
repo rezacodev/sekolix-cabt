@@ -10,10 +10,16 @@ class EditAnnouncement extends EditRecord
 {
   protected static string $resource = AnnouncementResource::class;
 
+  protected function getSavedNotificationTitle(): ?string
+  {
+    return 'Pengumuman berhasil diperbarui';
+  }
+
   protected function getHeaderActions(): array
   {
     return [
-      Actions\DeleteAction::make(),
+      Actions\DeleteAction::make()
+          ->successNotificationTitle('Pengumuman berhasil dihapus'),
     ];
   }
 }

@@ -563,7 +563,8 @@ class QuestionResource extends Resource
                     ->requiresConfirmation()
                     ->after(function (Question $record) {
                         AuditLogService::log('hapus_soal', null, "Soal dihapus: ID {$record->id}");
-                    }),
+                    })
+                    ->successNotificationTitle('Soal berhasil dihapus'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

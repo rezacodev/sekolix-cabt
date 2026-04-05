@@ -15,4 +15,9 @@ class CreateExamBlueprint extends CreateRecord
         $data['created_by'] = Auth::id();
         return $data;
     }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Kisi-kisi ujian berhasil dibuat';
+    }
 }

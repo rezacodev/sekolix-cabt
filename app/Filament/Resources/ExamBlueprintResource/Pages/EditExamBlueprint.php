@@ -10,10 +10,16 @@ class EditExamBlueprint extends EditRecord
 {
     protected static string $resource = ExamBlueprintResource::class;
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Kisi-kisi ujian berhasil diperbarui';
+    }
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()
+                ->successNotificationTitle('Kisi-kisi ujian berhasil dihapus'),
         ];
     }
 }

@@ -162,7 +162,8 @@ class RombelResource extends Resource
                 Tables\Actions\DeleteAction::make()
                     ->after(function (Rombel $record) {
                         AuditLogService::log('hapus_rombel', null, "Rombel dihapus: {$record->kode} — {$record->nama}");
-                    }),
+                    })
+                    ->successNotificationTitle('Rombel berhasil dihapus'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

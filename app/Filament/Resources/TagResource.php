@@ -84,7 +84,8 @@ class TagResource extends Resource
                                 ->send();
                             $action->cancel();
                         }
-                    }),
+                    })
+                    ->successNotificationTitle('Tag berhasil dihapus'),
             ])
             ->bulkActions([]);
     }

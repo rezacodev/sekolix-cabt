@@ -39,10 +39,10 @@ class AnnouncementResource extends Resource
         ->maxLength(200)
         ->columnSpanFull(),
 
-      Forms\Components\Textarea::make('isi')
+      Forms\Components\RichEditor::make('isi')
         ->label('Isi Pengumuman')
         ->required()
-        ->rows(4)
+        ->toolbarButtons(['bold', 'italic', 'underline', 'bulletList', 'orderedList', 'link', 'undo', 'redo'])
         ->columnSpanFull(),
 
       Forms\Components\Select::make('tipe')
@@ -135,7 +135,8 @@ class AnnouncementResource extends Resource
       ])
       ->actions([
         Tables\Actions\EditAction::make(),
-        Tables\Actions\DeleteAction::make(),
+        Tables\Actions\DeleteAction::make()
+            ->successNotificationTitle('Pengumuman berhasil dihapus'),
       ])
       ->bulkActions([
         Tables\Actions\BulkActionGroup::make([

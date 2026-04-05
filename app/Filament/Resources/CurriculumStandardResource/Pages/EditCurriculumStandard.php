@@ -10,10 +10,16 @@ class EditCurriculumStandard extends EditRecord
 {
     protected static string $resource = CurriculumStandardResource::class;
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Standar kurikulum berhasil diperbarui';
+    }
+
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make(),
+            Actions\DeleteAction::make()
+                ->successNotificationTitle('Standar kurikulum berhasil dihapus'),
         ];
     }
 }

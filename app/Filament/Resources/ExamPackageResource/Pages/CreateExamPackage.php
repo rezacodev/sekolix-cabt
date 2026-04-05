@@ -15,4 +15,9 @@ class CreateExamPackage extends CreateRecord
         $data['created_by'] = Auth::id();
         return $data;
     }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Paket ujian berhasil dibuat';
+    }
 }

@@ -15,4 +15,9 @@ class CreateCurriculumStandard extends CreateRecord
         $data['created_by'] = Auth::id();
         return $data;
     }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Standar kurikulum berhasil dibuat';
+    }
 }

@@ -9,4 +9,9 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateRombel extends CreateRecord
 {
     protected static string $resource = RombelResource::class;
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Rombel berhasil dibuat';
+    }
 }

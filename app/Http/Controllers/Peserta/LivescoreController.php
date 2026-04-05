@@ -65,12 +65,12 @@ class LivescoreController extends Controller
             ->whereNotNull('nilai_akhir')
             ->get()
             ->groupBy('user_id')
-            ->map(fn ($g) => $g->sortByDesc('nilai_akhir')->first())
+            ->map(fn($g) => $g->sortByDesc('nilai_akhir')->first())
             ->sortByDesc('nilai_akhir')
             ->values();
 
         $rank = 1;
-        return $best->map(fn ($a) => [
+        return $best->map(fn($a) => [
             'rank'          => $rank++,
             'nama'          => $a->user->name,
             'nomor_peserta' => $a->user->nomor_peserta ?? '—',

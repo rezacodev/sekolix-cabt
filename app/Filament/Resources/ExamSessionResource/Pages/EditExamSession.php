@@ -13,6 +13,11 @@ class EditExamSession extends EditRecord
 {
     protected static string $resource = ExamSessionResource::class;
 
+    protected function getSavedNotificationTitle(): ?string
+    {
+        return 'Sesi ujian berhasil diperbarui';
+    }
+
     protected function getHeaderActions(): array
     {
         return [
@@ -52,7 +57,8 @@ class EditExamSession extends EditRecord
                 ->visible(fn () => $this->record->status !== ExamSession::STATUS_DIBATALKAN),
 
             Actions\DeleteAction::make()
-                ->visible(fn () => $this->record->isDraft()),
+                ->visible(fn () => $this->record->isDraft())
+                ->successNotificationTitle('Sesi ujian berhasil dihapus'),
         ];
     }
 }
