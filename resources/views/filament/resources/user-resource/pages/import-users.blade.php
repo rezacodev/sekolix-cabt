@@ -40,7 +40,12 @@
 </div>
 
 {{-- Form upload --}}
-<div class="rounded-xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 p-6">
+<div class="rounded-xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 overflow-hidden">
+    <div class="px-6 py-4 border-b border-gray-100 dark:border-white/10">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Upload File Excel</h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Pilih file .xlsx sesuai template, lalu klik <strong>Parse & Preview Data</strong> untuk melihat hasilnya sebelum diimport.</p>
+    </div>
+    <div class="px-6 py-5">
     <form wire:submit="parseFile">
         {{ $this->form }}
 
@@ -71,6 +76,7 @@
             </x-filament::button>
         </div>
     </form>
+    </div>
 </div>
 
 @else

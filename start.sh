@@ -80,6 +80,8 @@ mkdir -p storage/framework/sessions
 mkdir -p storage/framework/views
 mkdir -p storage/app/public
 mkdir -p storage/app/private
+mkdir -p storage/app/private/livewire-tmp
+mkdir -p storage/app/private/imports/users
 mkdir -p bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 echo "✓  Direktori storage siap."

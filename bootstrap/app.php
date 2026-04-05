@@ -11,6 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Trust all proxies — diperlukan di Railway/Render/Fly.io agar
+        // CSRF dan Livewire AJAX upload bekerja di belakang reverse proxy.
+        $middleware->trustProxies(at: '*');
+
         $middleware->alias([
             'check.level'            => \App\Http\Middleware\CheckLevel::class,
             'check.single.session'   => \App\Http\Middleware\CheckSingleSession::class,

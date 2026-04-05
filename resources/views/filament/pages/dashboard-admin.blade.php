@@ -10,22 +10,24 @@
 
 {{-- ══════════════════════════════════════════════════════════════════════════
      WELCOME HEADER
+     Note: gradient uses inline style — from-primary-* not in app's tailwind.config
 ══════════════════════════════════════════════════════════════════════════ --}}
-<div class="rounded-xl bg-gradient-to-br from-primary-600 to-primary-700 px-6 py-5 text-white shadow-md">
+<div class="rounded-xl px-6 py-5 shadow-md" style="background:linear-gradient(135deg,rgb(var(--color-primary-600)),rgb(var(--color-primary-800)));">
     <div class="flex items-center justify-between gap-4 flex-wrap">
         <div>
-            <p class="text-sm font-medium text-primary-200">{{ $greeting }},</p>
-            <h2 class="text-xl font-bold mt-0.5">{{ $user->name }}</h2>
-            <p class="text-xs text-primary-200 mt-1">{{ \App\Models\User::levelLabels()[$user->level] ?? '' }} &middot; {{ now()->translatedFormat('l, d F Y') }}</p>
+            <p class="text-sm font-medium" style="color:rgba(255,255,255,0.75);">{{ $greeting }},</p>
+            <h2 class="text-xl font-bold mt-0.5 text-white">{{ $user->name }}</h2>
+            <p class="text-xs mt-1" style="color:rgba(255,255,255,0.65);">{{ \App\Models\User::levelLabels()[$user->level] ?? '' }} &middot; {{ now()->translatedFormat('l, d F Y') }}</p>
         </div>
         @if ($isAdmin)
-        <div class="flex items-center gap-3 text-xs text-primary-100">
-            <x-heroicon-o-shield-check class="w-5 h-5 text-primary-200 shrink-0"/>
-            <span>Panel {{ \App\Models\User::levelLabels()[$user->level] }}</span>
+        <div class="flex items-center gap-3" style="color:rgba(255,255,255,0.75);">
+            <x-heroicon-o-shield-check class="w-5 h-5 shrink-0" style="color:rgba(255,255,255,0.75);"/>
+            <span class="text-xs">Panel {{ \App\Models\User::levelLabels()[$user->level] }}</span>
         </div>
         @else
         <a href="{{ \App\Filament\Pages\DashboardGuru::getUrl() }}"
-           class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-white/20 hover:bg-white/30 text-sm font-semibold text-white transition-colors">
+           class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white transition-colors"
+           style="background:rgba(255,255,255,0.2);">
             <x-heroicon-o-presentation-chart-line class="w-4 h-4"/>
             Dashboard Nilai Rombel
         </a>
