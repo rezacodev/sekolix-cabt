@@ -151,7 +151,7 @@ class ParticipantsRelationManager extends RelationManager
                         $session = $this->getOwnerRecord();
                         $peserta = User::where('level', User::LEVEL_PESERTA)
                             ->where('aktif', true)
-                            ->whereIn('rombel_id', $data['rombel_ids'])
+                            ->whereHas('rombels', fn($q) => $q->whereIn('rombels.id', $data['rombel_ids']))
                             ->pluck('id');
 
                         $added = 0;

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\UserResource\Pages;
 
 use App\Filament\Resources\UserResource;
+use App\Models\User;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 
@@ -13,5 +14,13 @@ class CreateUser extends CreateRecord
     protected function getCreatedNotificationTitle(): ?string
     {
         return 'Pengguna berhasil dibuat';
+    }
+
+    protected function afterCreate(): void
+    {
+        $record = $this->record;
+        if ($record->level === User::LEVEL_PESERTA && $record->rombel_id) {
+            $record->rombels()->syncWithoutDetaching([$record->rombel_id]);
+        }
     }
 }

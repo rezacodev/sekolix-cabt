@@ -17,10 +17,7 @@ class GurusRelationManager extends RelationManager
 
     public function form(Form $form): Form
     {
-        // Form tidak dipakai: guru di-attach via AttachAction
-        return $form->schema([
-            Forms\Components\TextInput::make('name')->required(),
-        ]);
+        return $form->schema([]);
     }
 
     public function table(Table $table): Table
@@ -46,7 +43,7 @@ class GurusRelationManager extends RelationManager
                     ->label('Tambah Guru')
                     ->preloadRecordSelect()
                     ->recordSelectOptionsQuery(
-                        fn ($query) => $query->where('level', User::LEVEL_GURU)->where('aktif', true)
+                        fn($query) => $query->where('level', User::LEVEL_GURU)->where('aktif', true)
                     ),
             ])
             ->actions([

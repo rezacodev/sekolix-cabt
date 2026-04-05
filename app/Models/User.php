@@ -93,6 +93,14 @@ class User extends Authenticatable implements FilamentUser
         return $this->belongsToMany(Rombel::class, 'rombel_guru', 'user_id', 'rombel_id');
     }
 
+    /**
+     * Rombel yang diikuti peserta ini (many-to-many via rombel_peserta).
+     */
+    public function rombels(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Rombel::class, 'rombel_peserta', 'user_id', 'rombel_id');
+    }
+
     // Scope
     public function scopeByLevel($query, int $level)
     {

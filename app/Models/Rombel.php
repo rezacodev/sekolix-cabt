@@ -37,11 +37,11 @@ class Rombel extends Model
     }
 
     /**
-     * Peserta yang terdaftar di rombel ini (one-to-many via rombel_id di users).
+     * Peserta yang terdaftar di rombel ini (many-to-many via rombel_peserta).
      */
-    public function peserta(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function peserta(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
     {
-        return $this->hasMany(User::class, 'rombel_id')
+        return $this->belongsToMany(User::class, 'rombel_peserta', 'rombel_id', 'user_id')
             ->where('level', User::LEVEL_PESERTA);
     }
 

@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\RombelResource\RelationManagers;
 
-use App\Models\Rombel;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -18,10 +17,7 @@ class PesertaRelationManager extends RelationManager
 
     public function form(Form $form): Form
     {
-        // Form tidak dipakai: peserta dikelola via UserResource
-        return $form->schema([
-            Forms\Components\TextInput::make('name')->required(),
-        ]);
+        return $form->schema([]);
     }
 
     public function table(Table $table): Table
@@ -50,28 +46,21 @@ class PesertaRelationManager extends RelationManager
                     ->trueLabel('Aktif')
                     ->falseLabel('Nonaktif'),
             ])
-            ->headerActions([])
-            ->actions([
-                Tables\Actions\Action::make('pindah_rombel')
-                    ->label('Pindah Rombel')
-                    ->icon('heroicon-o-arrow-right-circle')
-                    ->color('warning')
-                    ->form([
-                        Forms\Components\Select::make('rombel_id')
-                            ->label('Rombel Tujuan')
-                            ->options(
-                                Rombel::where('aktif', true)
-                                    ->orderBy('nama')
-                                    ->get()
-                                    ->mapWithKeys(fn ($r) => [$r->id => "{$r->kode} — {$r->nama}"])
-                            )
-                            ->required()
-                            ->native(false),
-                    ])
-                    ->action(function ($record, array $data) {
-                        $record->update(['rombel_id' => $data['rombel_id']]);
-                    }),
+            ->headerActions([
+                Tables\Actions\AttachAction::make()
+                    ->label('Tambah Peserta')
+                    ->preloadRecordSelect()
+                    ->recordSelectOptionsQuery(
+                        fn($query) => $query->where('level', User::LEVEL_PESERTA)->where('aktif', true)
+                    ),
             ])
-            ->bulkActions([]);
+            ->actions([
+                Tables\Actions\DetachAction::make()->label('Keluarkan'),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DetachBulkAction::make()->label('Keluarkan Terpilih'),
+                ]),
+            ]);
     }
 }

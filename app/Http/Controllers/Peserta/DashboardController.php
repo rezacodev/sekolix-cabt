@@ -47,12 +47,13 @@ class DashboardController extends Controller
         });
 
         // Pengumuman aktif yang relevan untuk peserta ini
+        $userRombelIds = $user->rombels()->pluck('rombels.id');
         $announcements = Announcement::aktif()
-            ->where(function ($q) use ($user) {
+            ->where(function ($q) use ($user, $userRombelIds) {
                 $q->where('target', Announcement::TARGET_SEMUA)
-                    ->orWhere(function ($q2) use ($user) {
+                    ->orWhere(function ($q2) use ($userRombelIds) {
                         $q2->where('target', Announcement::TARGET_PER_ROMBEL)
-                            ->where('rombel_id', $user->rombel_id);
+                            ->whereIn('rombel_id', $userRombelIds);
                     });
             })
             ->orderByDesc('created_at')

@@ -58,7 +58,7 @@ class UsersImport implements ToCollection, WithHeadingRow
                 }
             }
 
-            User::create([
+            $user = User::create([
                 'name'          => $data['nama_lengkap'],
                 'username'      => $data['username'] ?: null,
                 'email'         => $data['email'],
@@ -68,6 +68,11 @@ class UsersImport implements ToCollection, WithHeadingRow
                 'rombel_id'     => $rombelId,
                 'aktif'         => true,
             ]);
+
+            // Sync peserta ke pivot rombel_peserta jika level peserta dan ada rombel
+            if ($rombelId && (int) $data['level'] === \App\Models\User::LEVEL_PESERTA) {
+                $user->rombels()->syncWithoutDetaching([$rombelId]);
+            }
 
             $this->imported++;
         }
