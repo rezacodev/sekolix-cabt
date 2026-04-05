@@ -101,15 +101,16 @@ class UserResource extends Resource
                             ->unique(ignoreRecord: true)
                             ->nullable()
                             ->maxLength(50),
-                        Forms\Components\Select::make('rombel_id')
+                        Forms\Components\Select::make('rombels')
                             ->label('Rombongan Belajar')
-                            ->helperText('Pilih rombel tempat peserta ini terdaftar')
-                            ->relationship('rombel', 'nama', fn($query) => $query->where('aktif', true)->orderBy('nama'))
+                            ->helperText('Peserta dapat terdaftar di lebih dari satu rombel')
+                            ->multiple()
+                            ->relationship('rombels', 'nama', fn($query) => $query->where('aktif', true)->orderBy('nama'))
                             ->getOptionLabelFromRecordUsing(fn(Rombel $record) => "{$record->kode} — {$record->nama}")
-                            ->nullable()
                             ->searchable()
                             ->preload()
-                            ->native(false),
+                            ->native(false)
+                            ->visible(fn(\Filament\Forms\Get $get) => (int) $get('level') === User::LEVEL_PESERTA),
                         Forms\Components\Toggle::make('aktif')
                             ->label('Aktif')
                             ->default(true),
@@ -132,15 +133,17 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('email')
                     ->label('Email')
                     ->searchable(),
-                Tables\Columns\BadgeColumn::make('level')
+                Tables\Columns\TextColumn::make('level')
                     ->label('Level')
+                    ->badge()
                     ->formatStateUsing(fn($state) => User::levelLabels()[$state] ?? $state)
-                    ->colors([
-                        'gray'    => User::LEVEL_PESERTA,
-                        'info'    => User::LEVEL_GURU,
-                        'warning' => User::LEVEL_ADMIN,
-                        'success' => User::LEVEL_SUPER_ADMIN,
-                    ])
+                    ->color(fn($state) => match((int) $state) {
+                        User::LEVEL_PESERTA     => 'gray',
+                        User::LEVEL_GURU        => 'info',
+                        User::LEVEL_ADMIN       => 'warning',
+                        User::LEVEL_SUPER_ADMIN => 'success',
+                        default                 => 'gray',
+                    })
                     ->sortable(),
                 Tables\Columns\TextColumn::make('nomor_peserta')
                     ->label('No. Peserta')
@@ -278,6 +281,7 @@ class UserResource extends Resource
             'create'     => Pages\CreateUser::route('/create'),
             'edit'       => Pages\EditUser::route('/{record}/edit'),
             'portofolio' => Pages\PesertaPortfolio::route('/{record}/portofolio'),
+            'import'     => Pages\ImportUsers::route('/import'),
         ];
     }
 }

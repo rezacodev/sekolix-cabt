@@ -19,8 +19,9 @@ class CreateUser extends CreateRecord
     protected function afterCreate(): void
     {
         $record = $this->record;
-        if ($record->level === User::LEVEL_PESERTA && $record->rombel_id) {
-            $record->rombels()->syncWithoutDetaching([$record->rombel_id]);
+        if ($record->level === User::LEVEL_PESERTA) {
+            $first = $record->rombels()->first();
+            $record->update(['rombel_id' => $first?->id]);
         }
     }
 }

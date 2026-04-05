@@ -61,6 +61,14 @@ class User extends Authenticatable implements FilamentUser
     const LEVEL_ADMIN      = 3;
     const LEVEL_SUPER_ADMIN = 4;
 
+    /** Kode string untuk import/export (konsisten dengan template Excel). */
+    const LEVEL_CODES = [
+        'peserta'     => self::LEVEL_PESERTA,
+        'guru'        => self::LEVEL_GURU,
+        'admin'       => self::LEVEL_ADMIN,
+        'super_admin' => self::LEVEL_SUPER_ADMIN,
+    ];
+
     public static function levelLabels(): array
     {
         return [
@@ -69,6 +77,23 @@ class User extends Authenticatable implements FilamentUser
             self::LEVEL_ADMIN       => 'Admin',
             self::LEVEL_SUPER_ADMIN => 'Super Admin',
         ];
+    }
+
+    /** Integer level → string kode (untuk export). */
+    public static function levelToCode(int $level): string
+    {
+        $flip = array_flip(self::LEVEL_CODES);
+        return $flip[$level] ?? (string) $level;
+    }
+
+    /** String kode atau angka → integer level (untuk import). */
+    public static function levelFromCode(string|int $code): ?int
+    {
+        if (is_numeric($code)) {
+            $int = (int) $code;
+            return isset(self::levelLabels()[$int]) ? $int : null;
+        }
+        return self::LEVEL_CODES[strtolower(trim($code))] ?? null;
     }
 
     public function getLevelLabelAttribute(): string

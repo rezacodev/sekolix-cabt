@@ -29,18 +29,23 @@ class UsersExport implements FromQuery, WithHeadings, WithMapping, WithTitle
 
     public function headings(): array
     {
-        return ['ID', 'Nama Lengkap', 'Username', 'Email', 'Level', 'Nomor Peserta', 'Aktif', 'Dibuat'];
+        return ['ID', 'Nama Lengkap', 'Username', 'Email', 'Level', 'Nomor Peserta', 'Kode Rombel', 'Aktif', 'Dibuat'];
     }
 
     public function map($user): array
     {
+        $rombelKodes = $user->level === \App\Models\User::LEVEL_PESERTA
+            ? $user->rombels()->orderBy('kode')->pluck('kode')->implode(';')
+            : ($user->rombelsAmpu()->orderBy('kode')->pluck('kode')->implode(';') ?: '-');
+
         return [
             $user->id,
             $user->name,
             $user->username ?? '-',
             $user->email,
-            User::levelLabels()[$user->level] ?? $user->level,
+            \App\Models\User::levelToCode($user->level),
             $user->nomor_peserta ?? '-',
+            $rombelKodes ?: '-',
             $user->aktif ? 'Ya' : 'Tidak',
             $user->created_at->format('d/m/Y'),
         ];
