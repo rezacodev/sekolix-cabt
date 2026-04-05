@@ -46,7 +46,8 @@ class ImportUsers extends Page implements HasForms
             'application/octet-stream',
           ])
           ->disk('local')
-          ->directory('imports/users'),
+          ->directory('imports/users')
+          ->visibility('private'),
       ])
       ->statePath('data');
   }
@@ -58,18 +59,37 @@ class ImportUsers extends Page implements HasForms
   {
     $this->validate(['data.file' => ['required']]);
 
-    $path = Storage::disk('local')->path($this->data['file']);
+    $fileValue = $this->data['file'] ?? null;
 
-    if (! file_exists($path)) {
+    // Guard: nilai bisa tetap TemporaryUploadedFile jika storeAs() gagal secara diam-diam
+    if (! is_string($fileValue) || blank($fileValue)) {
       Notification::make()
-        ->title('File tidak ditemukan. Silakan upload ulang.')
+        ->title('File belum terupload dengan benar. Silakan upload ulang.')
         ->danger()
         ->send();
       return;
     }
 
-    $this->parsedRows = UsersImport::parseForPreview($path);
-    $this->showPreview = true;
+    $path = Storage::disk('local')->path($fileValue);
+
+    if (! file_exists($path)) {
+      Notification::make()
+        ->title('File tidak ditemukan di server. Silakan upload ulang.')
+        ->danger()
+        ->send();
+      return;
+    }
+
+    try {
+      $this->parsedRows  = UsersImport::parseForPreview($path);
+      $this->showPreview = true;
+    } catch (\Throwable $e) {
+      Notification::make()
+        ->title('Gagal memproses file: ' . $e->getMessage())
+        ->danger()
+        ->persistent()
+        ->send();
+    }
   }
 
   /**
@@ -110,7 +130,7 @@ class ImportUsers extends Page implements HasForms
       Storage::disk('local')->delete($this->data['file']);
     }
 
-    $this->redirect(static::getResource()::getUrl());
+    redirect(static::getResource()::getUrl());
   }
 
   /**

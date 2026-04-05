@@ -29,7 +29,11 @@ class UsersImport implements ToCollection, WithHeadingRow
         $rombelMap = Rombel::pluck('id', 'kode');
         $result    = [];
 
-        $rows = Excel::toCollection(new self(), $filePath)->first() ?? collect();
+        try {
+            $rows = Excel::toCollection(new self(), $filePath)->first() ?? collect();
+        } catch (\Throwable $e) {
+            throw new \RuntimeException('Gagal membaca file Excel: ' . $e->getMessage(), 0, $e);
+        }
 
         $existingEmails    = User::pluck('email')->flip();
         $existingUsernames = User::whereNotNull('username')->pluck('username')->flip();
