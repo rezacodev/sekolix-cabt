@@ -137,7 +137,7 @@ class UserResource extends Resource
                     ->label('Level')
                     ->badge()
                     ->formatStateUsing(fn($state) => User::levelLabels()[$state] ?? $state)
-                    ->color(fn($state) => match((int) $state) {
+                    ->color(fn($state) => match ((int) $state) {
                         User::LEVEL_PESERTA     => 'gray',
                         User::LEVEL_GURU        => 'info',
                         User::LEVEL_ADMIN       => 'warning',

@@ -21,7 +21,7 @@ class ListUsers extends ListRecords
                 ->label('Template Excel')
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('gray')
-                ->action(fn () => Excel::download(new UsersImportTemplate(), 'template-import-user.xlsx')),
+                ->action(fn() => Excel::download(new UsersImportTemplate(), 'template-import-user.xlsx')),
 
             // Import massal via Excel (halaman preview)
             Actions\Action::make('import')
@@ -35,7 +35,7 @@ class ListUsers extends ListRecords
                 ->label('Export Excel')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
-                ->action(fn () => Excel::download(new UsersExport(), 'daftar-user-' . now()->format('Ymd') . '.xlsx')),
+                ->action(fn() => Excel::download(new UsersExport(), 'daftar-user-' . now()->format('Ymd') . '.xlsx')),
 
             Actions\CreateAction::make(),
         ];
