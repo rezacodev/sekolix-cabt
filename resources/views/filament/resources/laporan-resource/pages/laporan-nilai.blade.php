@@ -12,15 +12,15 @@
 {{-- ── Statistik Ringkasan ──────────────────────────────────────────────────── --}}
 <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem;">
     @foreach ([
-        ['label' => 'Total Peserta',   'value' => $statistik['total_peserta'],             'color' => 'text-gray-900 dark:text-white'],
-        ['label' => 'Rata-rata',        'value' => number_format($statistik['rata_rata'], 1), 'color' => 'text-primary-600 dark:text-primary-400'],
-        ['label' => 'Tertinggi',        'value' => number_format($statistik['nilai_tertinggi'], 1), 'color' => 'text-success-600 dark:text-success-400'],
-        ['label' => 'Terendah',         'value' => number_format($statistik['nilai_terendah'], 1), 'color' => 'text-danger-600 dark:text-danger-400'],
-        ['label' => 'Median',           'value' => number_format($statistik['median'], 1),  'color' => 'text-info-600 dark:text-info-400'],
+        ['label' => 'Total Peserta',   'value' => $statistik['total_peserta'],             'color' => '#111827'],
+        ['label' => 'Rata-rata',        'value' => number_format($statistik['rata_rata'], 1), 'color' => '#2563eb'],
+        ['label' => 'Tertinggi',        'value' => number_format($statistik['nilai_tertinggi'], 1), 'color' => '#16a34a'],
+        ['label' => 'Terendah',         'value' => number_format($statistik['nilai_terendah'], 1), 'color' => '#dc2626'],
+        ['label' => 'Median',           'value' => number_format($statistik['median'], 1),  'color' => '#0891b2'],
     ] as $stat)
     <div class="rounded-xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 p-4 text-center">
         <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ $stat['label'] }}</p>
-        <p class="mt-1 text-3xl font-bold {{ $stat['color'] }}">{{ $stat['value'] }}</p>
+        <p class="mt-1 text-3xl font-bold" style="color:{{ $stat['color'] }};">{{ $stat['value'] }}</p>
     </div>
     @endforeach
 </div>
@@ -45,7 +45,7 @@
     </div>
 
     @if ($rekap->isEmpty())
-        <div class="px-6 py-10 text-center text-gray-400">
+        <div class="px-6 py-8 text-center text-gray-400">
             Belum ada data nilai untuk sesi ini.
         </div>
     @else
@@ -73,17 +73,13 @@
                         <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">{{ $row->nama }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ $row->nomor_peserta }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ $row->rombel_nama }}</td>
-                        <td class="px-4 py-3 text-right font-bold text-lg
-                            @if($row->nilai_akhir !== null)
-                                @if($row->nilai_akhir >= 75) text-success-600 dark:text-success-400
-                                @elseif($row->nilai_akhir >= 50) text-warning-600 dark:text-warning-400
-                                @else text-danger-600 dark:text-danger-400
-                                @endif
-                            @else text-gray-400
-                            @endif">
+                        @php
+                            $nilaiStyle = $row->nilai_akhir === null ? 'color:#9ca3af;' : ($row->nilai_akhir >= 75 ? 'color:#16a34a;' : ($row->nilai_akhir >= 50 ? 'color:#d97706;' : 'color:#dc2626;'));
+                        @endphp
+                        <td class="px-4 py-3 text-right font-bold text-lg" style="{{ $nilaiStyle }}">
                             {{ $row->nilai_akhir !== null ? number_format((float)$row->nilai_akhir, 1) : '—' }}
                         </td>
-                        <td class="px-4 py-3 text-center text-success-600 dark:text-success-400 font-medium">{{ $row->jumlah_benar }}</td>
+                        <td class="px-4 py-3 text-center font-medium" style="color:#16a34a;">{{ $row->jumlah_benar }}</td>
                         <td class="px-4 py-3 text-center text-danger-600 dark:text-danger-400 font-medium">{{ $row->jumlah_salah }}</td>
                         <td class="px-4 py-3 text-center text-gray-400">{{ $row->jumlah_kosong }}</td>
                         <td class="px-4 py-3 text-center text-gray-500">{{ $row->attempt_ke }}×</td>

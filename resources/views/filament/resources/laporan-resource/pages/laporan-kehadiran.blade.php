@@ -15,15 +15,15 @@
 {{-- ── Kartu Statistik ──────────────────────────────────────────────────────── --}}
 <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem;">
     @foreach ([
-        ['label' => 'Total Terdaftar', 'value' => $kehadiran['total'],          'color' => 'text-gray-900 dark:text-white'],
-        ['label' => 'Selesai',          'value' => $kehadiran['selesai'],         'color' => 'text-success-600 dark:text-success-400'],
-        ['label' => 'Sedang',           'value' => $kehadiran['sedang'],          'color' => 'text-warning-600 dark:text-warning-400'],
-        ['label' => 'Belum Mulai',      'value' => $kehadiran['belum'],           'color' => 'text-gray-500 dark:text-gray-400'],
-        ['label' => 'Diskualifikasi',   'value' => $kehadiran['diskualifikasi'],  'color' => 'text-danger-600 dark:text-danger-400'],
+        ['label' => 'Total Terdaftar', 'value' => $kehadiran['total'],          'color' => '#111827'],
+        ['label' => 'Selesai',          'value' => $kehadiran['selesai'],         'color' => '#16a34a'],
+        ['label' => 'Sedang',           'value' => $kehadiran['sedang'],          'color' => '#d97706'],
+        ['label' => 'Belum Mulai',      'value' => $kehadiran['belum'],           'color' => '#6b7280'],
+        ['label' => 'Diskualifikasi',   'value' => $kehadiran['diskualifikasi'],  'color' => '#dc2626'],
     ] as $stat)
     <div class="rounded-xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 p-4 text-center">
         <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ $stat['label'] }}</p>
-        <p class="mt-1 text-3xl font-bold {{ $stat['color'] }}">{{ $stat['value'] }}</p>
+        <p class="mt-1 text-3xl font-bold" style="color:{{ $stat['color'] }};">{{ $stat['value'] }}</p>
     </div>
     @endforeach
 </div>
@@ -38,13 +38,13 @@
         $pctBelum    = round($kehadiran['belum']          / $total * 100);
         $pctDisq     = round($kehadiran['diskualifikasi'] / $total * 100);
     @endphp
-    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">Distribusi Kehadiran</p>
+    <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-4">Distribusi Kehadiran</p>
     <div class="flex h-6 rounded-full overflow-hidden">
         @if ($pctSelesai > 0)
-            <div class="bg-success-500" @style(['width: ' . $pctSelesai . '%']) title="Selesai {{ $pctSelesai }}%"></div>
+            <div style="background:#22c55e;width:{{ $pctSelesai }}%;" title="Selesai {{ $pctSelesai }}%"></div>
         @endif
         @if ($pctSedang > 0)
-            <div class="bg-warning-500" @style(['width: ' . $pctSedang . '%']) title="Sedang {{ $pctSedang }}%"></div>
+            <div style="background:#f59e0b;width:{{ $pctSedang }}%;" title="Sedang {{ $pctSedang }}%"></div>
         @endif
         @if ($pctDisq > 0)
             <div class="bg-danger-500" @style(['width: ' . $pctDisq . '%']) title="Diskualifikasi {{ $pctDisq }}%"></div>
@@ -54,8 +54,8 @@
         @endif
     </div>
     <div class="flex gap-6 mt-3 text-xs text-gray-500">
-        <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-success-500 mr-1"></span>Selesai {{ $pctSelesai }}%</span>
-        <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-warning-500 mr-1"></span>Sedang {{ $pctSedang }}%</span>
+        <span><span class="inline-block w-2.5 h-2.5 rounded-full mr-1" style="background:#22c55e;"></span>Selesai {{ $pctSelesai }}%</span>
+        <span><span class="inline-block w-2.5 h-2.5 rounded-full mr-1" style="background:#f59e0b;"></span>Sedang {{ $pctSedang }}%</span>
         <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-danger-500 mr-1"></span>Diskualifikasi {{ $pctDisq }}%</span>
         <span><span class="inline-block w-2.5 h-2.5 rounded-full bg-gray-300 mr-1"></span>Belum Mulai {{ $pctBelum }}%</span>
     </div>
@@ -71,7 +71,7 @@
     </div>
 
     @if ($list->isEmpty())
-        <div class="px-6 py-10 text-center text-gray-400">
+        <div class="px-6 py-8 text-center text-gray-400">
             Belum ada peserta yang terdaftar di sesi ini.
         </div>
     @else

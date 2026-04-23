@@ -12,24 +12,24 @@
 {{-- ── Summary Cards ────────────────────────────────────────────────────────── --}}
 <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;">
     @foreach ([
-        ['label' => 'Total Peserta',    'value' => $totalPeserta,       'color' => 'text-gray-900 dark:text-white'],
-        ['label' => 'Total Tab Switch', 'value' => $totalTabSwitch,     'color' => 'text-warning-600 dark:text-warning-400'],
-        ['label' => 'Total Kick',       'value' => $totalKick,          'color' => 'text-danger-600 dark:text-danger-400'],
-        ['label' => 'Auto-Submit',      'value' => $totalAutoSubmit,    'color' => 'text-orange-600 dark:text-orange-400'],
-        ['label' => '≥1 Pelanggaran',   'value' => $pesertaPelanggaran, 'color' => 'text-danger-600 dark:text-danger-400'],
+        ['label' => 'Total Peserta',    'value' => $totalPeserta,       'color' => '#111827'],
+        ['label' => 'Total Tab Switch', 'value' => $totalTabSwitch,     'color' => '#d97706'],
+        ['label' => 'Total Kick',       'value' => $totalKick,          'color' => '#dc2626'],
+        ['label' => 'Auto-Submit',      'value' => $totalAutoSubmit,    'color' => '#d97706'],
+        ['label' => '≥1 Pelanggaran',   'value' => $pesertaPelanggaran, 'color' => '#dc2626'],
     ] as $stat)
     <div class="rounded-xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 p-4 text-center">
         <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ $stat['label'] }}</p>
-        <p class="mt-1 text-3xl font-bold {{ $stat['color'] }}">{{ $stat['value'] }}</p>
+        <p class="mt-1 text-3xl font-bold" style="color:{{ $stat['color'] }};">{{ $stat['value'] }}</p>
     </div>
     @endforeach
 </div>
 
 {{-- ── Filter ───────────────────────────────────────────────────────────────── --}}
-<div class="rounded-xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 p-5">
+<div class="rounded-xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 p-4">
     <div class="flex flex-wrap items-end gap-4">
         <div>
-            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Tab Switch ≥</label>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Tab Switch ≥</label>
             <input type="number" wire:model.live="filter_tab_switch" min="0" value="{{ $filter_tab_switch }}"
                 class="w-28 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white px-3 py-2">
         </div>
@@ -55,7 +55,7 @@
     </div>
 
     @if ($rekap->isEmpty())
-        <div class="px-6 py-10 text-center text-gray-400">
+        <div class="px-6 py-8 text-center text-gray-400">
             Tidak ada data yang sesuai filter.
         </div>
     @else
@@ -80,13 +80,13 @@
 
                 {{-- Event counts --}}
                 <div class="flex items-center gap-2 text-xs font-semibold">
-                    <span title="Tab Switch" class="px-2 py-0.5 rounded bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300">
+                    <span title="Tab Switch" class="px-2 py-0.5 rounded" style="background:#fef3c7;color:#a16207;">
                         ⇄ {{ $row->tab_switch }}
                     </span>
                     <span title="Blur Focus" class="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">
                         ⊙ {{ $row->blur }}
                     </span>
-                    <span title="Kick" class="px-2 py-0.5 rounded bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300">
+                    <span title="Kick" class="px-2 py-0.5 rounded" style="background:#fee2e2;color:#b91c1c;">
                         ✖ {{ $row->kick }}
                     </span>
                 </div>
@@ -112,22 +112,22 @@
                     <p class="px-8 py-4 text-sm text-gray-400">Tidak ada log event untuk peserta ini.</p>
                 @else
                     <div class="px-8 py-4 space-y-2">
-                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3">Timeline Event</p>
+                        <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-4">Timeline Event</p>
                         @foreach ($row->logs as $log)
                         @php
                             $evColor = match($log->event_type) {
-                                \App\Models\AttemptLog::EVENT_TAB_SWITCH => 'text-yellow-600 dark:text-yellow-400',
-                                \App\Models\AttemptLog::EVENT_KICK       => 'text-red-600 dark:text-red-400',
-                                \App\Models\AttemptLog::EVENT_TIMEOUT    => 'text-orange-600 dark:text-orange-400',
-                                \App\Models\AttemptLog::EVENT_BLUR       => 'text-gray-500 dark:text-gray-400',
-                                default                                  => 'text-gray-600 dark:text-gray-300',
+                                \App\Models\AttemptLog::EVENT_TAB_SWITCH => '#a16207',
+                                \App\Models\AttemptLog::EVENT_KICK       => '#b91c1c',
+                                \App\Models\AttemptLog::EVENT_TIMEOUT    => '#ea580c',
+                                \App\Models\AttemptLog::EVENT_BLUR       => '#6b7280',
+                                default                                  => '#4b5563',
                             };
                         @endphp
                         <div class="flex items-start gap-3 text-sm">
                             <span class="text-xs text-gray-400 w-32 flex-shrink-0 pt-0.5">
                                 {{ $log->created_at?->format('H:i:s') ?? '—' }}
                             </span>
-                            <span class="font-semibold uppercase text-xs {{ $evColor }} w-24 flex-shrink-0 pt-0.5">
+                            <span class="font-semibold uppercase text-xs w-24 flex-shrink-0 pt-0.5" style="color:{{ $evColor }};">
                                 {{ $log->event_type }}
                             </span>
                             <span class="text-gray-600 dark:text-gray-400 text-xs">

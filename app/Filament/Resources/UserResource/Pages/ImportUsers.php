@@ -29,6 +29,9 @@ class ImportUsers extends Page implements HasForms
   /** Apakah sedang menampilkan tahap preview. */
   public bool $showPreview = false;
 
+  /** Apakah modal konfirmasi import sedang terbuka. */
+  public bool $showImportModal = false;
+
   public function mount(): void
   {
     $this->form->fill();
@@ -59,9 +62,11 @@ class ImportUsers extends Page implements HasForms
   {
     $this->validate(['data.file' => ['required']]);
 
-    $fileValue = $this->data['file'] ?? null;
+    // getState() memaksa Filament memindahkan TemporaryUploadedFile ke disk permanen
+    // sehingga $state['file'] dijamin berupa string path final.
+    $state     = $this->form->getState();
+    $fileValue = $state['file'] ?? null;
 
-    // Guard: nilai bisa tetap TemporaryUploadedFile jika storeAs() gagal secara diam-diam
     if (! is_string($fileValue) || blank($fileValue)) {
       Notification::make()
         ->title('File belum terupload dengan benar. Silakan upload ulang.')

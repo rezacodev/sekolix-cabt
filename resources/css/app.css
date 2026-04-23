@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .fi-resource-user-resource .fi-header {
+    gap: 0.75rem;
+  }
+
+  @screen sm {
+    .fi-resource-user-resource .fi-header {
+      justify-content: flex-start;
+    }
+
+    .fi-resource-user-resource .fi-header > div:last-child {
+      margin-left: 0.75rem;
+    }
+  }
+}

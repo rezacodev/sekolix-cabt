@@ -6,15 +6,15 @@
 {{-- ── Stat Cards ───────────────────────────────────────────────────────────── --}}
 <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem;">
     @foreach ([
-        ['label' => 'Total Peserta',     'value' => $stats['total'],          'color' => 'text-gray-900 dark:text-white'],
-        ['label' => 'Sedang Mengerjakan','value' => $stats['sedang'],         'color' => 'text-primary-600 dark:text-primary-400'],
-        ['label' => 'Selesai',           'value' => $stats['selesai'],        'color' => 'text-success-600 dark:text-success-400'],
-        ['label' => 'Belum Mulai',       'value' => $stats['belum'],          'color' => 'text-warning-600 dark:text-warning-400'],
-        ['label' => 'Diskualifikasi',    'value' => $stats['diskualifikasi'], 'color' => 'text-danger-600 dark:text-danger-400'],
+        ['label' => 'Total Peserta',     'value' => $stats['total'],          'color' => '#111827'],
+        ['label' => 'Sedang Mengerjakan','value' => $stats['sedang'],         'color' => '#2563eb'],
+        ['label' => 'Selesai',           'value' => $stats['selesai'],        'color' => '#16a34a'],
+        ['label' => 'Belum Mulai',       'value' => $stats['belum'],          'color' => '#d97706'],
+        ['label' => 'Diskualifikasi',    'value' => $stats['diskualifikasi'], 'color' => '#dc2626'],
     ] as $stat)
     <div class="rounded-xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 p-4 text-center">
         <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ $stat['label'] }}</p>
-        <p class="mt-1 text-3xl font-bold {{ $stat['color'] }}">{{ $stat['value'] }}</p>
+        <p class="mt-1 text-3xl font-bold" style="color:{{ $stat['color'] }};">{{ $stat['value'] }}</p>
     </div>
     @endforeach
 </div>
@@ -34,13 +34,13 @@
         <span class="text-gray-300">|</span>
         @php
             $statusBg = match($session->status) {
-                \App\Models\ExamSession::STATUS_AKTIF      => 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-                \App\Models\ExamSession::STATUS_SELESAI    => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-                \App\Models\ExamSession::STATUS_DIBATALKAN => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-                default                                     => 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+                \App\Models\ExamSession::STATUS_AKTIF      => 'background:#dcfce7;color:#15803d;',
+                \App\Models\ExamSession::STATUS_SELESAI    => 'background:#dbeafe;color:#1d4ed8;',
+                \App\Models\ExamSession::STATUS_DIBATALKAN => 'background:#fee2e2;color:#b91c1c;',
+                default                                     => 'background:#f3f4f6;color:#4b5563;',
             };
         @endphp
-        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold {{ $statusBg }}">
+        <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold" style="{{ $statusBg }}">
             {{ \App\Models\ExamSession::STATUS_LABELS[$session->status] ?? $session->status }}
         </span>
         <span class="ml-auto text-xs text-gray-400">Auto-refresh 10 detik &middot; {{ now()->format('H:i:s') }}</span>
@@ -49,22 +49,22 @@
 
 {{-- ── Livescore Link Card ───────────────────────────────────────────────────── --}}
 @if ($livescoreUrl)
-<div class="rounded-xl bg-indigo-50 dark:bg-indigo-900/20 ring-1 ring-indigo-200 dark:ring-indigo-800 px-6 py-4">
+<div class="rounded-xl px-6 py-4" style="background:#eef2ff;outline:1px solid #c7d2fe;">
     <div class="flex flex-wrap items-center gap-3">
-        <x-heroicon-o-globe-alt class="w-4 h-4 text-indigo-500 shrink-0"/>
-        <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wide shrink-0">Link Livescore Publik</span>
+        <x-heroicon-o-globe-alt class="w-4 h-4 shrink-0" style="color:#6366f1;"/>
+        <span class="text-xs font-semibold uppercase tracking-wide shrink-0" style="color:#4f46e5;">Link Livescore Publik</span>
         <div class="flex-1 min-w-0">
-            <code class="block w-full text-xs text-indigo-700 dark:text-indigo-300 font-mono bg-indigo-100 dark:bg-indigo-900/40 rounded px-3 py-1.5 truncate" id="livescore-url">{{ $livescoreUrl }}</code>
+            <code class="block w-full text-xs font-mono rounded px-3 py-1.5 truncate" style="color:#3730a3;background:#e0e7ff;" id="livescore-url">{{ $livescoreUrl }}</code>
         </div>
         <button
             type="button"
             onclick="navigator.clipboard.writeText('{{ $livescoreUrl }}').then(()=>{this.textContent='Tersalin!';setTimeout(()=>this.textContent='Salin Link',2000)})"
-            class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors">
+            class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors" style="background:#4f46e5;color:white;">
             <x-heroicon-o-clipboard-document class="w-3.5 h-3.5"/>
             Salin Link
         </button>
         <a href="{{ $livescoreUrl }}" target="_blank"
-           class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold ring-1 ring-indigo-300 dark:ring-indigo-700 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors">
+           class="shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition-colors" style="color:#3730a3;outline:1px solid #a5b4fc;">
             <x-heroicon-o-arrow-top-right-on-square class="w-3.5 h-3.5"/>
             Buka
         </a>
@@ -81,7 +81,7 @@
     </div>
 
     @if ($list->isEmpty())
-        <div class="px-6 py-10 text-center text-gray-400">
+        <div class="px-6 py-8 text-center text-gray-400">
             Belum ada peserta yang didaftarkan pada sesi ini.
         </div>
     @else
@@ -106,10 +106,10 @@
                     @foreach ($list as $idx => $p)
                     @php
                         $statusClass = match($p->participant_status) {
-                            \App\Models\ExamSessionParticipant::STATUS_SEDANG         => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-                            \App\Models\ExamSessionParticipant::STATUS_SELESAI        => 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-                            \App\Models\ExamSessionParticipant::STATUS_DISKUALIFIKASI => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-                            default                                                    => 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+                            \App\Models\ExamSessionParticipant::STATUS_SEDANG         => 'background:#dbeafe;color:#1d4ed8;',
+                            \App\Models\ExamSessionParticipant::STATUS_SELESAI        => 'background:#dcfce7;color:#15803d;',
+                            \App\Models\ExamSessionParticipant::STATUS_DISKUALIFIKASI => 'background:#fee2e2;color:#b91c1c;',
+                            default                                                    => 'background:#f3f4f6;color:#4b5563;',
                         };
                         $statusLabel   = \App\Models\ExamSessionParticipant::STATUS_LABELS[$p->participant_status] ?? $p->participant_status;
                         $progressPct   = ($p->total_soal > 0) ? round($p->dijawab / $p->total_soal * 100) : 0;
@@ -118,10 +118,10 @@
                             \App\Models\ExamSessionParticipant::STATUS_SELESAI,
                         ]);
                         $nilaiColor = match(true) {
-                            $p->nilai_sementara === null                => 'text-gray-300 dark:text-gray-600',
-                            $p->nilai_sementara >= 75                  => 'text-success-600 dark:text-success-400',
-                            $p->nilai_sementara >= 50                  => 'text-warning-600 dark:text-warning-400',
-                            default                                     => 'text-danger-600 dark:text-danger-400',
+                            $p->nilai_sementara === null                => '#9ca3af',
+                            $p->nilai_sementara >= 75                  => '#16a34a',
+                            $p->nilai_sementara >= 50                  => '#d97706',
+                            default                                     => '#dc2626',
                         };
                         $rankDisplay = match($p->rank) {
                             1       => '🥇',
@@ -142,7 +142,7 @@
 
                         <td class="px-4 py-3">
                             <div class="flex">
-                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold {{ $statusClass }}">
+                                <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold" style="{{ $statusClass }}">
                                     {{ $statusLabel }}
                                 </span>
                             </div>
@@ -166,13 +166,13 @@
                             @if ($p->sisa_waktu === null)
                                 <span class="text-gray-300">—</span>
                             @elseif ($p->sisa_waktu <= 0)
-                                <span class="text-red-500 font-semibold text-xs">Waktu Habis</span>
+                                <span class="text-danger-600 font-semibold text-xs">Waktu Habis</span>
                             @else
                                 @php
                                     $menit = intdiv((int)$p->sisa_waktu, 60);
                                     $detik = (int)$p->sisa_waktu % 60;
                                 @endphp
-                                <span class="{{ $p->sisa_waktu <= 300 ? 'text-warning-600 dark:text-warning-400 font-bold' : 'text-gray-700 dark:text-gray-200' }}">
+                                <span class="{{ $p->sisa_waktu <= 300 ? 'font-bold' : 'text-gray-700 dark:text-gray-200' }}" style="{{ $p->sisa_waktu <= 300 ? 'color:#d97706;' : '' }}">
                                     {{ str_pad($menit, 2, '0', STR_PAD_LEFT) }}:{{ str_pad($detik, 2, '0', STR_PAD_LEFT) }}
                                 </span>
                             @endif
@@ -180,7 +180,7 @@
 
                         <td class="px-4 py-3 text-center">
                             @if ($p->tab_switch > 0)
-                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400">
+                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold" style="background:#fee2e2;color:#b91c1c;">
                                     {{ $p->tab_switch }}
                                 </span>
                             @else
@@ -189,7 +189,7 @@
                         </td>
 
                         <td class="px-4 py-3 text-right">
-                            <span class="font-bold text-base {{ $nilaiColor }}">
+                            <span class="font-bold text-base" style="color:{{ $nilaiColor }};">
                                 {{ $p->nilai_sementara !== null ? number_format((float)$p->nilai_sementara, 1) : '—' }}
                             </span>
                         </td>
@@ -202,7 +202,7 @@
                             @if ($canKick)
                                 <button
                                     wire:click="confirmKick({{ $p->user_id }}, '{{ addslashes($p->nama) }}')"
-                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-danger-50 text-danger-700 hover:bg-danger-100 dark:bg-danger-900/20 dark:text-danger-400 dark:hover:bg-danger-900/40 transition-colors">
+                                    class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors" style="background:#fef2f2;color:#b91c1c;outline:1px solid #fecaca;">
                                     <x-heroicon-o-x-mark class="w-3.5 h-3.5"/>
                                     Paksa Keluar
                                 </button>
@@ -222,7 +222,7 @@
 
 {{-- ── Catatan Pengawas ─────────────────────────────────────────────────────── --}}
 <div class="rounded-xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 overflow-hidden mt-4">
-    <div class="px-5 py-4 border-b border-gray-100 dark:border-white/10 flex items-center gap-2">
+    <div class="px-6 py-4 border-b border-gray-100 dark:border-white/10 flex items-center gap-2">
         <x-heroicon-o-pencil-square class="w-4 h-4 text-gray-400"/>
         <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">Catatan Pengawas</h3>
     </div>
@@ -230,7 +230,7 @@
     {{-- Daftar catatan --}}
     <div class="divide-y divide-gray-50 dark:divide-white/5 max-h-64 overflow-y-auto">
         @forelse ($notes as $note)
-        <div class="px-5 py-3">
+        <div class="px-6 py-3">
             <div class="flex items-center gap-2 mb-0.5">
                 <span class="text-xs font-semibold text-gray-700 dark:text-gray-300">{{ $note->author?->name ?? '—' }}</span>
                 <span class="text-xs text-gray-400">{{ $note->created_at?->format('H:i, d M Y') }}</span>
@@ -238,14 +238,14 @@
             <p class="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-line">{{ $note->catatan }}</p>
         </div>
         @empty
-        <div class="px-5 py-6 text-center text-sm text-gray-400 dark:text-gray-500">
+        <div class="px-6 py-6 text-center text-sm text-gray-400 dark:text-gray-500">
             Belum ada catatan.
         </div>
         @endforelse
     </div>
 
     {{-- Form tambah catatan --}}
-    <div class="px-5 py-4 border-t border-gray-100 dark:border-white/10">
+    <div class="px-6 py-4 border-t border-gray-100 dark:border-white/10">
         <textarea
             wire:model="newNote"
             rows="2"
@@ -295,13 +295,13 @@
         x-transition:leave-end="opacity-0 scale-95">
 
         {{-- Icon --}}
-        <div class="flex items-center justify-center w-12 h-12 rounded-full bg-danger-100 dark:bg-danger-900/30 mx-auto mb-4">
+        <div class="flex items-center justify-center w-12 h-12 rounded-full mx-auto mb-4" style="background:#fee2e2;">
             <x-heroicon-o-x-circle class="w-6 h-6 text-danger-600 dark:text-danger-400"/>
         </div>
 
         {{-- Title --}}
-        <h3 class="text-base font-bold text-gray-900 dark:text-white text-center mb-1">Paksa Keluar Peserta?</h3>
-        <p class="text-sm text-gray-500 dark:text-gray-400 text-center mb-1">
+        <h3 class="text-base font-bold text-gray-900 dark:text-white text-center mb-2">Paksa Keluar Peserta?</h3>
+        <p class="text-sm text-gray-500 dark:text-gray-400 text-center mb-2">
             <span class="font-semibold text-gray-900 dark:text-white">{{ $kickNama }}</span>
         </p>
         <p class="text-xs text-gray-400 text-center mb-6">

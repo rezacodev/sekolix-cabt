@@ -460,7 +460,6 @@ class QuestionResource extends Resource
                 Tables\Columns\IconColumn::make('audio_url')
                     ->label('Audio')
                     ->boolean()
-                    ->falsy(null)
                     ->trueIcon('heroicon-o-musical-note')
                     ->falseIcon('')
                     ->toggleable(isToggledHiddenByDefault: true),

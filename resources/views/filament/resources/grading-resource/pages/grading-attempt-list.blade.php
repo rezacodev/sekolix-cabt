@@ -77,11 +77,11 @@
                         </div>
                         <div class="w-px bg-gray-200 dark:bg-gray-700 self-stretch"></div>
                         <div class="text-center min-w-[3rem]">
-                            <p class="text-2xl font-bold text-success-600 dark:text-success-400">{{ $jumlahSelesai }}</p>
+                            <p class="text-2xl font-bold" style="color:#16a34a;">{{ $jumlahSelesai }}</p>
                             <p class="text-xs text-gray-500">Selesai</p>
                         </div>
                         <div class="text-center min-w-[3rem]">
-                            <p class="text-2xl font-bold text-warning-600 dark:text-warning-400">{{ $jumlahSedang }}</p>
+                            <p class="text-2xl font-bold" style="color:#d97706;">{{ $jumlahSedang }}</p>
                             <p class="text-xs text-gray-500">Sedang</p>
                         </div>
                         <div class="text-center min-w-[3rem]">

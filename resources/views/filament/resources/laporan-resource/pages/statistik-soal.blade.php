@@ -38,7 +38,7 @@
             {{ $stat->no }}
         </span>
         <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 mb-1">
+            <div class="flex items-center gap-2 mb-2">
                 <div class="flex">
                     <x-filament::badge :color="$tipeBadgeColor[$stat->tipe] ?? 'gray'" size="sm">
                         {{ $tipeLabels[$stat->tipe] ?? $stat->tipe }}
@@ -56,7 +56,7 @@
             </div>
             <div>
                 <p class="text-xs text-gray-400 mb-0.5">Benar</p>
-                <p class="font-bold text-success-600 dark:text-success-400">{{ $stat->jumlah_benar }}</p>
+                <p class="font-bold" style="color:#16a34a;">{{ $stat->jumlah_benar }}</p>
             </div>
             <div>
                 <p class="text-xs text-gray-400 mb-0.5">Salah</p>
@@ -68,11 +68,11 @@
             </div>
             <div>
                 <p class="text-xs text-gray-400 mb-0.5">% Benar</p>
-                <p class="font-bold
-                   @if($stat->persen_benar >= 70) text-success-600 dark:text-success-400
-                   @elseif($stat->persen_benar >= 40) text-warning-600 dark:text-warning-400
-                   @else text-danger-600 dark:text-danger-400
-                   @endif">
+                @php
+                    $pctColor = $stat->persen_benar >= 70 ? '#16a34a' : ($stat->persen_benar >= 40 ? '#d97706' : '#dc2626');
+                    $pctBg    = $stat->persen_benar >= 70 ? '#22c55e' : ($stat->persen_benar >= 40 ? '#f59e0b' : '#ef4444');
+                @endphp
+                <p class="font-bold" style="color:{{ $pctColor }};">
                     {{ $stat->persen_benar }}%
                 </p>
             </div>
@@ -82,30 +82,22 @@
     {{-- Progress bar % benar --}}
     <div class="px-6 pt-3 pb-1">
         <div class="h-2 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
-            <div class="h-full rounded-full transition-all
-                @if($stat->persen_benar >= 70) bg-success-500
-                @elseif($stat->persen_benar >= 40) bg-warning-500
-                @else bg-danger-500
-                @endif"
-                @style(['width: ' . $stat->persen_benar . '%'])></div>
+                <div class="h-full rounded-full transition-all" style="background:{{ $pctBg }};width:{{ $stat->persen_benar }}%;"></div>
         </div>
     </div>
 
     {{-- Distribusi Opsi — hanya untuk PG, PG_BOBOT, PGJ --}}
     @if (!empty($stat->distribusi_opsi) && in_array($stat->tipe, ['PG', 'PG_BOBOT', 'PGJ']))
     <div class="px-6 py-4">
-        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-3">Distribusi Pilihan Jawaban</p>
+        <p class="text-xs font-semibold uppercase tracking-wide text-gray-400 mb-4">Distribusi Pilihan Jawaban</p>
         <div class="space-y-2">
             @foreach ($stat->distribusi_opsi as $kode => $opsi)
             <div class="flex items-center gap-3">
-                <span class="shrink-0 w-7 text-center text-xs font-bold
-                    {{ $opsi['correct'] ? 'text-success-600 dark:text-success-400' : 'text-gray-500' }}">
+                <span class="shrink-0 w-7 text-center text-xs font-bold" style="{{ $opsi['correct'] ? 'color:#16a34a;' : 'color:#6b7280;' }}">
                     {{ $kode }}
                 </span>
                 <div class="flex-1 h-5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
-                    <div class="h-full rounded-full
-                        {{ $opsi['correct'] ? 'bg-success-500' : 'bg-gray-400' }}"
-                        @style(['width: ' . max($opsi['persen'], $opsi['count'] > 0 ? 2 : 0) . '%'])>
+                    <div class="h-full rounded-full" style="{{ $opsi['correct'] ? 'background:#22c55e;' : 'background:#9ca3af;' }} width:{{ max($opsi['persen'], $opsi['count'] > 0 ? 2 : 0) }}%;">
                     </div>
                 </div>
                 <span class="shrink-0 w-14 text-right text-xs font-medium text-gray-600 dark:text-gray-400">
@@ -135,7 +127,7 @@
 
 </div>
 @empty
-<div class="rounded-xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 px-6 py-10 text-center text-gray-400">
+<div class="rounded-xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 px-6 py-8 text-center text-gray-400">
     Belum ada data jawaban untuk dihitung statistiknya.
 </div>
 @endforelse

@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Exports\AuditLogExport;
+use App\Filament\Concerns\HasHelpHeader;
 use App\Models\AuditLog;
 use App\Models\User;
 use Filament\Actions\Action;
@@ -22,6 +23,7 @@ use Maatwebsite\Excel\Facades\Excel;
 class AuditLogPage extends Page implements HasTable
 {
   use InteractsWithTable;
+  use HasHelpHeader;
 
   protected static ?string $navigationIcon  = 'heroicon-o-shield-check';
   protected static ?string $navigationLabel = 'Audit Log';
@@ -113,7 +115,7 @@ class AuditLogPage extends Page implements HasTable
 
   protected function getHeaderActions(): array
   {
-    return [
+    return $this->appendHelpAction([
       Action::make('export')
         ->label('Export Excel')
         ->icon('heroicon-o-arrow-down-tray')
@@ -121,6 +123,11 @@ class AuditLogPage extends Page implements HasTable
         ->action(function () {
           return Excel::download(new AuditLogExport, 'audit-log-' . now()->format('Ymd-His') . '.xlsx');
         }),
-    ];
+    ]);
+  }
+
+  protected function getHelpModalView(): string
+  {
+    return 'filament.pages.actions.modal-help-audit-log';
   }
 }

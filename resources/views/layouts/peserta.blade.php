@@ -10,7 +10,7 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     @stack('styles')
 </head>
-<body class="font-sans antialiased bg-gray-50 min-h-screen">
+<body class="font-sans antialiased bg-gray-50 min-h-screen text-gray-900">
 
     {{-- Sticky Navbar --}}
     <nav class="sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm" x-data="{ open: false }">

@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Models\AppSetting;
 use App\Models\User;
 use App\Services\AuditLogService;
+use App\Filament\Concerns\HasHelpHeader;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -20,6 +21,7 @@ use Illuminate\Support\Facades\Auth;
 class GeneralSetting extends Page implements HasForms
 {
     use InteractsWithForms;
+    use HasHelpHeader;
 
     protected static ?string $navigationIcon  = 'heroicon-o-cog-6-tooth';
     protected static ?string $navigationLabel = 'Pengaturan Umum';
@@ -36,6 +38,16 @@ class GeneralSetting extends Page implements HasForms
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
         return $user && $user->level >= User::LEVEL_ADMIN;
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return $this->appendHelpAction([]);
+    }
+
+    protected function getHelpModalView(): string
+    {
+        return 'filament.pages.actions.modal-help-general-setting';
     }
 
     public function mount(): void

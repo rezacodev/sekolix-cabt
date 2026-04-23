@@ -5,11 +5,14 @@ namespace App\Filament\Pages;
 use App\Models\ExamAttempt;
 use App\Models\ExamSession;
 use App\Models\User;
+use App\Filament\Concerns\HasHelpHeader;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardGuru extends Page
 {
+    use HasHelpHeader;
+
     protected static ?string $navigationIcon  = 'heroicon-o-presentation-chart-line';
     protected static ?string $navigationGroup = 'Laporan';
     protected static ?string $navigationLabel = 'Dashboard Guru';
@@ -37,6 +40,16 @@ class DashboardGuru extends Page
     // Livewire reactive hook — triggers re-render automatically
     public function updatedSelectedSesiId(): void {}
 
+    public function getHeaderActions(): array
+    {
+        return $this->appendHelpAction([]);
+    }
+
+    protected function getHelpModalView(): string
+    {
+        return 'filament.pages.actions.modal-help-dashboard-guru';
+    }
+
     public function getTitle(): string
     {
         return 'Dashboard Guru';
@@ -53,7 +66,7 @@ class DashboardGuru extends Page
             ->whereNotIn('status', [ExamSession::STATUS_DIBATALKAN])
             ->orderByDesc('waktu_mulai')
             ->get()
-            ->mapWithKeys(fn ($s) => [
+            ->mapWithKeys(fn($s) => [
                 $s->id => $s->nama_sesi . ' (' . (ExamSession::STATUS_LABELS[$s->status] ?? $s->status) . ')',
             ]);
 
@@ -85,7 +98,7 @@ class DashboardGuru extends Page
                 ->whereIn('user_id', $pesertaIds)
                 ->get()
                 ->groupBy('user_id')
-                ->map(fn ($g) => $g->sortByDesc('nilai_akhir')->first());
+                ->map(fn($g) => $g->sortByDesc('nilai_akhir')->first());
 
             $pesertaList = $rombel->peserta
                 ->sortBy('name')
@@ -119,14 +132,14 @@ class DashboardGuru extends Page
 
             // Sort by nilai desc, re-number
             $sorted = $pesertaList
-                ->sortByDesc(fn ($p) => $p->nilai ?? -1)
+                ->sortByDesc(fn($p) => $p->nilai ?? -1)
                 ->values()
                 ->map(function ($item, $idx) {
                     $item->no = $idx + 1;
                     return $item;
                 });
 
-            $submitted    = $sorted->filter(fn ($p) => $p->nilai !== null);
+            $submitted    = $sorted->filter(fn($p) => $p->nilai !== null);
             $rataRata     = $submitted->isNotEmpty() ? $submitted->avg('nilai') : null;
 
             return (object) [

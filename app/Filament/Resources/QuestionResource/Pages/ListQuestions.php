@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\QuestionResource\Pages;
 
 use App\Exports\QuestionsImportTemplate;
+use App\Filament\Concerns\HasHelpHeader;
 use App\Filament\Resources\QuestionResource;
 use App\Models\Category;
 use App\Models\Question;
@@ -16,17 +17,19 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ListQuestions extends ListRecords
 {
+    use HasHelpHeader;
+
     protected static string $resource = QuestionResource::class;
 
     protected function getHeaderActions(): array
     {
-        return [
+        return $this->appendHelpAction([
             // Download template Excel
             Actions\Action::make('download_template')
                 ->label('Template Excel')
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('gray')
-                ->action(fn () => Excel::download(
+                ->action(fn() => Excel::download(
                     new QuestionsImportTemplate(),
                     'template-import-soal.xlsx'
                 )),
@@ -78,7 +81,7 @@ class ListQuestions extends ListRecords
 
                     Forms\Components\Select::make('kategori_id')
                         ->label('Kategori')
-                        ->options(fn () => Category::pluck('nama', 'id'))
+                        ->options(fn() => Category::pluck('nama', 'id'))
                         ->placeholder('Tanpa kategori')
                         ->nullable()
                         ->searchable()
@@ -130,6 +133,11 @@ class ListQuestions extends ListRecords
                 }),
 
             Actions\CreateAction::make(),
-        ];
+        ]);
+    }
+
+    protected function getHelpModalView(): string
+    {
+        return 'filament.pages.actions.modal-help-question';
     }
 }

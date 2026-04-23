@@ -9,7 +9,7 @@
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr auto;gap:1rem;align-items:flex-end;">
         <div>
-            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Sesi A (Pertama)</label>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Sesi A (Pertama)</label>
             <select wire:model.live="sesi_a"
                 class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:outline-none">
                 <option value="">— Pilih Sesi A —</option>
@@ -19,7 +19,7 @@
             </select>
         </div>
         <div>
-            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Sesi B (Pembanding)</label>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Sesi B (Pembanding)</label>
             <select wire:model.live="sesi_b"
                 class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:outline-none">
                 <option value="">— Pilih Sesi B —</option>
@@ -29,7 +29,7 @@
             </select>
         </div>
         <div>
-            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-1">Mode</label>
+            <label class="block text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Mode</label>
             <select wire:model.live="mode"
                 class="w-full rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white px-3 py-2 focus:ring-2 focus:ring-primary-500 focus:outline-none">
                 <option value="peserta" @selected($mode === 'peserta')>Per Peserta</option>
@@ -41,7 +41,7 @@
 @if ($sesi_a && $sesi_b && $result !== null)
 
     @if ($sesi_a === $sesi_b)
-        <div class="rounded-xl bg-warning-50 dark:bg-warning-900/20 ring-1 ring-warning-200 dark:ring-warning-800 p-4 text-warning-800 dark:text-warning-300 text-sm">
+        <div class="rounded-xl p-4 text-sm" style="background:#fffbeb;color:#92400e;outline:1px solid #fde68a;">
             Pilih dua sesi yang berbeda untuk membandingkan.
         </div>
     @else
@@ -49,16 +49,16 @@
     {{-- ── Statistik Ringkasan ──────────────────────────────────────────────── --}}
     <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:1rem;">
         @foreach ([
-            ['label' => 'Total Peserta', 'value' => $statistik['total'],        'color' => 'text-gray-900 dark:text-white'],
-            ['label' => 'Data Valid',     'value' => $statistik['valid'],        'color' => 'text-gray-500 dark:text-gray-400'],
-            ['label' => 'Rata Selisih',   'value' => ($statistik['rata_selisih'] > 0 ? '+' : '') . number_format($statistik['rata_selisih'], 2), 'color' => $statistik['rata_selisih'] >= 0 ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'],
-            ['label' => 'Peserta Naik',   'value' => $statistik['naik'] . ' (' . $statistik['persen_naik'] . '%)', 'color' => 'text-success-600 dark:text-success-400'],
-            ['label' => 'Peserta Turun',  'value' => $statistik['turun'] . ' (' . $statistik['persen_turun'] . '%)', 'color' => 'text-danger-600 dark:text-danger-400'],
-            ['label' => 'Tetap',          'value' => $statistik['tetap'] . ' (' . $statistik['persen_tetap'] . '%)', 'color' => 'text-gray-500 dark:text-gray-400'],
+            ['label' => 'Total Peserta', 'value' => $statistik['total'],        'color' => '#111827'],
+            ['label' => 'Data Valid',     'value' => $statistik['valid'],        'color' => '#6b7280'],
+            ['label' => 'Rata Selisih',   'value' => ($statistik['rata_selisih'] > 0 ? '+' : '') . number_format($statistik['rata_selisih'], 2), 'color' => $statistik['rata_selisih'] >= 0 ? '#16a34a' : '#dc2626'],
+            ['label' => 'Peserta Naik',   'value' => $statistik['naik'] . ' (' . $statistik['persen_naik'] . '%)', 'color' => '#16a34a'],
+            ['label' => 'Peserta Turun',  'value' => $statistik['turun'] . ' (' . $statistik['persen_turun'] . '%)', 'color' => '#dc2626'],
+            ['label' => 'Tetap',          'value' => $statistik['tetap'] . ' (' . $statistik['persen_tetap'] . '%)', 'color' => '#6b7280'],
         ] as $stat)
         <div class="rounded-xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 p-4 text-center">
             <p class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ $stat['label'] }}</p>
-            <p class="mt-1 text-xl font-bold {{ $stat['color'] }}">{{ $stat['value'] }}</p>
+            <p class="mt-1 text-xl font-bold" style="color:{{ $stat['color'] }};">{{ $stat['value'] }}</p>
         </div>
         @endforeach
     </div>
@@ -84,7 +84,7 @@
         </div>
 
         @if ($result->isEmpty())
-            <div class="px-6 py-10 text-center text-gray-400">Tidak ada data yang dapat dibandingkan.</div>
+            <div class="px-6 py-8 text-center text-gray-400">Tidak ada data yang dapat dibandingkan.</div>
         @else
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -111,12 +111,10 @@
                         <td class="px-4 py-3 text-right font-semibold text-gray-700 dark:text-gray-300">
                             {{ $row->nilai_b !== null ? number_format($row->nilai_b, 1) : '—' }}
                         </td>
-                        <td class="px-4 py-3 text-right font-bold
-                            @if($row->selisih === null) text-gray-400
-                            @elseif($row->selisih > 0) text-success-600 dark:text-success-400
-                            @elseif($row->selisih < 0) text-danger-600 dark:text-danger-400
-                            @else text-gray-500
-                            @endif">
+                        @php
+                            $selisihStyle = $row->selisih === null ? 'color:#9ca3af;' : ($row->selisih > 0 ? 'color:#16a34a;' : ($row->selisih < 0 ? 'color:#dc2626;' : 'color:#6b7280;'));
+                        @endphp
+                        <td class="px-4 py-3 text-right font-bold" style="{{ $selisihStyle }}">
                             @if($row->selisih !== null)
                                 {{ $row->selisih > 0 ? '+' : '' }}{{ number_format($row->selisih, 1) }}
                             @else —
@@ -146,7 +144,7 @@
     @endif
 @else
     <div class="rounded-xl bg-gray-50 dark:bg-gray-800/50 ring-1 ring-gray-200 dark:ring-gray-700 p-8 text-center text-gray-400">
-        <x-heroicon-o-scale class="w-12 h-12 mx-auto mb-3 opacity-40"/>
+        <x-heroicon-o-scale class="w-12 h-12 mx-auto mb-4 opacity-40"/>
         <p class="text-sm">Pilih Sesi A dan Sesi B di atas untuk mulai membandingkan hasil ujian.</p>
     </div>
 @endif

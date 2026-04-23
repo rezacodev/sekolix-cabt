@@ -45,7 +45,7 @@
                 <p class="text-sm text-gray-500">Nilai Akhir</p>
             </div>
             <div class="text-center">
-                <p class="text-3xl font-bold text-success-600">{{ $attempt->jumlah_benar }}</p>
+                <p class="text-3xl font-bold" style="color:#16a34a;">{{ $attempt->jumlah_benar }}</p>
                 <p class="text-sm text-gray-500">Benar</p>
             </div>
             <div class="text-center">
@@ -58,7 +58,7 @@
             </div>
         </div>
         @if ($attempt->nilai_akhir === null)
-            <p class="mt-4 text-sm text-warning-600 dark:text-warning-400">
+            <p class="mt-4 text-sm" style="color:#d97706;">
                 ⚠ Nilai akhir belum tersedia — masih ada soal URAIAN yang belum dinilai.
                 Setelah semua soal dinilai, tekan <strong>Simpan &amp; Hitung Ulang Nilai</strong>.
             </p>
@@ -87,26 +87,30 @@
                 // Warna border berdasarkan tipe soal
                 if ($isUraian) {
                     $borderClass = $aq->nilai_perolehan !== null
-                        ? 'border-l-4 border-l-success-500'
-                        : 'border-l-4 border-l-primary-500';
+                        ? 'border-left:4px solid #22c55e;'
+                        : 'border-left:4px solid #2563eb;';
                 } else {
                     $borderClass = $aq->is_correct
-                        ? 'border-l-4 border-l-success-400'
-                        : ($aq->is_correct === false ? 'border-l-4 border-l-danger-400' : 'border-l-4 border-l-gray-300');
+                        ? 'border-left:4px solid #4ade80;'
+                        : ($aq->is_correct === false ? 'border-left:4px solid #f87171;' : 'border-left:4px solid #d1d5db;');
                 }
             @endphp
 
-            <div class="mb-4 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden {{ $borderClass }}">
+            <div class="mb-4 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden" style="{{ $borderClass }}">
 
                 {{-- Header soal --}}
                 <div class="flex items-center justify-between px-4 py-2.5
                             bg-gray-50 dark:bg-gray-800/60 border-b border-gray-200 dark:border-gray-700">
                     <div class="flex items-center gap-2">
-                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full
-                                     {{ $isUraian ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400' }}
-                                     text-xs font-bold">
-                            {{ $aq->urutan }}
-                        </span>
+                        @if ($isUraian)
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold" style="background:#dbeafe;color:#1d4ed8;">
+                                    {{ $aq->urutan }}
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400">
+                                            {{ $aq->urutan }}
+                                        </span>
+                                    @endif
                         <span class="text-xs font-medium text-gray-500 dark:text-gray-400">
                             {{ \App\Models\Question::TIPE_LABELS[$question->tipe] ?? $question->tipe }}
                         </span>
@@ -151,19 +155,20 @@
                                     $isPilihan = ($opt->id === $selectedOptionId);
                                     $isKunci   = $opt->is_correct;
                                     // Warna baris
-                                    if ($isPilihan && $isKunci)       $rowClass = 'bg-success-50 dark:bg-success-900/30 border-success-300 dark:border-success-700';
-                                    elseif ($isPilihan && !$isKunci)  $rowClass = 'bg-danger-50  dark:bg-danger-900/30  border-danger-300  dark:border-danger-700';
-                                    elseif (!$isPilihan && $isKunci)  $rowClass = 'bg-success-50/40 dark:bg-success-900/20 border-success-200 dark:border-success-800';
-                                    else                              $rowClass = 'bg-gray-50 dark:bg-gray-800/40 border-gray-200 dark:border-gray-700';
+                                    if ($isPilihan && $isKunci)       $rowStyle = 'background:#f0fdf4;border-color:#86efac;';
+                                    elseif ($isPilihan && !$isKunci)  $rowStyle = 'background:#fef2f2;border-color:#fca5a5;';
+                                    elseif (!$isPilihan && $isKunci)  $rowStyle = 'background:#f7fef9;border-color:#bbf7d0;';
+                                    else                              $rowStyle = '';
                                 @endphp
-                                <div class="flex items-start gap-2.5 rounded-lg border px-3 py-2 {{ $rowClass }}">
+                                <div class="flex items-start gap-2.5 rounded-lg border px-3 py-2" style="{{ $rowStyle }}">
                                     {{-- Kode opsi --}}
-                                    <span class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
-                                                 {{ $isPilihan && $isKunci  ? 'bg-success-500 text-white' : '' }}
-                                                 {{ $isPilihan && !$isKunci ? 'bg-danger-500 text-white'  : '' }}
-                                                 {{ !$isPilihan             ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400' : '' }}">
-                                        {{ $opt->kode_opsi }}
-                                    </span>
+                                    @if ($isPilihan && $isKunci)
+                                        <span class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white" style="background:#22c55e;">{{ $opt->kode_opsi }}</span>
+                                    @elseif ($isPilihan && !$isKunci)
+                                        <span class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white" style="background:#ef4444;">{{ $opt->kode_opsi }}</span>
+                                    @else
+                                        <span class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400">{{ $opt->kode_opsi }}</span>
+                                    @endif
                                     {{-- Teks opsi --}}
                                     <span class="text-sm flex-1
                                                  {{ ($isPilihan || $isKunci) ? 'text-gray-900 dark:text-gray-100 font-medium' : 'text-gray-700 dark:text-gray-300' }}">
@@ -196,18 +201,19 @@
                                 @php
                                     $isPilihan = in_array($opt->id, $selectedIds);
                                     $isKunci   = $opt->is_correct;
-                                    if ($isPilihan && $isKunci)       $rowClass = 'bg-success-50 dark:bg-success-900/30 border-success-300 dark:border-success-700';
-                                    elseif ($isPilihan && !$isKunci)  $rowClass = 'bg-danger-50  dark:bg-danger-900/30  border-danger-300  dark:border-danger-700';
-                                    elseif (!$isPilihan && $isKunci)  $rowClass = 'bg-success-50/40 dark:bg-success-900/20 border-success-200 dark:border-success-800';
-                                    else                              $rowClass = 'bg-gray-50 dark:bg-gray-800/40 border-gray-200 dark:border-gray-700';
+                                    if ($isPilihan && $isKunci)       $rowStyle = 'background:#f0fdf4;border-color:#86efac;';
+                                    elseif ($isPilihan && !$isKunci)  $rowStyle = 'background:#fef2f2;border-color:#fca5a5;';
+                                    elseif (!$isPilihan && $isKunci)  $rowStyle = 'background:#f7fef9;border-color:#bbf7d0;';
+                                    else                              $rowStyle = '';
                                 @endphp
-                                <div class="flex items-start gap-2.5 rounded-lg border px-3 py-2 {{ $rowClass }}">
-                                    <span class="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center text-xs font-bold mt-0.5
-                                                 {{ $isPilihan && $isKunci  ? 'bg-success-500 text-white' : '' }}
-                                                 {{ $isPilihan && !$isKunci ? 'bg-danger-500 text-white'  : '' }}
-                                                 {{ !$isPilihan             ? 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400' : '' }}">
-                                        {{ $isPilihan ? '✓' : $opt->kode_opsi }}
-                                    </span>
+                                <div class="flex items-start gap-2.5 rounded-lg border px-3 py-2" style="{{ $rowStyle }}">
+                                    @if ($isPilihan && $isKunci)
+                                        <span class="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center text-xs font-bold mt-0.5 text-white" style="background:#22c55e;">✓</span>
+                                    @elseif ($isPilihan && !$isKunci)
+                                        <span class="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center text-xs font-bold mt-0.5 text-white" style="background:#ef4444;">✓</span>
+                                    @else
+                                        <span class="flex-shrink-0 w-5 h-5 rounded flex items-center justify-center text-xs font-bold mt-0.5 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400">{{ $opt->kode_opsi }}</span>
+                                    @endif
                                     <span class="text-sm flex-1 {{ ($isPilihan || $isKunci) ? 'text-gray-900 dark:text-gray-100 font-medium' : 'text-gray-700 dark:text-gray-300' }}">
                                         <span class="text-xs text-gray-500 mr-1">{{ $opt->kode_opsi }}.</span>{!! $opt->teks_opsi !!}
                                     </span>
@@ -251,16 +257,16 @@
                                                 ? ($question->matches->firstWhere('id', (int) $pesertaResp)?->respon ?? '?')
                                                 : '—';
                                         @endphp
-                                        <tr class="{{ $isBenar ? 'bg-success-50 dark:bg-success-900/20' : ($pesertaResp ? 'bg-danger-50 dark:bg-danger-900/20' : '') }}">
+                                        <tr style="{{ $isBenar ? 'background:#f0fdf4;' : ($pesertaResp ? 'background:#fef2f2;' : '') }}">
                                             <td class="px-3 py-2 text-gray-500 text-xs">{{ $loop->iteration }}</td>
                                             <td class="px-3 py-2 text-gray-800 dark:text-gray-200">{{ $match->premis }}</td>
-                                            <td class="px-3 py-2 font-medium {{ $isBenar ? 'text-success-700 dark:text-success-400' : 'text-danger-700 dark:text-danger-400' }}">
+                                            <td class="px-3 py-2 font-medium" style="color:{{ $isBenar ? '#15803d' : '#b91c1c' }};">
                                                 {{ $responPeserta }}
                                                 @if ($pesertaResp)
                                                     <span class="ml-1">{{ $isBenar ? '✓' : '✗' }}</span>
                                                 @endif
                                             </td>
-                                            <td class="px-3 py-2 text-success-700 dark:text-success-400">{{ $match->respon }}</td>
+                                            <td class="px-3 py-2" style="color:#15803d;">{{ $match->respon }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -274,9 +280,8 @@
                             $jawabanBersih = strtolower(trim($aq->jawaban_peserta ?? ''));
                             $isIsianBenar  = $keywords->contains($jawabanBersih);
                         @endphp
-                        <div class="{{ $isIsianBenar ? 'bg-success-50 dark:bg-success-900/20 border-success-200 dark:border-success-700' : 'bg-danger-50 dark:bg-danger-900/20 border-danger-200 dark:border-danger-700' }} rounded-lg p-3 border">
-                            <p class="text-xs font-semibold uppercase tracking-wide mb-1
-                                       {{ $isIsianBenar ? 'text-success-600' : 'text-danger-600' }}">
+                        <div class="rounded-lg p-3 border" style="{{ $isIsianBenar ? 'background:#f0fdf4;border-color:#bbf7d0;' : 'background:#fef2f2;border-color:#fecaca;' }}">
+                            <p class="text-xs font-semibold uppercase tracking-wide mb-2" style="color:{{ $isIsianBenar ? '#16a34a' : '#dc2626' }};">
                                 Jawaban Peserta {{ $isIsianBenar ? '✓ Benar' : '✗ Salah' }}
                             </p>
                             <p class="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -290,8 +295,8 @@
                     {{-- ── URAIAN: teks & file jawaban ─────────────────────── --}}
                     @elseif ($isUraian)
                         @if ($aq->jawaban_peserta || $fileUrl)
-                            <div class="bg-primary-50 dark:bg-primary-900/20 border-primary-200 dark:border-primary-800 rounded-lg p-3 border">
-                                <p class="text-xs font-semibold uppercase tracking-wide mb-1 text-primary-600 dark:text-primary-400">
+                            <div class="rounded-lg p-3 border" style="background:#eff6ff;border-color:#bfdbfe;">
+                                <p class="text-xs font-semibold uppercase tracking-wide mb-2 text-primary-600 dark:text-primary-400">
                                     Jawaban Peserta
                                 </p>
                                 @if ($aq->jawaban_peserta)
@@ -321,7 +326,7 @@
                     @if ($isUraian)
                         <div class="flex items-end gap-3 pt-1 border-t border-gray-100 dark:border-gray-700">
                             <div class="flex-1 max-w-xs">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     Nilai Perolehan
                                     <span class="text-gray-400 font-normal">(0 – {{ number_format($bobot, 0) }})</span>
                                 </label>
@@ -335,7 +340,7 @@
                                               focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
                                        placeholder="0">
                             </div>
-                            <div class="text-sm text-gray-500 pb-2">/ {{ number_format($bobot, 0) }}</div>
+                            <div class="text-sm text-gray-500" style="padding-bottom:0.5rem;">/ {{ number_format($bobot, 0) }}</div>
                         </div>
                     @endif
                 </div>

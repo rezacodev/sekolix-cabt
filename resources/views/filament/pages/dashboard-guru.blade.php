@@ -5,7 +5,7 @@
 <div class="rounded-xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 px-6 py-4">
     <div class="flex flex-wrap items-center gap-4">
         <div>
-            <p class="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wide mb-1">Filter Sesi Ujian</p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 font-semibold uppercase tracking-wide mb-2">Filter Sesi Ujian</p>
             <select
                 wire:model.live="selectedSesiId"
                 class="rounded-lg border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white shadow-sm focus:ring-primary-500 focus:border-primary-500 min-w-[18rem]">
@@ -17,7 +17,7 @@
         </div>
 
         @if ($sesi)
-            <div class="text-sm text-gray-500 dark:text-gray-400 mt-5">
+            <div class="text-sm text-gray-500 dark:text-gray-400 mt-6">
                 <span class="font-medium text-gray-900 dark:text-white">{{ $sesi->package?->nama }}</span>
                 &middot; {{ $sesi->waktu_mulai?->format('d M Y, H:i') }}
             </div>
@@ -62,17 +62,17 @@
                 </div>
                 <div class="text-center">
                     <p class="text-xs text-gray-400 uppercase tracking-wide">Tertinggi</p>
-                    <p class="font-bold text-success-600 dark:text-success-400">{{ $rd->tertinggi !== null ? number_format($rd->tertinggi, 1) : '—' }}</p>
+                    <p class="font-bold" style="color:#16a34a;">{{ $rd->tertinggi !== null ? number_format($rd->tertinggi, 1) : '—' }}</p>
                 </div>
                 <div class="text-center">
                     <p class="text-xs text-gray-400 uppercase tracking-wide">Terendah</p>
-                    <p class="font-bold text-danger-600 dark:text-danger-400">{{ $rd->terendah !== null ? number_format($rd->terendah, 1) : '—' }}</p>
+                    <p class="font-bold" style="color:#dc2626;">{{ $rd->terendah !== null ? number_format($rd->terendah, 1) : '—' }}</p>
                 </div>
 
                 {{-- Export button --}}
                 <div class="flex">
                     <a href="{{ route('cabt.guru.rombel.export', [$sesi->id, $rd->rombel->id]) }}"
-                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-success-50 text-success-700 hover:bg-success-100 dark:bg-success-900/20 dark:text-success-400 ring-1 ring-success-200 dark:ring-success-800 transition-colors">
+                       class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors" style="background:#f0fdf4;color:#15803d;outline:1px solid #bbf7d0;">
                         <x-heroicon-o-arrow-down-tray class="w-3.5 h-3.5"/>
                         Export Excel
                     </a>
@@ -105,35 +105,35 @@
                     <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                         @foreach ($rd->peserta as $p)
                         @php
-                            $nilaiColor = 'text-gray-400';
+                            $nilaiColor = null;
                             if ($p->nilai !== null) {
-                                if ($p->nilai >= 75)     $nilaiColor = 'text-success-600 dark:text-success-400';
-                                elseif ($p->nilai >= 50) $nilaiColor = 'text-warning-600 dark:text-warning-400';
-                                else                     $nilaiColor = 'text-danger-600 dark:text-danger-400';
+                                if ($p->nilai >= 75)     $nilaiColor = '#16a34a';
+                                elseif ($p->nilai >= 50) $nilaiColor = '#d97706';
+                                else                     $nilaiColor = '#dc2626';
                             }
                             $statusLabels = \App\Models\ExamAttempt::STATUS_LABELS;
                             $statusBadge  = match($p->status ?? '') {
-                                \App\Models\ExamAttempt::STATUS_SELESAI        => 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-                                \App\Models\ExamAttempt::STATUS_TIMEOUT        => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-                                \App\Models\ExamAttempt::STATUS_DISKUALIFIKASI => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-                                default                                         => 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+                                \App\Models\ExamAttempt::STATUS_SELESAI        => 'background:#dcfce7;color:#15803d;',
+                                \App\Models\ExamAttempt::STATUS_TIMEOUT        => 'background:#fef3c7;color:#a16207;',
+                                \App\Models\ExamAttempt::STATUS_DISKUALIFIKASI => 'background:#fee2e2;color:#b91c1c;',
+                                default                                         => 'background:#f3f4f6;color:#4b5563;',
                             };
                         @endphp
                         <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/40 transition-colors">
                             <td class="px-4 py-2.5 text-center text-gray-400">{{ $p->no }}</td>
                             <td class="px-4 py-2.5 font-medium text-gray-900 dark:text-white">{{ $p->nama }}</td>
                             <td class="px-4 py-2.5 text-gray-500 font-mono text-xs">{{ $p->nomor }}</td>
-                            <td class="px-4 py-2.5 text-right font-bold text-lg {{ $nilaiColor }}">
+                            <td class="px-4 py-2.5 text-right font-bold text-lg" style="color:{{ $nilaiColor ?? '#9ca3af' }};">
                                 {{ $p->nilai !== null ? number_format((float)$p->nilai, 1) : '—' }}
                             </td>
-                            <td class="px-4 py-2.5 text-center text-success-600 dark:text-success-400 font-medium">{{ $p->benar ?? '—' }}</td>
-                            <td class="px-4 py-2.5 text-center text-danger-600 dark:text-danger-400 font-medium">{{ $p->salah ?? '—' }}</td>
+                            <td class="px-4 py-2.5 text-center font-medium" style="color:#16a34a;">{{ $p->benar ?? '—' }}</td>
+                            <td class="px-4 py-2.5 text-center font-medium" style="color:#dc2626;">{{ $p->salah ?? '—' }}</td>
                             <td class="px-4 py-2.5 text-center text-gray-400">{{ $p->kosong ?? '—' }}</td>
                             <td class="px-4 py-2.5 text-center text-gray-500">{{ $p->attempt_ke > 0 ? $p->attempt_ke . '×' : '—' }}</td>
                             <td class="px-4 py-2.5 text-gray-500 text-sm">{{ $p->durasi ?? '—' }}</td>
                             <td class="px-4 py-2.5">
                                 <div class="flex">
-                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold {{ $statusBadge }}">
+                                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold" style="{{ $statusBadge }}">
                                         {{ $p->status ? ($statusLabels[$p->status] ?? $p->status) : 'Belum Mengerjakan' }}
                                     </span>
                                 </div>
