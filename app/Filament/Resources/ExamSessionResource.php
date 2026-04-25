@@ -23,7 +23,7 @@ class ExamSessionResource extends Resource
     protected static ?string $model = ExamSession::class;
 
     protected static ?string $navigationIcon       = 'heroicon-o-play-circle';
-    protected static ?string $navigationGroup      = 'Sesi Ujian';
+    protected static ?string $navigationGroup      = 'Ujian';
     protected static ?int    $navigationSort       = 30;
     protected static ?string $modelLabel           = 'Sesi Ujian';
     protected static ?string $pluralModelLabel     = 'Sesi Ujian';

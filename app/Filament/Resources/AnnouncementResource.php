@@ -21,6 +21,7 @@ class AnnouncementResource extends Resource
   protected static ?string $navigationIcon  = 'heroicon-o-megaphone';
   protected static ?string $navigationLabel = 'Pengumuman';
   protected static ?string $navigationGroup = 'Pengaturan';
+  protected static bool   $shouldRegisterNavigation = false;
   protected static ?int    $navigationSort  = 90;
   protected static ?string $modelLabel      = 'Pengumuman';
   protected static ?string $pluralModelLabel = 'Daftar Pengumuman';
@@ -136,7 +137,7 @@ class AnnouncementResource extends Resource
       ->actions([
         Tables\Actions\EditAction::make(),
         Tables\Actions\DeleteAction::make()
-            ->successNotificationTitle('Pengumuman berhasil dihapus'),
+          ->successNotificationTitle('Pengumuman berhasil dihapus'),
       ])
       ->bulkActions([
         Tables\Actions\BulkActionGroup::make([

@@ -27,9 +27,9 @@ class QuestionResource extends Resource
 
     protected static ?string $navigationLabel = 'Bank Soal';
 
-    protected static ?string $navigationGroup = 'Bank Soal';
+    protected static ?string $navigationGroup = 'Ujian';
 
-    protected static ?int $navigationSort = 11;
+    protected static ?int $navigationSort = 10;
 
     protected static ?string $modelLabel = 'Soal';
 
@@ -118,10 +118,12 @@ class QuestionResource extends Resource
                             ->nullable()
                             ->native(false),
 
-                        Forms\Components\TagsInput::make('tags')
+                        Forms\Components\Select::make('tags')
                             ->label('Tag')
                             ->relationship('tags', 'nama')
-                            ->suggestions(fn() => Tag::pluck('nama')->toArray())
+                            ->multiple()
+                            ->searchable()
+                            ->preload()
                             ->nullable(),
                     ])->columns(3),
 

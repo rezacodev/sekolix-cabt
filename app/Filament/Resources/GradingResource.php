@@ -27,8 +27,8 @@ class GradingResource extends Resource
     protected static ?string $model = ExamSession::class;
 
     protected static ?string $navigationIcon   = 'heroicon-o-pencil-square';
-    protected static ?string $navigationGroup  = 'Penilaian';
-    protected static ?string $navigationLabel  = 'Grading URAIAN';
+    protected static ?string $navigationGroup  = 'Ujian';
+    protected static ?string $navigationLabel  = 'Penilaian';
     protected static ?int    $navigationSort   = 50;
     protected static ?string $modelLabel       = 'Sesi Ujian';
     protected static ?string $pluralModelLabel = 'Penilaian per Sesi';

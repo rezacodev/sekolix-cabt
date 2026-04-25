@@ -20,7 +20,7 @@ class ExamPackageResource extends Resource
     protected static ?string $model = ExamPackage::class;
 
     protected static ?string $navigationIcon       = 'heroicon-o-clipboard-document-list';
-    protected static ?string $navigationGroup      = 'Paket Ujian';
+    protected static ?string $navigationGroup      = 'Ujian';
     protected static ?int    $navigationSort       = 20;
     protected static ?string $modelLabel           = 'Paket Ujian';
     protected static ?string $pluralModelLabel     = 'Paket Ujian';

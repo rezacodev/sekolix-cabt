@@ -4,11 +4,15 @@ namespace App\Filament\Resources\QuestionResource\Pages;
 
 use App\Exports\QuestionsImportTemplate;
 use App\Filament\Concerns\HasHelpHeader;
+use App\Filament\Resources\CategoryResource;
+use App\Filament\Resources\QuestionGroupResource;
 use App\Filament\Resources\QuestionResource;
+use App\Filament\Resources\TagResource;
 use App\Models\Category;
 use App\Models\Question;
 use App\Services\ImportService;
 use Filament\Actions;
+use Filament\Actions\ActionGroup;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
@@ -63,76 +67,30 @@ class ListQuestions extends ListRecords
                         ->send();
                 }),
 
-            // Generate soal dummy untuk testing
-            Actions\Action::make('generate_test')
-                ->label('Generate Test Data')
-                ->icon('heroicon-o-beaker')
-                ->color('warning')
-                ->requiresConfirmation()
-                ->modalHeading('Generate Soal Dummy')
-                ->modalDescription('Soal ini hanya untuk keperluan testing. Akan digenerate secara acak.')
-                ->form([
-                    Forms\Components\Select::make('tipe')
-                        ->label('Tipe Soal')
-                        ->options(array_merge(['acak' => 'Acak (semua tipe)'], Question::TIPE_LABELS))
-                        ->default('acak')
-                        ->required()
-                        ->native(false),
-
-                    Forms\Components\Select::make('kategori_id')
-                        ->label('Kategori')
-                        ->options(fn() => Category::pluck('nama', 'id'))
-                        ->placeholder('Tanpa kategori')
-                        ->nullable()
-                        ->searchable()
-                        ->native(false),
-
-                    Forms\Components\TextInput::make('jumlah')
-                        ->label('Jumlah Soal')
-                        ->numeric()
-                        ->default(10)
-                        ->minValue(1)
-                        ->maxValue(100)
-                        ->required(),
-                ])
-                ->action(function (array $data) {
-                    $jumlah     = (int) $data['jumlah'];
-                    $kategoriId = $data['kategori_id'] ?? null;
-                    $userId     = Auth::id();
-
-                    $tipePool = $data['tipe'] === 'acak'
-                        ? array_keys(Question::TIPE_LABELS)
-                        : [$data['tipe']];
-
-                    $generated = 0;
-                    for ($i = 0; $i < $jumlah; $i++) {
-                        $tipe = $tipePool[array_rand($tipePool)];
-
-                        $factory = Question::factory()
-                            ->state([
-                                'kategori_id' => $kategoriId,
-                                'created_by'  => $userId,
-                            ]);
-
-                        match ($tipe) {
-                            Question::TIPE_PG,
-                            Question::TIPE_PG_BOBOT,
-                            Question::TIPE_PGJ => $factory->pg()->create(),
-                            Question::TIPE_JODOH  => $factory->jodoh()->create(),
-                            Question::TIPE_ISIAN  => $factory->isian()->create(),
-                            default              => $factory->state(['tipe' => $tipe])->create(),
-                        };
-
-                        $generated++;
-                    }
-
-                    Notification::make()
-                        ->title("Berhasil generate {$generated} soal dummy.")
-                        ->success()
-                        ->send();
-                }),
 
             Actions\CreateAction::make(),
+
+            ActionGroup::make([
+                Actions\Action::make('kategori_soal')
+                    ->label('Kategori Soal')
+                    ->icon('heroicon-o-tag')
+                    ->url(CategoryResource::getUrl()),
+
+                Actions\Action::make('grup_soal')
+                    ->label('Grup Soal')
+                    ->icon('heroicon-o-rectangle-stack')
+                    ->url(QuestionGroupResource::getUrl()),
+
+                Actions\Action::make('tag_soal')
+                    ->label('Tag Soal')
+                    ->icon('heroicon-o-tag')
+                    ->url(TagResource::getUrl()),
+            ])
+                ->label('Pengaturan Bank Soal')
+                ->icon('heroicon-o-cog')
+                ->color('warning')
+                ->button(),
+
         ]);
     }
 

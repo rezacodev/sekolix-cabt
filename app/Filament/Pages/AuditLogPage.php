@@ -28,6 +28,7 @@ class AuditLogPage extends Page implements HasTable
   protected static ?string $navigationIcon  = 'heroicon-o-shield-check';
   protected static ?string $navigationLabel = 'Audit Log';
   protected static ?string $navigationGroup = 'Pengaturan';
+  protected static bool   $shouldRegisterNavigation = false;
   protected static ?int    $navigationSort  = 101;
   protected static string  $view            = 'filament.pages.audit-log';
   protected static ?string $slug            = 'audit-log';

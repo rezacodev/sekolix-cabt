@@ -3,6 +3,7 @@
 namespace App\Filament\Concerns;
 
 use Filament\Actions;
+use Filament\Actions\ActionGroup;
 use Illuminate\Contracts\View\View;
 
 trait HasHelpHeader
@@ -54,7 +55,7 @@ trait HasHelpHeader
     $otherActions = [];
 
     foreach ($this->getCachedHeaderActions() as $action) {
-      if ($action->getName() === 'help') {
+      if ($action instanceof Actions\Action && $action->getName() === 'help') {
         $helpAction = $action;
       } else {
         $otherActions[] = $action;

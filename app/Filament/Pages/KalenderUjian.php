@@ -13,7 +13,7 @@ class KalenderUjian extends Page
 
   protected static ?string $navigationIcon  = 'heroicon-o-calendar';
   protected static ?string $navigationLabel = 'Kalender Ujian';
-  protected static ?string $navigationGroup = 'Sesi Ujian';
+  protected static ?string $navigationGroup = 'Ujian';
   protected static ?int    $navigationSort  = 35;
   protected static string  $view            = 'filament.pages.kalender-ujian';
   protected static ?string $slug            = 'kalender-ujian';

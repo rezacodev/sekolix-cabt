@@ -26,6 +26,7 @@ class GeneralSetting extends Page implements HasForms
     protected static ?string $navigationIcon  = 'heroicon-o-cog-6-tooth';
     protected static ?string $navigationLabel = 'Pengaturan Umum';
     protected static ?string $navigationGroup = 'Pengaturan';
+    protected static bool   $shouldRegisterNavigation = false;
     protected static ?int    $navigationSort  = 100;
     protected static string  $view            = 'filament.pages.general-setting';
     protected static ?string $slug            = 'pengaturan-umum';

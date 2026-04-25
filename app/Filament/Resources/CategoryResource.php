@@ -24,6 +24,8 @@ class CategoryResource extends Resource
 
     protected static ?string $navigationGroup = 'Bank Soal';
 
+    protected static bool $shouldRegisterNavigation = false;
+
     protected static ?int $navigationSort = 10;
 
     protected static ?string $modelLabel = 'Kategori';

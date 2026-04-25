@@ -20,6 +20,7 @@ class TagResource extends Resource
     protected static ?string $navigationIcon  = 'heroicon-o-tag';
     protected static ?string $navigationLabel = 'Tag Soal';
     protected static ?string $navigationGroup = 'Bank Soal';
+    protected static bool $shouldRegisterNavigation = false;
     protected static ?int    $navigationSort  = 13;
     protected static ?string $modelLabel       = 'Tag';
     protected static ?string $pluralModelLabel = 'Tag Soal';
