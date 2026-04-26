@@ -93,17 +93,17 @@ class ExamSessionSeeder extends Seeder
         // ─── Buat semua sesi ─────────────────────────────────────────────────
         $this->command->info('Membuat sesi ujian...');
 
-        $s1  = $this->buatSesi('S1',  $this->packages['matematika'], 'Ujian Harian Matematika — X IPA 1', ExamSession::STATUS_AKTIF, now()->subHours(1), now()->addHours(2), null);
-        $s2  = $this->buatSesi('S2',  $this->packages['tik'],         'Ujian TIK — X IPS 1 (Dengan Token)', ExamSession::STATUS_AKTIF, now()->subMinutes(30), now()->addHours(1), 'TIK2026');
-        $s3  = $this->buatSesi('S3',  $this->packages['bindo'],       'Ujian B.Indonesia — X IPA 1 (Remidi Aktif)', ExamSession::STATUS_AKTIF, now()->subHours(2), now()->addHours(1), null);
-        $s4  = $this->buatSesi('S4',  $this->packages['sejarah'],     'Ujian Sejarah — X IPA 1 (1x, No Remidi)', ExamSession::STATUS_AKTIF, now()->subHours(1), now()->addHour(), null);
-        $s5  = $this->buatSesi('S5',  $this->packages['tryout'],      'Tryout Akhir Tahun — X IPA 1 (Sisa 1 Kali)', ExamSession::STATUS_AKTIF, now()->subHours(3), now()->addHours(4), null);
-        $s6  = $this->buatSesi('S6',  $this->packages['ipa'],         'Ujian IPA — X IPA 2 (Andi Sedang Berlangsung)', ExamSession::STATUS_AKTIF, now()->subMinutes(15), now()->addMinutes(45), 'IPA2026');
-        $s7  = $this->buatSesi('S7',  $this->packages['matematika'],  'Ujian Matematika — X IPA 2 (Unlimited)', ExamSession::STATUS_AKTIF, now()->subHour(), now()->addHours(3), null);
-        $s8  = $this->buatSesi('S8',  $this->packages['ipa'],         'Ujian IPA — X IPS 1 (Draft, Belum Dibuka)', ExamSession::STATUS_DRAFT, now()->addDay(), now()->addDay()->addHours(2), null);
-        $s9  = $this->buatSesi('S9',  $this->packages['sejarah'],     'Ujian Sejarah — X IPS 1 (Sudah Selesai)', ExamSession::STATUS_SELESAI, now()->subDay()->subHours(2), now()->subDay(), null);
-        $s10 = $this->buatSesi('S10', $this->packages['bindo'],       'Ujian B.Indonesia — X IPS 1 (Selesai, Nilai Tersembunyi)', ExamSession::STATUS_SELESAI, now()->subDays(3)->subHour(), now()->subDays(3), null);
-        $s11 = $this->buatSesi('S11', $this->packages['tik'],         'Ujian TIK — X IPA 2 (Dibatalkan)', ExamSession::STATUS_DIBATALKAN, now()->subDay(), now()->subDay()->addHours(2), null);
+        $s1  = $this->buatSesi('S1',  $this->packages['matematika'], 'Ujian Harian Matematika — X IPA 1', ExamSession::STATUS_AKTIF, now()->subHours(1), now()->addHours(2), null, 75, 65);
+        $s2  = $this->buatSesi('S2',  $this->packages['tik'],         'Ujian TIK — X IPS 1 (Dengan Token)', ExamSession::STATUS_AKTIF, now()->subMinutes(30), now()->addHours(1), 'TIK2026', 70, 65);
+        $s3  = $this->buatSesi('S3',  $this->packages['bindo'],       'Ujian B.Indonesia — X IPA 1 (Remidi Aktif)', ExamSession::STATUS_AKTIF, now()->subHours(2), now()->addHours(1), null, 70, 60);
+        $s4  = $this->buatSesi('S4',  $this->packages['sejarah'],     'Ujian Sejarah — X IPA 1 (1x, No Remidi)', ExamSession::STATUS_AKTIF, now()->subHours(1), now()->addHour(), null, 70, 65);
+        $s5  = $this->buatSesi('S5',  $this->packages['tryout'],      'Tryout Akhir Tahun — X IPA 1 (Sisa 1 Kali)', ExamSession::STATUS_AKTIF, now()->subHours(3), now()->addHours(4), null, 65, 60);
+        $s6  = $this->buatSesi('S6',  $this->packages['ipa'],         'Ujian IPA — X IPA 2 (Andi Sedang Berlangsung)', ExamSession::STATUS_AKTIF, now()->subMinutes(15), now()->addMinutes(45), 'IPA2026', 70, 65);
+        $s7  = $this->buatSesi('S7',  $this->packages['matematika'],  'Ujian Matematika — X IPA 2 (Unlimited)', ExamSession::STATUS_AKTIF, now()->subHour(), now()->addHours(3), null, 75, 65);
+        $s8  = $this->buatSesi('S8',  $this->packages['ipa'],         'Ujian IPA — X IPS 1 (Draft, Belum Dibuka)', ExamSession::STATUS_DRAFT, now()->addDay(), now()->addDay()->addHours(2), null, 70, 65);
+        $s9  = $this->buatSesi('S9',  $this->packages['sejarah'],     'Ujian Sejarah — X IPS 1 (Sudah Selesai)', ExamSession::STATUS_SELESAI, now()->subDay()->subHours(2), now()->subDay(), null, 70, 65);
+        $s10 = $this->buatSesi('S10', $this->packages['bindo'],       'Ujian B.Indonesia — X IPS 1 (Selesai, Nilai Tersembunyi)', ExamSession::STATUS_SELESAI, now()->subDays(3)->subHour(), now()->subDays(3), null, 70, 65);
+        $s11 = $this->buatSesi('S11', $this->packages['tik'],         'Ujian TIK — X IPA 2 (Dibatalkan)', ExamSession::STATUS_DIBATALKAN, now()->subDay(), now()->subDay()->addHours(2), null, 70, 65);
         $s12 = $this->packages['stimulus']
             ? $this->buatSesi('S12', $this->packages['stimulus'], 'Demo Soal Kelompok Stimulus — Semua Kelas', ExamSession::STATUS_AKTIF, now()->subMinutes(10), now()->addHours(1), null)
             : null;
@@ -192,6 +192,10 @@ class ExamSessionSeeder extends Seeder
         $mulai,
         $selesai,
         ?string $token,
+        int $kkm = 70,
+        int $kkmKlasikal = 65,
+        int $pengayaanMax1 = 83,
+        int $pengayaanMax2 = 92,
     ): ExamSession {
         $session = ExamSession::firstOrCreate(
             ['nama_sesi' => $namaSesi],
@@ -202,6 +206,10 @@ class ExamSessionSeeder extends Seeder
                 'status'          => $status,
                 'token_akses'     => $token,
                 'created_by'      => $this->admin->id,
+                'kkm'             => $kkm,
+                'kkm_klasikal'    => $kkmKlasikal,
+                'pengayaan_max_1' => $pengayaanMax1,
+                'pengayaan_max_2' => $pengayaanMax2,
             ]
         );
 

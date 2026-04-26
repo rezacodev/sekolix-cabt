@@ -38,13 +38,21 @@ class ExamSession extends Model
         'status',
         'token_akses',
         'created_by',
+        'kkm',
+        'kkm_klasikal',
+        'pengayaan_max_1',
+        'pengayaan_max_2',
     ];
 
     protected function casts(): array
     {
         return [
-            'waktu_mulai'  => 'datetime',
-            'waktu_selesai' => 'datetime',
+            'waktu_mulai'       => 'datetime',
+            'waktu_selesai'     => 'datetime',
+            'kkm'               => 'integer',
+            'kkm_klasikal'      => 'integer',
+            'pengayaan_max_1'   => 'integer',
+            'pengayaan_max_2'   => 'integer',
         ];
     }
 
@@ -87,6 +95,12 @@ class ExamSession extends Model
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
+
+    public function isTuntas(?float $nilai): bool
+    {
+        if ($nilai === null) return false;
+        return $nilai >= ($this->kkm ?? 70);
+    }
 
     public function isDraft(): bool
     {

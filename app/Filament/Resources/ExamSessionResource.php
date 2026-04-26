@@ -97,6 +97,40 @@ class ExamSessionResource extends Resource
                                 ->icon('heroicon-o-arrow-path')
                                 ->action(fn(Forms\Set $set) => $set('token_akses', strtoupper(Str::random(8))))
                         ),
+
+                    Forms\Components\TextInput::make('kkm')
+                        ->label('KKM (Nilai Minimum Tuntas)')
+                        ->numeric()
+                        ->default(70)
+                        ->minValue(0)
+                        ->maxValue(100)
+                        ->suffix('/ 100')
+                        ->helperText('Peserta dinyatakan tuntas jika nilai akhir ≥ KKM ini.'),
+
+                    Forms\Components\TextInput::make('kkm_klasikal')
+                        ->label('KKM Klasikal Soal (%)')
+                        ->numeric()
+                        ->default(65)
+                        ->minValue(0)
+                        ->maxValue(100)
+                        ->suffix('%')
+                        ->helperText('Soal dinyatakan tuntas klasikal jika ≥ % peserta menjawab benar.'),
+
+                    Forms\Components\TextInput::make('pengayaan_max_1')
+                        ->label('Batas Pengayaan 1')
+                        ->numeric()
+                        ->default(83)
+                        ->minValue(0)
+                        ->maxValue(100)
+                        ->helperText('Rentang 1 akan dihitung dari KKM sampai nilai ini.'),
+
+                    Forms\Components\TextInput::make('pengayaan_max_2')
+                        ->label('Batas Pengayaan 2')
+                        ->numeric()
+                        ->default(92)
+                        ->minValue(0)
+                        ->maxValue(100)
+                        ->helperText('Rentang 2 akan dihitung dari batas pengayaan 1 + 1 sampai nilai ini.'),
                 ]),
         ]);
     }

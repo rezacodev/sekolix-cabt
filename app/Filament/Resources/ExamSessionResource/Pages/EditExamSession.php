@@ -56,6 +56,17 @@ class EditExamSession extends EditRecord
                 ->url(fn () => MonitorSesi::getUrl(['record' => $this->record->id]))
                 ->visible(fn () => $this->record->status !== ExamSession::STATUS_DIBATALKAN),
 
+            Actions\Action::make('analisis_ulangan')
+                ->label('Analisis Ulangan')
+                ->icon('heroicon-o-document-chart-bar')
+                ->color('warning')
+                ->url(fn () => route('analisis.index', $this->record->id))
+                ->openUrlInNewTab()
+                ->visible(fn () => in_array($this->record->status, [
+                    ExamSession::STATUS_AKTIF,
+                    ExamSession::STATUS_SELESAI,
+                ])),
+
             Actions\DeleteAction::make()
                 ->visible(fn () => $this->record->isDraft())
                 ->successNotificationTitle('Sesi ujian berhasil dihapus'),

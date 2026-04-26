@@ -189,6 +189,13 @@ class LaporanResource extends Resource
                     ->icon('heroicon-o-shield-exclamation')
                     ->color('danger')
                     ->url(fn(ExamSession $r) => Pages\LaporanKecurangan::getUrl(['record' => $r->id])),
+
+                Tables\Actions\Action::make('analisis_ulangan')
+                    ->label('Analisis Ulangan')
+                    ->icon('heroicon-o-document-chart-bar')
+                    ->color('warning')
+                    ->url(fn(ExamSession $r) => route('analisis.index', $r->id))
+                    ->openUrlInNewTab(),
             ])
             ->bulkActions([]);
     }

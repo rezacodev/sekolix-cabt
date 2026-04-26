@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AnalisisUlanganController;
 use App\Http\Controllers\Admin\DashboardGuruController;
 use App\Http\Controllers\Admin\KalenderController;
 use App\Http\Controllers\Admin\MonitorController;
@@ -59,6 +60,13 @@ Route::middleware(['auth', 'check.level:2'])->prefix('cabt/laporan')->name('lapo
     Route::get('/sesi/{session}/pdf/daftar-hadir',   [PdfController::class, 'daftarHadir'])->name('pdf.daftar-hadir');
     Route::get('/sesi/{session}/pdf/berita-acara',   [PdfController::class, 'beritaAcara'])->name('pdf.berita-acara');
     Route::get('/sesi/{session}/pdf/kartu-peserta',  [PdfController::class, 'kartupeserta'])->name('pdf.kartu-peserta');
+});
+
+// Analisis Ulangan Harian (level >= 2)
+Route::middleware(['auth', 'check.level:2'])->prefix('cabt/analisis')->name('analisis.')->group(function () {
+    Route::get('/{session}',        [AnalisisUlanganController::class, 'index'])->name('index');
+    Route::get('/{session}/pdf',    [AnalisisUlanganController::class, 'exportPdf'])->name('pdf');
+    Route::get('/{session}/export', [AnalisisUlanganController::class, 'exportExcel'])->name('export');
 });
 
 // Blueprint kisi-kisi print (level >= 2)
