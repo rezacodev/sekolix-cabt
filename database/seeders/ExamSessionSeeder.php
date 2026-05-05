@@ -42,19 +42,45 @@ use Illuminate\Support\Facades\DB;
 class ExamSessionSeeder extends Seeder
 {
     private User $admin;
+    private User $guru1;
+    private User $guru2;
     private User $andi;
     private array $pesertaRombel; // user objects PST-001..PST-010
     private array $packages;
+    // Rombel references
+    private \App\Models\Rombel $ripa1;
+    private \App\Models\Rombel $ripa2;
+    private \App\Models\Rombel $rips1;
 
     public function run(): void
     {
         $this->admin = User::where('level', '>=', User::LEVEL_ADMIN)->first()
             ?? throw new \RuntimeException('Tidak ada user admin. Jalankan UserSeeder terlebih dahulu.');
 
+        $this->guru1 = User::where('email', 'guru1@cabt.local')->first()
+            ?? $this->admin;
+
+        $this->guru2 = User::where('email', 'guru2@cabt.local')->first()
+            ?? $this->admin;
+
         $this->andi = User::where('email', 'andi@cabt.local')->first()
             ?? throw new \RuntimeException('User andi@cabt.local tidak ditemukan. Jalankan UserSeeder terlebih dahulu.');
 
-        // Peserta untuk sesi (10 orang)
+        // Muat rombel
+        $this->ripa1 = \App\Models\Rombel::where('kode', 'X-IPA-1')->first()
+            ?? throw new \RuntimeException('Rombel X-IPA-1 tidak ditemukan. Jalankan RombelSeeder terlebih dahulu.');
+        $this->ripa2 = \App\Models\Rombel::where('kode', 'X-IPA-2')->first()
+            ?? throw new \RuntimeException('Rombel X-IPA-2 tidak ditemukan. Jalankan RombelSeeder terlebih dahulu.');
+        $this->rips1 = \App\Models\Rombel::where('kode', 'X-IPS-1')->first()
+            ?? throw new \RuntimeException('Rombel X-IPS-1 tidak ditemukan. Jalankan RombelSeeder terlebih dahulu.');
+
+        // Peserta per rombel (dari pivot rombel_peserta)
+        $pesertaIpa1 = $this->ripa1->peserta()->get()->all();
+        $pesertaIpa2 = $this->ripa2->peserta()->get()->all();
+        $pesertaIps1 = $this->rips1->peserta()->get()->all();
+        $semuaPeserta = array_merge($pesertaIpa1, $pesertaIpa2, $pesertaIps1);
+
+        // Backward-compat: pesertaRombel keyed by nomor_peserta
         $this->pesertaRombel = User::where('level', User::LEVEL_PESERTA)
             ->whereIn('nomor_peserta', [
                 'PST-001',
@@ -93,65 +119,75 @@ class ExamSessionSeeder extends Seeder
         // ─── Buat semua sesi ─────────────────────────────────────────────────
         $this->command->info('Membuat sesi ujian...');
 
-        $s1  = $this->buatSesi('S1',  $this->packages['matematika'], 'Ujian Harian Matematika — X IPA 1', ExamSession::STATUS_AKTIF, now()->subHours(1), now()->addHours(2), null, 75, 65);
-        $s2  = $this->buatSesi('S2',  $this->packages['tik'],         'Ujian TIK — X IPS 1 (Dengan Token)', ExamSession::STATUS_AKTIF, now()->subMinutes(30), now()->addHours(1), 'TIK2026', 70, 65);
-        $s3  = $this->buatSesi('S3',  $this->packages['bindo'],       'Ujian B.Indonesia — X IPA 1 (Remidi Aktif)', ExamSession::STATUS_AKTIF, now()->subHours(2), now()->addHours(1), null, 70, 60);
-        $s4  = $this->buatSesi('S4',  $this->packages['sejarah'],     'Ujian Sejarah — X IPA 1 (1x, No Remidi)', ExamSession::STATUS_AKTIF, now()->subHours(1), now()->addHour(), null, 70, 65);
-        $s5  = $this->buatSesi('S5',  $this->packages['tryout'],      'Tryout Akhir Tahun — X IPA 1 (Sisa 1 Kali)', ExamSession::STATUS_AKTIF, now()->subHours(3), now()->addHours(4), null, 65, 60);
-        $s6  = $this->buatSesi('S6',  $this->packages['ipa'],         'Ujian IPA — X IPA 2 (Andi Sedang Berlangsung)', ExamSession::STATUS_AKTIF, now()->subMinutes(15), now()->addMinutes(45), 'IPA2026', 70, 65);
-        $s7  = $this->buatSesi('S7',  $this->packages['matematika'],  'Ujian Matematika — X IPA 2 (Unlimited)', ExamSession::STATUS_AKTIF, now()->subHour(), now()->addHours(3), null, 75, 65);
-        $s8  = $this->buatSesi('S8',  $this->packages['ipa'],         'Ujian IPA — X IPS 1 (Draft, Belum Dibuka)', ExamSession::STATUS_DRAFT, now()->addDay(), now()->addDay()->addHours(2), null, 70, 65);
-        $s9  = $this->buatSesi('S9',  $this->packages['sejarah'],     'Ujian Sejarah — X IPS 1 (Sudah Selesai)', ExamSession::STATUS_SELESAI, now()->subDay()->subHours(2), now()->subDay(), null, 70, 65);
-        $s10 = $this->buatSesi('S10', $this->packages['bindo'],       'Ujian B.Indonesia — X IPS 1 (Selesai, Nilai Tersembunyi)', ExamSession::STATUS_SELESAI, now()->subDays(3)->subHour(), now()->subDays(3), null, 70, 65);
-        $s11 = $this->buatSesi('S11', $this->packages['tik'],         'Ujian TIK — X IPA 2 (Dibatalkan)', ExamSession::STATUS_DIBATALKAN, now()->subDay(), now()->subDay()->addHours(2), null, 70, 65);
+        // guru1 mengampu X IPA 1 dan X IPA 2 → S1, S3, S4, S5, S6, S7, S11
+        // guru2 mengampu X IPS 1 → S2, S8, S9, S10
+        // S12 (demo stimulus) → admin
+        $s1  = $this->buatSesi('S1',  $this->packages['matematika'], 'Ujian Harian Matematika — X IPA 1',                    ExamSession::STATUS_AKTIF,      now()->subHours(1),         now()->addHours(2),              null,      75, 65, creator: $this->guru1);
+        $s2  = $this->buatSesi('S2',  $this->packages['tik'],        'Ujian TIK — X IPS 1 (Dengan Token)',                   ExamSession::STATUS_AKTIF,      now()->subMinutes(30),      now()->addHours(1),              'TIK2026', 70, 65, creator: $this->guru2);
+        $s3  = $this->buatSesi('S3',  $this->packages['bindo'],      'Ujian B.Indonesia — X IPA 1 (Remidi Aktif)',            ExamSession::STATUS_AKTIF,      now()->subHours(2),         now()->addHours(1),              null,      70, 60, creator: $this->guru1);
+        $s4  = $this->buatSesi('S4',  $this->packages['sejarah'],    'Ujian Sejarah — X IPA 1 (1x, No Remidi)',               ExamSession::STATUS_AKTIF,      now()->subHours(1),         now()->addHour(),                null,      70, 65, creator: $this->guru1);
+        $s5  = $this->buatSesi('S5',  $this->packages['tryout'],     'Tryout Akhir Tahun — X IPA 1 (Sisa 1 Kali)',            ExamSession::STATUS_AKTIF,      now()->subHours(3),         now()->addHours(4),              null,      65, 60, creator: $this->guru1);
+        $s6  = $this->buatSesi('S6',  $this->packages['ipa'],        'Ujian IPA — X IPA 2 (Andi Sedang Berlangsung)',         ExamSession::STATUS_AKTIF,      now()->subMinutes(15),      now()->addMinutes(45),           'IPA2026', 70, 65, creator: $this->guru1);
+        $s7  = $this->buatSesi('S7',  $this->packages['matematika'], 'Ujian Matematika — X IPA 2 (Unlimited)',                ExamSession::STATUS_AKTIF,      now()->subHour(),           now()->addHours(3),              null,      75, 65, creator: $this->guru1);
+        $s8  = $this->buatSesi('S8',  $this->packages['ipa'],        'Ujian IPA — X IPS 1 (Draft, Belum Dibuka)',             ExamSession::STATUS_DRAFT,      now()->addDay(),            now()->addDay()->addHours(2),    null,      70, 65, creator: $this->guru2);
+        $s9  = $this->buatSesi('S9',  $this->packages['sejarah'],    'Ujian Sejarah — X IPS 1 (Sudah Selesai)',               ExamSession::STATUS_SELESAI,    now()->subDay()->subHours(2), now()->subDay(),               null,      70, 65, creator: $this->guru2);
+        $s10 = $this->buatSesi('S10', $this->packages['bindo'],      'Ujian B.Indonesia — X IPS 1 (Selesai, Nilai Tersembunyi)', ExamSession::STATUS_SELESAI, now()->subDays(3)->subHour(), now()->subDays(3),            null,      70, 65, creator: $this->guru2);
+        $s11 = $this->buatSesi('S11', $this->packages['tik'],        'Ujian TIK — X IPA 2 (Dibatalkan)',                     ExamSession::STATUS_DIBATALKAN, now()->subDay(),            now()->subDay()->addHours(2),    null,      70, 65, creator: $this->guru1);
         $s12 = $this->packages['stimulus']
-            ? $this->buatSesi('S12', $this->packages['stimulus'], 'Demo Soal Kelompok Stimulus — Semua Kelas', ExamSession::STATUS_AKTIF, now()->subMinutes(10), now()->addHours(1), null)
+            ? $this->buatSesi('S12', $this->packages['stimulus'], 'Demo Soal Kelompok Stimulus — Semua Kelas', ExamSession::STATUS_AKTIF, now()->subMinutes(10), now()->addHours(1), null, creator: $this->admin)
             : null;
 
         // ─── Daftarkan peserta ke masing-masing sesi ─────────────────────────
         $this->command->info('Mendaftarkan peserta...');
 
-        // S1 — semua peserta belum; Andi terdaftar tapi belum mengerjakan
-        $this->daftarPeserta($s1, array_values($this->pesertaRombel));
+        // S1 — X IPA 1 (PST-001..005)
+        $this->daftarPesertaRombel($s1, $this->ripa1);
 
-        // S2 — token, semua terdaftar
-        $this->daftarPeserta($s2, array_values($this->pesertaRombel));
+        // S2 — X IPS 1 (PST-011..015) — TIK
+        $this->daftarPesertaRombel($s2, $this->rips1);
 
-        // S3 — Andi sudah selesai 1x (masih bisa remidi karena max=2)
-        $this->daftarPeserta($s3, array_values($this->pesertaRombel));
+        // S3 — X IPA 1 (Remidi)
+        $this->daftarPesertaRombel($s3, $this->ripa1);
 
-        // S4 — Andi sudah selesai, max=1 → tidak bisa remidi
-        $this->daftarPeserta($s4, array_values($this->pesertaRombel));
+        // S4 — X IPA 1 (1x, No Remidi)
+        $this->daftarPesertaRombel($s4, $this->ripa1);
 
-        // S5 — Andi sudah 2x, max=3 → 1 kesempatan lagi
-        $this->daftarPeserta($s5, array_values($this->pesertaRombel));
+        // S5 — X IPA 1 (Tryout)
+        $this->daftarPesertaRombel($s5, $this->ripa1);
 
-        // S6 — Andi sedang berlangsung
-        $this->daftarPeserta($s6, array_values($this->pesertaRombel));
+        // S6 — X IPA 2 (Andi sedang berlangsung)
+        $this->daftarPesertaRombel($s6, $this->ripa2);
 
-        // S7 — semua belum, unlimited
-        $allPeserta = User::where('level', User::LEVEL_PESERTA)->take(8)->get()->all();
-        $this->daftarPeserta($s7, $allPeserta);
+        // S7 — X IPA 2 (Unlimited)
+        $this->daftarPesertaRombel($s7, $this->ripa2);
 
-        // S8 — draft, peserta terdaftar tapi belum bisa mulai
-        $this->daftarPeserta($s8, array_values($this->pesertaRombel));
+        // S8 — X IPS 1 (Draft)
+        $this->daftarPesertaRombel($s8, $this->rips1);
 
-        // S9 — selesai, semua peserta sudah selesai
-        $this->daftarPeserta($s9, array_values($this->pesertaRombel));
+        // S9 — X IPS 1 (Selesai)
+        $this->daftarPesertaRombel($s9, $this->rips1);
 
-        // S10 — selesai, nilai tersembunyi
-        $this->daftarPeserta($s10, array_values($this->pesertaRombel));
+        // S10 — X IPS 1 (Selesai, nilai tersembunyi)
+        $this->daftarPesertaRombel($s10, $this->rips1);
 
-        // S11 — dibatalkan, tidak ada aktivitas
-        $this->daftarPeserta($s11, array_values(array_slice($this->pesertaRombel, 0, 5)));
+        // S11 — X IPA 2 (Dibatalkan) — subset 5 orang
+        $this->daftarPesertaRombel($s11, $this->ripa2);
 
-        // S12 — demo stimulus, semua peserta terdaftar
+        // S12 — semua rombel
         if ($s12) {
-            $this->daftarPeserta($s12, array_values($this->pesertaRombel));
+            $this->daftarPesertaRombel($s12, $this->ripa1);
+            $this->daftarPesertaRombel($s12, $this->ripa2);
+            $this->daftarPesertaRombel($s12, $this->rips1);
         }
 
         // ─── Buat skenario attempt untuk Andi ────────────────────────────────
         $this->command->info('Membuat skenario attempt Andi...');
+
+        // Andi (PST-001, X IPA 1) juga terdaftar di S6 (X IPA 2) untuk skenario "sedang berlangsung"
+        ExamSessionParticipant::firstOrCreate(
+            ['exam_session_id' => $s6->id, 'user_id' => $this->andi->id],
+            ['status' => ExamSessionParticipant::STATUS_BELUM]
+        );
 
         // S3: Andi selesai 1x (attempt_ke=1, selesai), participation=selesai
         $this->buatAttemptSelesai($s3, $this->andi, 1, 75.0, 7, 2, 1, ExamAttempt::STATUS_SELESAI, now()->subHour()->subMinutes(15), now()->subHour());
@@ -196,7 +232,9 @@ class ExamSessionSeeder extends Seeder
         int $kkmKlasikal = 65,
         int $pengayaanMax1 = 83,
         int $pengayaanMax2 = 92,
+        ?User $creator = null,
     ): ExamSession {
+        $creatorId = ($creator ?? $this->admin)->id;
         $session = ExamSession::firstOrCreate(
             ['nama_sesi' => $namaSesi],
             [
@@ -205,7 +243,7 @@ class ExamSessionSeeder extends Seeder
                 'waktu_selesai'   => $selesai,
                 'status'          => $status,
                 'token_akses'     => $token,
-                'created_by'      => $this->admin->id,
+                'created_by'      => $creatorId,
                 'kkm'             => $kkm,
                 'kkm_klasikal'    => $kkmKlasikal,
                 'pengayaan_max_1' => $pengayaanMax1,
@@ -229,6 +267,16 @@ class ExamSessionSeeder extends Seeder
                 ['status' => ExamSessionParticipant::STATUS_BELUM]
             );
         }
+    }
+
+    /**
+     * Daftarkan seluruh peserta aktif dari satu rombel ke sesi ujian.
+     * Ini mencerminkan alur nyata: assign per rombel.
+     */
+    private function daftarPesertaRombel(ExamSession $session, \App\Models\Rombel $rombel): void
+    {
+        $peserta = $rombel->peserta()->where('aktif', true)->get();
+        $this->daftarPeserta($session, $peserta->all());
     }
 
     /**
@@ -454,48 +502,57 @@ class ExamSessionSeeder extends Seeder
      */
     private function buatAttemptPesertaLain(ExamSession $s1, ExamSession $s9, ExamSession $s10): void
     {
-        $peserta = array_values($this->pesertaRombel);
-
-        // S1 (aktif, masih berjalan) — PST-002 dan PST-003 sedang mengerjakan
+        // S1 (aktif, X IPA 1) — PST-002 dan PST-003 sedang mengerjakan
         foreach (['PST-002', 'PST-003'] as $nomor) {
             if (isset($this->pesertaRombel[$nomor])) {
                 $this->buatAttemptBerlangsung($s1, $this->pesertaRombel[$nomor], 1);
             }
         }
 
-        // S9 (selesai) — PST-002 sampai PST-005 sudah selesai dengan nilai beragam
-        $nilaiS9 = ['PST-002' => [78.0, 7, 2, 1], 'PST-003' => [55.0, 5, 3, 2], 'PST-004' => [90.0, 9, 0, 1], 'PST-005' => [70.0, 7, 2, 1]];
+        // S9 (selesai, X IPS 1) — peserta X IPS 1 (PST-011..015) sudah selesai dengan nilai beragam
+        $pesertaIps1 = $this->rips1->peserta()->get()->keyBy('nomor_peserta');
+        $nilaiS9 = [
+            'PST-011' => [78.0, 7, 2, 1],
+            'PST-012' => [55.0, 5, 3, 2],
+            'PST-013' => [90.0, 9, 0, 1],
+            'PST-014' => [70.0, 7, 2, 1],
+            'PST-015' => [45.0, 4, 4, 2],
+        ];
         foreach ($nilaiS9 as $nomor => [$nilai, $benar, $salah, $kosong]) {
-            if (isset($this->pesertaRombel[$nomor])) {
-                $this->buatAttemptSelesai($s9, $this->pesertaRombel[$nomor], 1, $nilai, $benar, $salah, $kosong, ExamAttempt::STATUS_SELESAI, now()->subDay()->subHours(2), now()->subDay()->subHour()->subMinutes(rand(5, 30)));
+            $peserta = $pesertaIps1->get($nomor);
+            if ($peserta) {
+                $this->buatAttemptSelesai($s9, $peserta, 1, $nilai, $benar, $salah, $kosong, ExamAttempt::STATUS_SELESAI, now()->subDay()->subHours(2), now()->subDay()->subHour()->subMinutes(rand(5, 30)));
             }
         }
 
-        // S10 (selesai, nilai tersembunyi) — PST-002 selesai dengan timeout
-        if (isset($this->pesertaRombel['PST-002'])) {
-            $this->buatAttemptSelesai($s10, $this->pesertaRombel['PST-002'], 1, 45.0, 4, 4, 2, ExamAttempt::STATUS_TIMEOUT, now()->subDays(3)->subHour(), now()->subDays(3)->subMinutes(1));
+        // S10 (selesai, nilai tersembunyi, X IPS 1) — PST-011 selesai dengan timeout
+        $pst011 = $pesertaIps1->get('PST-011');
+        if ($pst011) {
+            $this->buatAttemptSelesai($s10, $pst011, 1, 45.0, 4, 4, 2, ExamAttempt::STATUS_TIMEOUT, now()->subDays(3)->subHour(), now()->subDays(3)->subMinutes(1));
         }
     }
 
     private function printRingkasan(): void
     {
         $this->command->newLine();
-        $this->command->info('╔══════════════════════════════════════════════════════════╗');
-        $this->command->info('║         RINGKASAN SKENARIO UJI COBA                     ║');
-        $this->command->info('╠══════════════════════════════════════════════════════════╣');
-        $this->command->info('║  Login Andi: andi@cabt.local / peserta123                ║');
-        $this->command->info('╠══════════════════════════════════════════════════════════╣');
-        $this->command->line('  S1  [AKTIF]  Matematika — X IPA 1                  : Andi BELUM');
-        $this->command->line('  S2  [AKTIF]  TIK + token TIK2026                   : Andi BELUM');
-        $this->command->line('  S3  [AKTIF]  B.Indo max=2×                         : Andi SELESAI 1× → bisa REMIDI (sisa 1)');
-        $this->command->line('  S4  [AKTIF]  Sejarah max=1× (no remidi)            : Andi SELESAI 1× → TIDAK bisa remidi');
-        $this->command->line('  S5  [AKTIF]  Tryout max=3×                         : Andi SELESAI 2× → bisa REMIDI (sisa 1)');
-        $this->command->line('  S6  [AKTIF]  IPA + token IPA2026                   : Andi SEDANG BERLANGSUNG (lanjutkan)');
-        $this->command->line('  S7  [AKTIF]  Matematika unlimited                  : Andi BELUM');
-        $this->command->line('  S8  [DRAFT]  IPA — X IPS 1                         : Andi terdaftar, belum bisa mulai');
-        $this->command->line('  S9  [SELESAI] Sejarah — kemarin (hasil tampil)     : Andi SELESAI dengan nilai 85');
-        $this->command->line('  S10 [SELESAI] B.Indo — 3 hari lalu (nilai hidden)  : Andi SELESAI, tidak lihat nilai');
-        $this->command->line('  S11 [DIBATALKAN] TIK — dibatalkan                  : tidak bisa diakses');
-        $this->command->info('╚══════════════════════════════════════════════════════════╝');
+        $this->command->info('╔══════════════════════════════════════════════════════════════╗');
+        $this->command->info('║           RINGKASAN SKENARIO UJI COBA                       ║');
+        $this->command->info('╠══════════════════════════════════════════════════════════════╣');
+        $this->command->info('║  Login Andi (PST-001, X IPA 1): andi@cabt.local / peserta123║');
+        $this->command->info('╠══════════════════════════════════════════════════════════════╣');
+        $this->command->line('  S1  [AKTIF]   Matematika    — X IPA 1         : Andi BELUM');
+        $this->command->line('  S2  [AKTIF]   TIK + token   — X IPS 1         : (Andi tidak terdaftar)');
+        $this->command->line('  S3  [AKTIF]   B.Indo max=2× — X IPA 1         : Andi SELESAI 1× → bisa REMIDI');
+        $this->command->line('  S4  [AKTIF]   Sejarah max=1×— X IPA 1         : Andi SELESAI 1× → TIDAK bisa remidi');
+        $this->command->line('  S5  [AKTIF]   Tryout max=3× — X IPA 1         : Andi SELESAI 2× → sisa 1 kali');
+        $this->command->line('  S6  [AKTIF]   IPA + token   — X IPA 2 + Andi  : Andi SEDANG BERLANGSUNG');
+        $this->command->line('  S7  [AKTIF]   Matematika 2  — X IPA 2         : (Andi tidak terdaftar)');
+        $this->command->line('  S8  [DRAFT]   IPA           — X IPS 1         : belum dibuka');
+        $this->command->line('  S9  [SELESAI] Sejarah       — X IPS 1         : (Andi tidak terdaftar)');
+        $this->command->line('  S10 [SELESAI] B.Indo        — X IPS 1         : nilai tersembunyi');
+        $this->command->line('  S11 [BATAL]   TIK           — X IPA 2         : dibatalkan');
+        $this->command->info('╠══════════════════════════════════════════════════════════════╣');
+        $this->command->info('║  Rombel: X IPA 1 (guru1), X IPA 2 (guru1), X IPS 1 (guru2) ║');
+        $this->command->info('╚══════════════════════════════════════════════════════════════╝');
     }
 }

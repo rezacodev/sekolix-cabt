@@ -3,16 +3,19 @@
 
     <div class="max-w-3xl mx-auto">
         <div class="mb-6">
-            <a href="{{ route('peserta.dashboard') }}" class="text-sm text-indigo-600 hover:underline">← Dashboard</a>
-            <h1 class="text-2xl font-bold text-gray-900 mt-2">Hasil Ujian</h1>
-            <p class="text-gray-500">{{ $attempt->session->nama_sesi }} · {{ $attempt->session->package->nama }}</p>
+            <a href="{{ route('peserta.dashboard') }}" class="inline-flex items-center gap-1 text-sm text-indigo-600 hover:underline">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                Dashboard
+            </a>
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-900 mt-2">Hasil Ujian</h1>
+            <p class="text-gray-500 text-sm">{{ $attempt->session->nama_sesi }} · {{ $attempt->session->package->nama }}</p>
         </div>
 
         {{-- Score card --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-            <div class="bg-gradient-to-r from-indigo-600 to-indigo-500 px-8 py-10 text-center">
+            <div class="bg-gradient-to-r from-indigo-600 to-indigo-500 px-5 sm:px-8 py-8 sm:py-10 text-center">
                 <p class="text-indigo-200 text-sm mb-2 uppercase tracking-wider">Nilai Akhir</p>
-                <p class="text-7xl font-bold text-white">
+                <p class="text-5xl sm:text-7xl font-bold text-white">
                     {{ number_format($attempt->nilai_akhir ?? 0, 2) }}
                 </p>
                 <p class="text-indigo-200 mt-2 text-sm">
@@ -27,17 +30,17 @@
             </div>
 
             <div class="grid grid-cols-3 divide-x divide-gray-100">
-                <div class="px-6 py-5 text-center">
-                    <p class="text-2xl font-bold text-green-600">{{ $attempt->jumlah_benar }}</p>
-                    <p class="text-sm text-gray-500 mt-1">Benar</p>
+                <div class="px-3 sm:px-6 py-4 sm:py-5 text-center">
+                    <p class="text-xl sm:text-2xl font-bold text-green-600">{{ $attempt->jumlah_benar }}</p>
+                    <p class="text-xs sm:text-sm text-gray-500 mt-1">Benar</p>
                 </div>
-                <div class="px-6 py-5 text-center">
-                    <p class="text-2xl font-bold text-red-500">{{ $attempt->jumlah_salah }}</p>
-                    <p class="text-sm text-gray-500 mt-1">Salah</p>
+                <div class="px-3 sm:px-6 py-4 sm:py-5 text-center">
+                    <p class="text-xl sm:text-2xl font-bold text-red-500">{{ $attempt->jumlah_salah }}</p>
+                    <p class="text-xs sm:text-sm text-gray-500 mt-1">Salah</p>
                 </div>
-                <div class="px-6 py-5 text-center">
-                    <p class="text-2xl font-bold text-gray-400">{{ $attempt->jumlah_kosong }}</p>
-                    <p class="text-sm text-gray-500 mt-1">Tidak Dijawab</p>
+                <div class="px-3 sm:px-6 py-4 sm:py-5 text-center">
+                    <p class="text-xl sm:text-2xl font-bold text-gray-400">{{ $attempt->jumlah_kosong }}</p>
+                    <p class="text-xs sm:text-sm text-gray-500 mt-1">Kosong</p>
                 </div>
             </div>
         </div>
@@ -45,7 +48,7 @@
         {{-- Detail waktu --}}
         <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
             <h2 class="font-semibold text-gray-800 mb-4">Detail Pengerjaan</h2>
-            <dl class="grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+            <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
                 <div>
                     <dt class="text-gray-500">Mulai</dt>
                     <dd class="font-medium text-gray-900">
@@ -87,16 +90,16 @@
         @endif
 
         {{-- Aksi --}}
-        <div class="flex flex-wrap gap-3">
+        <div class="flex flex-col sm:flex-row flex-wrap gap-3">
             @if ($attempt->session->package->tampilkan_review)
                 <a href="{{ route('ujian.review', $attempt->id) }}"
-                    class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold
+                    class="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold
                         px-5 py-2.5 rounded-lg transition-colors text-sm">
                     Review Jawaban
                 </a>
             @endif
             <a href="{{ route('peserta.dashboard') }}"
-                class="inline-flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold
+                class="inline-flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold
                     border border-gray-200 px-5 py-2.5 rounded-lg transition-colors text-sm">
                 Kembali ke Dashboard
             </a>

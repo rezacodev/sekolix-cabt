@@ -2,76 +2,17 @@
 
 namespace App\Exports;
 
-use Maatwebsite\Excel\Concerns\FromArray;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithTitle;
+use App\Exports\Sheets\QuestionsDataSheet;
+use App\Exports\Sheets\QuestionsInstructionSheet;
+use Maatwebsite\Excel\Concerns\WithMultipleSheets;
 
-class QuestionsImportTemplate implements FromArray, WithHeadings, WithTitle
+class QuestionsImportTemplate implements WithMultipleSheets
 {
-    public function title(): string
-    {
-        return 'Template Import Soal';
-    }
-
-    public function headings(): array
+    public function sheets(): array
     {
         return [
-            'tipe_soal',
-            'teks_soal',
-            'opsi_a',
-            'opsi_b',
-            'opsi_c',
-            'opsi_d',
-            'opsi_e',
-            'kunci',
-            'kategori',
-            'kesulitan',
-            'bobot',
-        ];
-    }
-
-    public function array(): array
-    {
-        return [
-            [
-                'PG',
-                'Ibu kota Indonesia adalah ...',
-                'Bandung',
-                'Jakarta',
-                'Surabaya',
-                'Medan',
-                '',
-                'B',
-                'Pengetahuan Umum',
-                'mudah',
-                1,
-            ],
-            [
-                'ISIAN',
-                'Ibukota provinsi Jawa Barat adalah ...',
-                '',
-                '',
-                '',
-                '',
-                '',
-                'Bandung',
-                'Pengetahuan Umum',
-                'mudah',
-                1,
-            ],
-            [
-                'URAIAN',
-                'Jelaskan pengertian dari fotosintesis!',
-                '',
-                '',
-                '',
-                '',
-                '',
-                '',
-                'Biologi',
-                'sedang',
-                5,
-            ],
+            new QuestionsDataSheet(),
+            new QuestionsInstructionSheet(),
         ];
     }
 }

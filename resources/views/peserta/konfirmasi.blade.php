@@ -10,7 +10,7 @@
                 </svg>
                 Kembali ke Dashboard
             </a>
-            <h1 class="text-2xl font-bold text-gray-900">Konfirmasi Ujian</h1>
+            <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Konfirmasi Ujian</h1>
             <p class="text-gray-500 mt-1 text-sm">Pastikan Anda siap sebelum memulai ujian.</p>
         </div>
 
@@ -49,7 +49,7 @@
                 @if ($seksiInfo !== null)
                 {{-- Tabel bagian ujian --}}
                 <div class="mt-5 border-t border-gray-100 pt-5">
-                    <div class="flex items-center justify-between mb-3">
+                    <div class="flex flex-wrap items-start justify-between gap-2 mb-3">
                         <p class="text-sm font-semibold text-gray-700">
                             Ujian ini terdiri dari <span class="text-indigo-600">{{ $seksiInfo->count() }} bagian</span>
                             — total <span class="text-indigo-600">{{ $seksiInfo->sum('questions_count') }} soal</span>

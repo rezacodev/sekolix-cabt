@@ -52,7 +52,9 @@ class PesertaRelationManager extends RelationManager
                     ->preloadRecordSelect()
                     ->recordSelectOptionsQuery(
                         fn($query) => $query->where('level', User::LEVEL_PESERTA)->where('aktif', true)
-                    ),
+                    )
+                    ->recordSelectSearchColumns(['nomor_peserta', 'name'])
+                    ->recordTitle(fn(User $record) => "[{$record->nomor_peserta}] {$record->name}"),
             ])
             ->actions([
                 Tables\Actions\DetachAction::make()->label('Keluarkan'),

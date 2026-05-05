@@ -36,7 +36,8 @@
     </x-filament::section>
 
     {{-- ── Ringkasan Nilai ──────────────────────────────────────────────────── --}}
-    <x-filament::section icon="heroicon-o-chart-bar" heading="Ringkasan Nilai Sementara">
+    <x-filament::section icon="heroicon-o-chart-bar"
+        :heading="$attempt->nilai_akhir !== null ? 'Ringkasan Nilai' : 'Ringkasan Nilai Sementara'">
         <div class="flex flex-wrap gap-6">
             <div class="text-center">
                 <p class="text-3xl font-bold text-gray-900 dark:text-white">
@@ -57,18 +58,25 @@
                 <p class="text-sm text-gray-500">Kosong</p>
             </div>
         </div>
-        @if ($attempt->nilai_akhir === null)
+
+        @if ($hasUnscoredUraian)
             <p class="mt-4 text-sm" style="color:#d97706;">
                 ⚠ Nilai akhir belum tersedia — masih ada soal URAIAN yang belum dinilai.
-                Setelah semua soal dinilai, tekan <strong>Simpan &amp; Hitung Ulang Nilai</strong>.
+                Setelah semua soal URAIAN dinilai, tekan <strong>Simpan &amp; Hitung Ulang Nilai</strong>.
+            </p>
+        @elseif (!$hasUraian && $attempt->nilai_akhir === null)
+            <p class="mt-4 text-sm" style="color:#2563eb;">
+                ℹ Paket ini tidak memiliki soal URAIAN. Tekan <strong>Simpan &amp; Hitung Ulang Nilai</strong> untuk menghitung nilai secara otomatis.
             </p>
         @endif
     </x-filament::section>
 
-    {{-- ── Daftar Soal URAIAN ───────────────────────────────────────────────── --}}
+    {{-- ── Daftar Soal ───────────────────────────────────────────────────────── --}}
     <x-filament::section icon="heroicon-o-document-text"
                          heading="Semua Soal & Jawaban Peserta"
-                         description="Soal URAIAN (biru) memerlukan penilaian manual. Soal lain ditampilkan sebagai referensi.">
+                         :description="$hasUraian
+                            ? 'Soal URAIAN (biru) memerlukan input nilai manual. Soal lain dinilai otomatis dan ditampilkan sebagai referensi.'
+                            : 'Semua soal akan dinilai otomatis. Halaman ini ditampilkan sebagai referensi jawaban peserta.'">
 
         @forelse ($questions as $aq)
             @php

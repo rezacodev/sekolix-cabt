@@ -2,7 +2,7 @@
     <x-slot name="title">Riwayat Ujian — {{ config('app.name') }}</x-slot>
 
     {{-- Page Header --}}
-    <div class="mb-6 flex items-center justify-between">
+    <div class="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
             <h1 class="text-xl font-bold text-gray-900">Riwayat Ujian Saya</h1>
             <p class="text-sm text-gray-500 mt-0.5">Rekap semua ujian yang pernah Anda ikuti</p>
@@ -55,15 +55,15 @@
             <table class="min-w-full text-sm">
                 <thead>
                     <tr class="border-b border-gray-100 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                        <th class="px-5 py-3 text-left">Nama Ujian</th>
-                        <th class="px-5 py-3 text-left">Tanggal</th>
-                        <th class="px-5 py-3 text-center">Nilai</th>
-                        <th class="px-5 py-3 text-center">Benar</th>
-                        <th class="px-5 py-3 text-center">Salah</th>
-                        <th class="px-5 py-3 text-center">Kosong</th>
-                        <th class="px-5 py-3 text-center">Durasi</th>
-                        <th class="px-5 py-3 text-center">Status</th>
-                        <th class="px-5 py-3 text-center">Aksi</th>
+                        <th class="px-4 py-3 text-left">Nama Ujian</th>
+                        <th class="px-4 py-3 text-left hidden sm:table-cell">Tanggal</th>
+                        <th class="px-4 py-3 text-center">Nilai</th>
+                        <th class="px-4 py-3 text-center hidden md:table-cell">Benar</th>
+                        <th class="px-4 py-3 text-center hidden md:table-cell">Salah</th>
+                        <th class="px-4 py-3 text-center hidden md:table-cell">Kosong</th>
+                        <th class="px-4 py-3 text-center hidden sm:table-cell">Durasi</th>
+                        <th class="px-4 py-3 text-center">Status</th>
+                        <th class="px-4 py-3 text-center">Aksi</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
@@ -84,23 +84,23 @@
                         };
                     @endphp
                     <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="px-5 py-3 font-medium text-gray-900 max-w-xs truncate">
+                        <td class="px-4 py-3 font-medium text-gray-900 max-w-[10rem] sm:max-w-xs truncate">
                             {{ $attempt->session->nama_sesi ?? '—' }}
                         </td>
-                        <td class="px-5 py-3 text-gray-500 whitespace-nowrap">
+                        <td class="px-4 py-3 text-gray-500 whitespace-nowrap hidden sm:table-cell">
                             {{ $attempt->waktu_mulai?->format('d M Y, H:i') ?? '—' }}
                         </td>
-                        <td class="px-5 py-3 text-center font-bold {{ $nilaiColor }}">{{ $nilai }}</td>
-                        <td class="px-5 py-3 text-center text-gray-600">{{ $attempt->jumlah_benar ?? '—' }}</td>
-                        <td class="px-5 py-3 text-center text-gray-600">{{ $attempt->jumlah_salah ?? '—' }}</td>
-                        <td class="px-5 py-3 text-center text-gray-600">{{ $attempt->jumlah_kosong ?? '—' }}</td>
-                        <td class="px-5 py-3 text-center text-gray-500">{{ $durasi }}</td>
-                        <td class="px-5 py-3 text-center">
+                        <td class="px-4 py-3 text-center font-bold {{ $nilaiColor }}">{{ $nilai }}</td>
+                        <td class="px-4 py-3 text-center text-gray-600 hidden md:table-cell">{{ $attempt->jumlah_benar ?? '—' }}</td>
+                        <td class="px-4 py-3 text-center text-gray-600 hidden md:table-cell">{{ $attempt->jumlah_salah ?? '—' }}</td>
+                        <td class="px-4 py-3 text-center text-gray-600 hidden md:table-cell">{{ $attempt->jumlah_kosong ?? '—' }}</td>
+                        <td class="px-4 py-3 text-center text-gray-500 hidden sm:table-cell">{{ $durasi }}</td>
+                        <td class="px-4 py-3 text-center">
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $statusColor }}">
                                 {{ $statusLabel }}
                             </span>
                         </td>
-                        <td class="px-5 py-3 text-center">
+                        <td class="px-4 py-3 text-center">
                             @if ($attempt->session?->package?->tampilkan_review && $attempt->status === 'selesai')
                             <a href="{{ route('ujian.review', $attempt->id) }}"
                                 class="text-xs text-indigo-600 hover:text-indigo-800 font-medium transition-colors">

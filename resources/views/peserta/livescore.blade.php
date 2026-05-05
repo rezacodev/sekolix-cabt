@@ -6,35 +6,40 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Livescore — {{ $session->nama_sesi }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <style>
+        @media (max-width: 639px) {
+            .ls-col-nomor, .ls-col-rombel { display: none; }
+        }
+    </style>
 </head>
 <body class="font-sans antialiased bg-gray-950 min-h-screen">
 
 {{-- ── Header ─────────────────────────────────────────────────────────────── --}}
-<div class="bg-gradient-to-r from-indigo-700 to-violet-700 px-6 py-5 text-white shadow-xl">
+<div class="bg-gradient-to-r from-indigo-700 to-violet-700 px-4 sm:px-6 py-4 sm:py-5 text-white shadow-xl">
     <div class="max-w-4xl mx-auto flex items-start justify-between gap-4">
-        <div>
+        <div class="min-w-0">
             <p class="text-indigo-200 text-xs font-semibold uppercase tracking-widest mb-1">Livescore</p>
-            <h1 class="text-2xl font-bold leading-tight">{{ $session->nama_sesi }}</h1>
+            <h1 class="text-xl sm:text-2xl font-bold leading-tight truncate">{{ $session->nama_sesi }}</h1>
             <p class="text-indigo-200 text-sm mt-1">{{ $session->package?->nama }}</p>
         </div>
-        <div class="text-right shrink-0 text-white/80 text-xs" x-data="{}" x-text="'Diperbarui: ' + (window._lsUpdated ?? '—')"></div>
+        <div class="hidden sm:block text-right shrink-0 text-white/80 text-xs" x-data="{}" x-text="'Diperbarui: ' + (window._lsUpdated ?? '—')"></div>
     </div>
 </div>
 
 {{-- ── Summary Cards ───────────────────────────────────────────────────────── --}}
 <div class="max-w-4xl mx-auto px-4 py-6">
-    <div class="grid grid-cols-3 gap-4 mb-6">
-        <div class="rounded-2xl bg-gray-900 ring-1 ring-white/10 p-4 text-center">
-            <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">Total Peserta</p>
-            <p class="text-3xl font-bold text-white" id="ls-total">—</p>
+    <div class="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+        <div class="rounded-2xl bg-gray-900 ring-1 ring-white/10 p-3 sm:p-4 text-center">
+            <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1 leading-tight">Total</p>
+            <p class="text-2xl sm:text-3xl font-bold text-white" id="ls-total">—</p>
         </div>
-        <div class="rounded-2xl bg-gray-900 ring-1 ring-white/10 p-4 text-center">
-            <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">Sudah Selesai</p>
-            <p class="text-3xl font-bold text-green-400" id="ls-selesai">—</p>
+        <div class="rounded-2xl bg-gray-900 ring-1 ring-white/10 p-3 sm:p-4 text-center">
+            <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1 leading-tight">Selesai</p>
+            <p class="text-2xl sm:text-3xl font-bold text-green-400" id="ls-selesai">—</p>
         </div>
-        <div class="rounded-2xl bg-gray-900 ring-1 ring-white/10 p-4 text-center">
-            <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1">Rata-rata Nilai</p>
-            <p class="text-3xl font-bold text-indigo-400" id="ls-rata">—</p>
+        <div class="rounded-2xl bg-gray-900 ring-1 ring-white/10 p-3 sm:p-4 text-center">
+            <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-1 leading-tight">Rata-rata</p>
+            <p class="text-2xl sm:text-3xl font-bold text-indigo-400" id="ls-rata">—</p>
         </div>
     </div>
 
@@ -52,12 +57,12 @@
             <table class="w-full text-sm">
                 <thead>
                     <tr class="bg-gray-800/50 text-left">
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-400 w-12 text-center">Rank</th>
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-400">Nama</th>
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-400">No. Peserta</th>
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-400">Rombel</th>
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-400 text-right">Nilai</th>
-                        <th class="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-400 text-center">Benar</th>
+                        <th class="px-3 sm:px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-400 w-10 sm:w-12 text-center">Rank</th>
+                        <th class="px-3 sm:px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-400">Nama</th>
+                        <th class="ls-col-nomor px-3 sm:px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-400">No. Peserta</th>
+                        <th class="ls-col-rombel px-3 sm:px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-400">Rombel</th>
+                        <th class="px-3 sm:px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-400 text-right">Nilai</th>
+                        <th class="px-3 sm:px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-400 text-center">Benar</th>
                     </tr>
                 </thead>
                 <tbody id="ls-tbody" class="divide-y divide-white/5">
@@ -117,12 +122,12 @@
 
                 tbody.innerHTML = data.rankings.map(r => `
                     <tr style="transition:background 0.3s" onmouseover="this.style.background='rgba(255,255,255,0.04)'" onmouseout="this.style.background=''">
-                        <td style="padding:0.75rem 1rem;text-align:center">${renderRank(r.rank)}</td>
-                        <td style="padding:0.75rem 1rem;color:#f9fafb;font-weight:500">${r.nama}</td>
-                        <td style="padding:0.75rem 1rem;color:#9ca3af;font-family:monospace;font-size:0.75rem">${r.nomor_peserta}</td>
-                        <td style="padding:0.75rem 1rem;color:#9ca3af">${r.rombel}</td>
-                        <td style="padding:0.75rem 1rem;text-align:right;font-size:1.25rem;font-weight:700;color:${colorNilai(r.nilai)}">${Number(r.nilai).toFixed(1)}</td>
-                        <td style="padding:0.75rem 1rem;text-align:center;color:#34d399;font-weight:600">${r.benar ?? '—'}</td>
+                        <td style="padding:0.75rem 0.75rem;text-align:center">${renderRank(r.rank)}</td>
+                        <td style="padding:0.75rem 0.75rem;color:#f9fafb;font-weight:500">${r.nama}</td>
+                        <td class="ls-col-nomor" style="padding:0.75rem 0.75rem;color:#9ca3af;font-family:monospace;font-size:0.75rem">${r.nomor_peserta}</td>
+                        <td class="ls-col-rombel" style="padding:0.75rem 0.75rem;color:#9ca3af">${r.rombel}</td>
+                        <td style="padding:0.75rem 0.75rem;text-align:right;font-size:1.1rem;font-weight:700;color:${colorNilai(r.nilai)}">${Number(r.nilai).toFixed(1)}</td>
+                        <td style="padding:0.75rem 0.75rem;text-align:center;color:#34d399;font-weight:600">${r.benar ?? '—'}</td>
                     </tr>
                 `).join('');
             })

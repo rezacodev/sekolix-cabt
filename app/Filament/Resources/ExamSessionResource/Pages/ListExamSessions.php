@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ExamSessionResource\Pages;
 
 use App\Filament\Concerns\HasHelpHeader;
+use App\Filament\Pages\KalenderUjian;
 use App\Filament\Resources\ExamSessionResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
@@ -16,6 +17,11 @@ class ListExamSessions extends ListRecords
     protected function getHeaderActions(): array
     {
         return $this->appendHelpAction([
+            Actions\Action::make('kalender')
+                ->label('Kalender Ujian')
+                ->icon('heroicon-o-calendar')
+                ->color('gray')
+                ->url(KalenderUjian::getUrl()),
             Actions\CreateAction::make(),
         ]);
     }

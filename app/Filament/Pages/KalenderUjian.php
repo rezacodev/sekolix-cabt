@@ -15,6 +15,7 @@ class KalenderUjian extends Page
   protected static ?string $navigationLabel = 'Kalender Ujian';
   protected static ?string $navigationGroup = 'Ujian';
   protected static ?int    $navigationSort  = 35;
+  protected static bool    $shouldRegisterNavigation = false;
   protected static string  $view            = 'filament.pages.kalender-ujian';
   protected static ?string $slug            = 'kalender-ujian';
   protected static ?string $title           = 'Kalender Ujian';

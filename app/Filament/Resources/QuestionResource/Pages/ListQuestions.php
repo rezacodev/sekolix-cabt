@@ -7,16 +7,13 @@ use App\Filament\Concerns\HasHelpHeader;
 use App\Filament\Resources\CategoryResource;
 use App\Filament\Resources\QuestionGroupResource;
 use App\Filament\Resources\QuestionResource;
+use App\Filament\Resources\QuestionResource\Pages\ImportQuestions;
 use App\Filament\Resources\TagResource;
 use App\Models\Category;
 use App\Models\Question;
-use App\Services\ImportService;
 use Filament\Actions;
 use Filament\Actions\ActionGroup;
-use Filament\Forms;
-use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
-use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Facades\Excel;
 
 class ListQuestions extends ListRecords
@@ -38,34 +35,12 @@ class ListQuestions extends ListRecords
                     'template-import-soal.xlsx'
                 )),
 
-            // Import massal via Excel
+            // Import massal via Excel — buka halaman review
             Actions\Action::make('import')
                 ->label('Import Excel')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('info')
-                ->form([
-                    Forms\Components\FileUpload::make('file')
-                        ->label('File Excel (.xlsx)')
-                        ->required()
-                        ->acceptedFileTypes(['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])
-                        ->disk('local')
-                        ->directory('imports/soal'),
-                ])
-                ->action(function (array $data) {
-                    $path   = storage_path('app/' . $data['file']);
-                    $result = ImportService::importSoal($path);
-
-                    $msg = "Berhasil import {$result['imported']} soal.";
-                    if (!empty($result['errors'])) {
-                        $msg .= ' Gagal: ' . count($result['errors']) . ' baris. Error pertama: ' . $result['errors'][0];
-                    }
-
-                    Notification::make()
-                        ->title($msg)
-                        ->color(empty($result['errors']) ? 'success' : 'warning')
-                        ->persistent(!empty($result['errors']))
-                        ->send();
-                }),
+                ->url(ImportQuestions::getUrl()),
 
 
             Actions\CreateAction::make(),

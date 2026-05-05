@@ -2,11 +2,11 @@
     <x-slot name="title">Dashboard — {{ config('app.name') }}</x-slot>
 
     {{-- Welcome Banner --}}
-    <div class="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl px-6 py-6 mb-6 flex items-center justify-between gap-4 shadow-sm">
-        <div>
+    <div class="bg-gradient-to-r from-indigo-600 to-violet-600 rounded-2xl px-5 sm:px-6 py-5 sm:py-6 mb-6 flex items-center justify-between gap-4 shadow-sm">
+        <div class="min-w-0">
             <p class="text-indigo-200 text-sm font-medium mb-0.5">Selamat datang kembali,</p>
-            <h1 class="text-2xl font-bold text-white">{{ auth()->user()->name }}</h1>
-            <p class="text-indigo-200 text-sm mt-1">
+            <h1 class="text-xl sm:text-2xl font-bold text-white truncate">{{ auth()->user()->name }}</h1>
+            <p class="text-indigo-200 text-xs sm:text-sm mt-1">
                 {{ auth()->user()->nomor_peserta }} &middot; {{ now()->translatedFormat('l, d F Y') }}
             </p>
         </div>

@@ -16,40 +16,40 @@
     >
         {{-- ── TOP BAR ── --}}
         <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50 shrink-0 exam-header">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-14 gap-3">
-                <div class="min-w-0">
-                    <p class="text-sm font-semibold text-white truncate exam-hd-title">{{ $session->nama_sesi }}</p>
-                    <p class="text-xs text-slate-400 exam-hd-sub">
+            <div class="max-w-7xl mx-auto px-3 sm:px-6 flex items-center justify-between h-14 gap-2 sm:gap-3">
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs sm:text-sm font-semibold text-white truncate exam-hd-title">{{ $session->nama_sesi }}</p>
+                    <p class="hidden sm:block text-xs text-slate-400 exam-hd-sub">
                         {{ auth()->user()->name }}
                     </p>
                 </div>
 
                 {{-- Timer --}}
-                <div class="flex items-center gap-2 shrink-0">
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
                     @if ($hasSections)
                     {{-- Section timer --}}
                     <div class="text-center">
-                        <p class="text-xs text-slate-400 mb-0.5 exam-hd-sub">Sisa Bagian</p>
+                        <p class="text-xs text-slate-400 mb-0.5 exam-hd-sub hidden sm:block">Sisa Bagian</p>
                         <div
-                            class="font-mono text-lg font-bold tabular-nums px-3 py-1 rounded-md transition-colors exam-seksi-timer"
+                            class="font-mono text-sm sm:text-lg font-bold tabular-nums px-2 sm:px-3 py-1 rounded-md transition-colors exam-seksi-timer"
                             :class="sisaSeksiDetik <= 120 ? 'bg-orange-500 text-white animate-pulse' : 'bg-indigo-700 text-white'"
                             x-text="formatWaktu(sisaSeksiDetik)"
                         ></div>
                     </div>
                     @endif
                     <div class="text-center">
-                        <p class="text-xs text-slate-400 mb-0.5 exam-hd-sub">Sisa Waktu</p>
+                        <p class="text-xs text-slate-400 mb-0.5 exam-hd-sub hidden sm:block">Sisa Waktu</p>
                         <div
-                            class="font-mono text-lg font-bold tabular-nums px-3 py-1 rounded-md transition-colors exam-timer"
+                            class="font-mono text-sm sm:text-lg font-bold tabular-nums px-2 sm:px-3 py-1 rounded-md transition-colors exam-timer"
                             :class="sisaDetik <= 300 ? 'bg-red-600 text-white animate-pulse' : 'bg-slate-700 text-white'"
                             x-text="formatWaktu(sisaDetik)"
                         ></div>
                     </div>
                     <template x-if="waktuPerSoalDetik > 0">
                         <div class="text-center">
-                            <p class="text-xs text-slate-400 mb-0.5">Per Soal</p>
+                            <p class="text-xs text-slate-400 mb-0.5 hidden sm:block">Per Soal</p>
                             <div
-                                class="font-mono text-lg font-bold tabular-nums px-3 py-1 rounded-md transition-colors"
+                                class="font-mono text-sm sm:text-lg font-bold tabular-nums px-2 sm:px-3 py-1 rounded-md transition-colors"
                                 :class="timerSoalSisa <= 10 ? 'bg-orange-500 text-white animate-pulse' : 'bg-slate-600 text-white'"
                                 x-text="timerSoalSisa"
                             ></div>
@@ -66,7 +66,7 @@
 
                 {{-- Theme toggle --}}
                 <button @click="toggleTheme()" title="Ganti tema"
-                    class="shrink-0 p-2 rounded-lg transition-colors text-slate-400 hover:text-white hover:bg-slate-700 exam-theme-btn">
+                    class="shrink-0 p-1.5 sm:p-2 rounded-lg transition-colors text-slate-400 hover:text-white hover:bg-slate-700 exam-theme-btn">
                     <svg x-show="!lightMode" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
@@ -83,23 +83,25 @@
                     @if ($navigasiSeksi === 'urut_kembali' && $seksiAktif->urutan > 1)
                     <button @click="kembaliSeksi()"
                         :disabled="sectionLoading"
-                        class="bg-slate-600 hover:bg-slate-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors disabled:opacity-50">
+                        class="hidden sm:block bg-slate-600 hover:bg-slate-500 text-white text-sm font-semibold px-3 sm:px-4 py-2 rounded-lg transition-colors disabled:opacity-50">
                         ← Kembali
                     </button>
                     @endif
                     <button @click="triggerSectionComplete(false)"
-                        class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+                        class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-lg transition-colors">
                         @if ($seksiAktif->urutan < $seksiList->count())
-                            Selesai Bagian →
+                            <span class="hidden sm:inline">Selesai Bagian →</span>
+                            <span class="sm:hidden">Lanjut →</span>
                         @else
-                            Selesai Ujian
+                            <span class="hidden sm:inline">Selesai Ujian</span>
+                            <span class="sm:hidden">Selesai</span>
                         @endif
                     </button>
                 </div>
                 @else
                 <form @submit.prevent="konfirmasiSubmit()" class="shrink-0">
                     <button type="submit"
-                        class="bg-green-600 hover:bg-green-500 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
+                        class="bg-green-600 hover:bg-green-500 text-white text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-lg transition-colors">
                         Selesai
                     </button>
                 </form>
@@ -835,6 +837,14 @@
 
             async simpanJawaban(attemptId, questionId, jawaban, index) {
                 const isRagu = this.states[questionId]?.is_ragu ?? false;
+
+                // Optimistic update: langsung update UI tanpa tunggu server
+                const prevDijawab = this.states[questionId]?.dijawab ?? false;
+                if (this.states[questionId]) {
+                    this.states[questionId].dijawab = jawaban !== null && jawaban !== '' && jawaban !== undefined;
+                    this.soalTerjawab = this.countDijawab();
+                }
+
                 try {
                     const res = await fetch(_d.routes.jawab, {
                         method: 'POST',
@@ -846,14 +856,21 @@
                     });
                     const data = await res.json();
                     if (data.success) {
-                        this.soalTerjawab = this.countDijawab();
                         this.sisaDetik = data.sisa_waktu_detik;
+                    } else {
+                        // Rollback jika server menolak
                         if (this.states[questionId]) {
-                            this.states[questionId].dijawab = jawaban !== null && jawaban !== '';
+                            this.states[questionId].dijawab = prevDijawab;
                             this.soalTerjawab = this.countDijawab();
                         }
                     }
-                } catch (e) {}
+                } catch (e) {
+                    // Rollback jika request gagal
+                    if (this.states[questionId]) {
+                        this.states[questionId].dijawab = prevDijawab;
+                        this.soalTerjawab = this.countDijawab();
+                    }
+                }
             },
 
             async toggleRagu(questionId, isRagu, index) {

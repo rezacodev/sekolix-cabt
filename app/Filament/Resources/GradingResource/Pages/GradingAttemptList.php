@@ -10,7 +10,6 @@ use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
 use Filament\Tables;
-use Illuminate\Database\Eloquent\Builder;
 
 /**
  * GradingAttemptList
@@ -72,9 +71,6 @@ class GradingAttemptList extends Page implements HasTable
                         ExamAttempt::STATUS_TIMEOUT,
                         ExamAttempt::STATUS_DISKUALIFIKASI,
                     ])
-                    ->whereHas('questions', fn (Builder $q) =>
-                        $q->whereHas('question', fn ($q2) => $q2->where('tipe', 'URAIAN'))
-                    )
                     ->with('user')
             )
             ->columns([
@@ -100,13 +96,13 @@ class GradingAttemptList extends Page implements HasTable
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status Ujian')
                     ->badge()
-                    ->formatStateUsing(fn ($state) => match ($state) {
+                    ->formatStateUsing(fn($state) => match ($state) {
                         ExamAttempt::STATUS_SELESAI        => 'Selesai',
                         ExamAttempt::STATUS_TIMEOUT        => 'Timeout',
                         ExamAttempt::STATUS_DISKUALIFIKASI => 'Diskualifikasi',
                         default                            => $state,
                     })
-                    ->color(fn ($state) => match ($state) {
+                    ->color(fn($state) => match ($state) {
                         ExamAttempt::STATUS_SELESAI        => 'success',
                         ExamAttempt::STATUS_TIMEOUT        => 'warning',
                         ExamAttempt::STATUS_DISKUALIFIKASI => 'danger',
@@ -115,39 +111,42 @@ class GradingAttemptList extends Page implements HasTable
                     ->alignCenter(),
 
                 Tables\Columns\TextColumn::make('total_uraian')
-                    ->label('Total URAIAN')
-                    ->getStateUsing(fn (ExamAttempt $record): int =>
+                    ->label('URAIAN')
+                    ->getStateUsing(
+                        fn(ExamAttempt $record): int =>
                         $record->questions()
-                            ->whereHas('question', fn ($q) => $q->where('tipe', 'URAIAN'))
+                            ->whereHas('question', fn($q) => $q->where('tipe', 'URAIAN'))
                             ->count()
                     )
                     ->alignCenter()
                     ->badge()
-                    ->color('gray'),
+                    ->color('gray')
+                    ->tooltip('Jumlah soal URAIAN (perlu input nilai manual)'),
 
                 Tables\Columns\TextColumn::make('pending_uraian')
                     ->label('Belum Dinilai')
-                    ->getStateUsing(fn (ExamAttempt $record): int =>
+                    ->getStateUsing(
+                        fn(ExamAttempt $record): int =>
                         $record->questions()
-                            ->whereHas('question', fn ($q) => $q->where('tipe', 'URAIAN'))
                             ->whereNull('nilai_perolehan')
                             ->count()
                     )
                     ->alignCenter()
                     ->badge()
-                    ->color(fn (ExamAttempt $record): string =>
+                    ->color(
+                        fn(ExamAttempt $record): string =>
                         $record->questions()
-                            ->whereHas('question', fn ($q) => $q->where('tipe', 'URAIAN'))
                             ->whereNull('nilai_perolehan')
                             ->exists()
                             ? 'warning' : 'success'
-                    ),
+                    )
+                    ->tooltip('Semua soal yang belum memiliki nilai (semua tipe)'),
 
                 Tables\Columns\TextColumn::make('nilai_akhir')
                     ->label('Nilai Akhir')
-                    ->formatStateUsing(fn ($state) => $state !== null ? number_format((float) $state, 1) . ' / 100' : '—')
+                    ->formatStateUsing(fn($state) => $state !== null ? number_format((float) $state, 1) . ' / 100' : '—')
                     ->alignCenter()
-                    ->color(fn ($state) => match (true) {
+                    ->color(fn($state) => match (true) {
                         $state === null        => 'gray',
                         $state >= 75           => 'success',
                         $state >= 60           => 'warning',
@@ -166,13 +165,14 @@ class GradingAttemptList extends Page implements HasTable
                     ->label('Nilai')
                     ->icon('heroicon-o-pencil-square')
                     ->color('primary')
-                    ->visible(fn (ExamAttempt $record): bool =>
+                    ->visible(
+                        fn(ExamAttempt $record): bool =>
                         $record->questions()
-                            ->whereHas('question', fn ($q) => $q->where('tipe', 'URAIAN'))
                             ->whereNull('nilai_perolehan')
                             ->exists()
                     )
-                    ->url(fn (ExamAttempt $record): string =>
+                    ->url(
+                        fn(ExamAttempt $record): string =>
                         GradingDetail::getUrl(['record' => $record->id])
                     ),
 
@@ -180,13 +180,14 @@ class GradingAttemptList extends Page implements HasTable
                     ->label('Lihat')
                     ->icon('heroicon-o-eye')
                     ->color('gray')
-                    ->visible(fn (ExamAttempt $record): bool =>
+                    ->visible(
+                        fn(ExamAttempt $record): bool =>
                         ! $record->questions()
-                            ->whereHas('question', fn ($q) => $q->where('tipe', 'URAIAN'))
                             ->whereNull('nilai_perolehan')
                             ->exists()
                     )
-                    ->url(fn (ExamAttempt $record): string =>
+                    ->url(
+                        fn(ExamAttempt $record): string =>
                         GradingDetail::getUrl(['record' => $record->id])
                     ),
             ])

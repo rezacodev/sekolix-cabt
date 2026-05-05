@@ -28,10 +28,16 @@ class ExamPackageSeeder extends Seeder
 {
     public function run(): void
     {
-        // Gunakan user admin pertama sebagai creator, atau null jika belum ada
+        // Assign creator yang sesuai: guru1 untuk paket mapel utama, guru2 untuk sejarah+TIK
+        $guru1Id = User::where('email', 'guru1@cabt.local')->value('id');
+        $guru2Id = User::where('email', 'guru2@cabt.local')->value('id');
         $adminId = User::where('level', '>=', 3)->value('id');
 
-        $packages = $this->packageDefinitions($adminId);
+        // Fallback ke adminId jika guru belum ada
+        $guru1Id ??= $adminId;
+        $guru2Id ??= $adminId;
+
+        $packages = $this->packageDefinitions($guru1Id, $guru2Id, $adminId);
 
         $created  = 0;
         $skipped  = 0;
@@ -59,7 +65,7 @@ class ExamPackageSeeder extends Seeder
     //  Package Definitions
     // ────────────────────────────────────────────────────────────────────────────
 
-    private function packageDefinitions(?int $adminId): array
+    private function packageDefinitions(?int $guru1Id, ?int $guru2Id, ?int $adminId): array
     {
         return [
 
@@ -75,9 +81,7 @@ class ExamPackageSeeder extends Seeder
                 'tampilkan_hasil'     => true,
                 'tampilkan_review'    => true,
                 'grading_mode'        => 'manual', // ada soal URAIAN
-                'created_by'          => $adminId,
-                // Aljabar (kat6): 1,2,4,5,6,18,20,23 | Geometri (kat7): 7,8,9,10,21
-                // Statistika (kat8): 11,12,13,14,22 | Trigonometri (kat9): 15,16,17
+                'created_by'          => $guru1Id,
                 'soal_ids'            => [1, 2, 4, 5, 6, 18, 20, 23, 7, 8, 9, 10, 21, 11, 12, 13, 14, 22, 15, 16, 17],
             ],
 
@@ -93,9 +97,7 @@ class ExamPackageSeeder extends Seeder
                 'tampilkan_hasil'     => true,
                 'tampilkan_review'    => false,
                 'grading_mode'        => 'manual', // ada URAIAN di biologi & kimia
-                'created_by'          => $adminId,
-                // Fisika (kat10): 37,38,39,40,41 | Biologi (kat11): 42,43,44,45,46,47,48,49
-                // Kimia (kat12): 50,51,52,53,54,55,56
+                'created_by'          => $guru1Id,
                 'soal_ids'            => [37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56],
             ],
 
@@ -111,8 +113,7 @@ class ExamPackageSeeder extends Seeder
                 'tampilkan_hasil'     => true,
                 'tampilkan_review'    => true,
                 'grading_mode'        => 'manual',
-                'created_by'          => $adminId,
-                // Bahasa Indonesia (kat2): 27,28,29,30,31,32,33,34,35,36
+                'created_by'          => $guru1Id,
                 'soal_ids'            => [27, 28, 29, 30, 31, 32, 33, 34, 35, 36],
             ],
 
@@ -128,8 +129,7 @@ class ExamPackageSeeder extends Seeder
                 'tampilkan_hasil'     => true,
                 'tampilkan_review'    => false,
                 'grading_mode'        => 'manual',
-                'created_by'          => $adminId,
-                // Sejarah (kat4): 57,58,59,60,61,62,63,64,65,66
+                'created_by'          => $guru2Id,
                 'soal_ids'            => [57, 58, 59, 60, 61, 62, 63, 64, 65, 66],
             ],
 
@@ -145,8 +145,7 @@ class ExamPackageSeeder extends Seeder
                 'tampilkan_hasil'     => true,
                 'tampilkan_review'    => true,
                 'grading_mode'        => 'manual', // ada URAIAN
-                'created_by'          => $adminId,
-                // Jaringan (kat13): 67,68,69,70,71,72,77,79 | Algoritma (kat14): 73,74,75,76,78,80
+                'created_by'          => $guru2Id,
                 'soal_ids'            => [67, 68, 69, 70, 71, 72, 77, 79, 73, 74, 75, 76, 78, 80],
             ],
 
@@ -162,10 +161,8 @@ class ExamPackageSeeder extends Seeder
                 'tampilkan_hasil'     => true,
                 'tampilkan_review'    => false,
                 'grading_mode'        => 'manual', // ada URAIAN di beberapa mapel
-                'created_by'          => $adminId,
-                // Campuran: Matematika (7) + B.Indo (6) + IPA (6) + Sejarah (5) + TIK (6) = 30
+                'created_by'          => $guru1Id,
                 'soal_ids'            => [
-                    // Matematika mix: Aljabar PG + PGJ + ISIAN + URAIAN; Geometri JODOH; Trigonometri PG
                     1,
                     3,
                     6,
@@ -173,27 +170,23 @@ class ExamPackageSeeder extends Seeder
                     21,
                     23,
                     25,
-                    // Bahasa Indonesia: PG + PGJ + JODOH + ISIAN + URAIAN
                     27,
                     31,
                     32,
                     33,
                     35,
                     36,
-                    // IPA: Fisika PG + Biologi PG + URAIAN + Kimia PG + URAIAN
                     37,
                     42,
                     47,
                     49,
                     50,
                     56,
-                    // Sejarah: PG + PGJ + ISIAN + URAIAN
                     57,
                     62,
                     63,
                     64,
                     66,
-                    // TIK: Jaringan PG + PGJ + JODOH + Algoritma PGJ + ISIAN + URAIAN
                     67,
                     71,
                     72,
@@ -216,7 +209,6 @@ class ExamPackageSeeder extends Seeder
                 'tampilkan_review'    => true,
                 'grading_mode'        => 'realtime',
                 'created_by'          => $adminId,
-                // B.Indo stimulus: 81,82,83,84 | Statistika stimulus: 85,86,87 | Biologi stimulus: 88,89
                 'soal_ids'            => [81, 82, 83, 84, 85, 86, 87, 88, 89],
             ],
 

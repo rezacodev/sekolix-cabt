@@ -46,15 +46,20 @@ class GradingDetail extends Page
         $attempt   = ExamAttempt::with('user', 'session.package')->findOrFail($this->attemptId);
         // Semua soal beserta pilihan & pasangan — untuk tampilan lengkap di blade
         $questions = AttemptQuestion::with([
-                'question.options',
-                'question.matches',
-                'question.keywords',
-            ])
+            'question.options',
+            'question.matches',
+            'question.keywords',
+        ])
             ->where('attempt_id', $this->attemptId)
             ->orderBy('urutan')
             ->get();
 
-        return compact('attempt', 'questions');
+        $hasUraian        = $questions->contains(fn($aq) => $aq->question->tipe === 'URAIAN');
+        $hasUnscoredUraian = $questions->contains(
+            fn($aq) => $aq->question->tipe === 'URAIAN' && $aq->nilai_perolehan === null
+        );
+
+        return compact('attempt', 'questions', 'hasUraian', 'hasUnscoredUraian');
     }
 
     // ── Query helper — hanya URAIAN, untuk validasi & penyimpanan nilai ───────
@@ -63,7 +68,7 @@ class GradingDetail extends Page
     {
         return AttemptQuestion::with(['question.keywords'])
             ->where('attempt_id', $this->attemptId)
-            ->whereHas('question', fn ($q) => $q->where('tipe', 'URAIAN'))
+            ->whereHas('question', fn($q) => $q->where('tipe', 'URAIAN'))
             ->orderBy('urutan')
             ->get();
     }
@@ -79,14 +84,14 @@ class GradingDetail extends Page
                 ->color('success')
                 ->requiresConfirmation()
                 ->modalHeading('Konfirmasi Simpan Nilai')
-                ->modalDescription('Nilai semua URAIAN akan disimpan dan nilai akhir peserta akan dihitung ulang.')
+                ->modalDescription('Nilai URAIAN akan disimpan dan semua soal (termasuk PG/ISIAN) akan dihitung ulang secara otomatis.')
                 ->action('simpanDanRegrade'),
 
             Action::make('kembali')
                 ->label('Kembali ke Daftar Peserta')
                 ->icon('heroicon-o-arrow-left')
                 ->color('gray')
-                ->url(fn () => GradingAttemptList::getUrl(['record' => $this->sessionId])),
+                ->url(fn() => GradingAttemptList::getUrl(['record' => $this->sessionId])),
         ];
     }
 
@@ -157,7 +162,6 @@ class GradingDetail extends Page
     public function getTitle(): string
     {
         $attempt = ExamAttempt::with('user')->findOrFail($this->attemptId);
-        return "Penilaian URAIAN — {$attempt->user->name}";
+        return "Penilaian — {$attempt->user->name}";
     }
 }
-

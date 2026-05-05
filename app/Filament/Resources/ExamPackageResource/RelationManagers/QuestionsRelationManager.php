@@ -59,7 +59,8 @@ class QuestionsRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('teks_soal')
                     ->label('Pertanyaan')
                     ->html()
-                    ->limit(80),
+                    ->limit(60)
+                    ->tooltip(fn($record) => $record ? strip_tags($record->teks_soal) : null),
 
                 Tables\Columns\TextColumn::make('category.nama')
                     ->label('Kategori')
@@ -86,7 +87,7 @@ class QuestionsRelationManager extends RelationManager
                     ->toggleable(),
 
                 Tables\Columns\IconColumn::make('lock_position')
-                    ->label('Lock')
+                    ->label('Kunci Urutan')
                     ->boolean()
                     ->trueIcon('heroicon-o-lock-closed')
                     ->falseIcon('heroicon-o-lock-open')
@@ -95,10 +96,14 @@ class QuestionsRelationManager extends RelationManager
             ])
             ->headerActions($locked ? [
                 Tables\Actions\Action::make('locked_notice')
-                    ->label('Paket terkunci — tidak bisa tambah/hapus soal')
-                    ->disabled()
+                    ->label('Paket terkunci — soal tidak dapat diubah')
                     ->icon('heroicon-o-lock-closed')
-                    ->color('danger'),
+                    ->color('danger')
+                    ->extraAttributes([
+                        'title'          => 'Paket ini digunakan oleh sesi ujian yang sedang aktif atau sudah selesai. Soal hanya bisa diubah jika sesi belum dimulai (draft) atau dibatalkan.',
+                        'style'          => 'pointer-events:auto;opacity:0.65;cursor:not-allowed;',
+                    ])
+                    ->action(fn() => null),
             ] : [
                 // 1. Tambah Soal Manual
                 Tables\Actions\AttachAction::make()

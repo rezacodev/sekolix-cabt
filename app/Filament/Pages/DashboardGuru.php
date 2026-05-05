@@ -29,12 +29,8 @@ class DashboardGuru extends Page
 
     public function mount(): void
     {
-        $latest = ExamSession::where('created_by', Auth::id())
-            ->whereNotIn('status', [ExamSession::STATUS_DIBATALKAN])
-            ->latest('waktu_mulai')
-            ->first();
-
-        $this->selectedSesiId = $latest?->id;
+        // Default: tidak ada sesi dipilih — user harus pilih manual
+        $this->selectedSesiId = null;
     }
 
     // Livewire reactive hook — triggers re-render automatically
@@ -59,18 +55,25 @@ class DashboardGuru extends Page
     public function getViewData(): array
     {
         /** @var \App\Models\User $user */
-        $user        = Auth::user();
-        $rombelsAmpu = $user->rombelsAmpu()->with(['peserta'])->get();
+        $user = Auth::user();
 
-        $sesiOptions = ExamSession::where('created_by', $user->id)
-            ->whereNotIn('status', [ExamSession::STATUS_DIBATALKAN])
-            ->orderByDesc('waktu_mulai')
-            ->get()
+        // Admin melihat semua rombel; guru hanya rombel yang diampu
+        $rombelsAmpu = $user->level >= User::LEVEL_ADMIN
+            ? \App\Models\Rombel::with(['peserta'])->orderBy('nama')->get()
+            : $user->rombelsAmpu()->with(['peserta'])->get();
+
+        // Admin melihat semua sesi; guru hanya sesi buatan sendiri
+        $sesiQuery = ExamSession::whereNotIn('status', [ExamSession::STATUS_DIBATALKAN])
+            ->orderByDesc('waktu_mulai');
+        if ($user->level < User::LEVEL_ADMIN) {
+            $sesiQuery->where('created_by', $user->id);
+        }
+        $sesiOptions = $sesiQuery->get()
             ->mapWithKeys(fn($s) => [
                 $s->id => $s->nama_sesi . ' (' . (ExamSession::STATUS_LABELS[$s->status] ?? $s->status) . ')',
             ]);
 
-        if (!$this->selectedSesiId || $rombelsAmpu->isEmpty()) {
+        if (!$this->selectedSesiId) {
             return [
                 'rombelsAmpu' => $rombelsAmpu,
                 'sesiOptions' => $sesiOptions,
