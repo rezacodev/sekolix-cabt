@@ -323,6 +323,8 @@ Semua tipe soal mendukung: MathJax (LaTeX), gambar dalam soal (RichEditor), pemb
 - Buat sesi dengan memilih paket ujian
 - Status: `draft` -> `aktif` -> `selesai` (+ `dibatalkan`)
 - Token akses unik per sesi (case-insensitive)
+- KKM per sesi untuk menentukan ketuntasan nilai akhir
+- Dua ambang pengayaan (`Batas Pengayaan 1` dan `Batas Pengayaan 2`) untuk laporan analisis dan remedi
 - Assign peserta per rombel atau individual
 - Buka/tutup manual di luar alur status utama
 
@@ -462,6 +464,9 @@ Semua tipe soal mendukung: MathJax (LaTeX), gambar dalam soal (RichEditor), pemb
 /cabt/laporan/sesi/{id}/pdf/daftar-hadir
 /cabt/laporan/sesi/{id}/pdf/berita-acara
 /cabt/laporan/sesi/{id}/pdf/kartu-peserta
+/cabt/analisis/{id}
+/cabt/analisis/{id}/pdf
+/cabt/analisis/{id}/export
 /cabt/dashboard-guru/{session}/{rombel}/export
 ```
 
@@ -590,7 +595,7 @@ Jika `nilai_negatif > 0` di paket:
 | `exam_package_questions` | Pivot paket - soal dengan urutan |
 | `exam_sections` | Bagian (seksi) dalam paket multi-section; kolom `nama`, `urutan`, `durasi_menit` |
 | `exam_section_questions` | Pivot seksi - soal dengan urutan |
-| `exam_sessions` | Sesi ujian; kolom `status`, `token_akses`, `paket_id` |
+| `exam_sessions` | Sesi ujian; kolom `status`, `token_akses`, `paket_id`, `kkm`, `kkm_klasikal`, `pengayaan_max_1`, `pengayaan_max_2` |
 | `exam_session_participants` | Peserta yang ditugaskan ke sesi |
 | `exam_attempts` | Riwayat pengerjaan per peserta per sesi; kolom `nilai_akhir`, `tab_switch_count`, `status` |
 | `attempt_questions` | Soal yang diacak per attempt + `jawaban_peserta`, `nilai_perolehan`, `audio_play_count`, `section_id` |
