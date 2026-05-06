@@ -166,36 +166,41 @@ class LaporanResource extends Resource
                     }),
             ])
             ->actions([
-                Tables\Actions\Action::make('laporan_nilai')
-                    ->label('Rekap Nilai')
-                    ->icon('heroicon-o-table-cells')
-                    ->color('primary')
-                    ->url(fn(ExamSession $r) => Pages\LaporanNilai::getUrl(['record' => $r->id])),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('laporan_nilai')
+                        ->label('Rekap Nilai')
+                        ->icon('heroicon-o-table-cells')
+                        ->color('primary')
+                        ->url(fn(ExamSession $r) => Pages\LaporanNilai::getUrl(['record' => $r->id])),
 
-                Tables\Actions\Action::make('laporan_kehadiran')
-                    ->label('Kehadiran')
-                    ->icon('heroicon-o-users')
-                    ->color('info')
-                    ->url(fn(ExamSession $r) => Pages\LaporanKehadiran::getUrl(['record' => $r->id])),
+                    Tables\Actions\Action::make('laporan_kehadiran')
+                        ->label('Kehadiran')
+                        ->icon('heroicon-o-users')
+                        ->color('info')
+                        ->url(fn(ExamSession $r) => Pages\LaporanKehadiran::getUrl(['record' => $r->id])),
 
-                Tables\Actions\Action::make('statistik_soal')
-                    ->label('Statistik Soal')
-                    ->icon('heroicon-o-chart-pie')
-                    ->color('gray')
-                    ->url(fn(ExamSession $r) => Pages\StatistikSoal::getUrl(['record' => $r->id])),
+                    Tables\Actions\Action::make('statistik_soal')
+                        ->label('Statistik Soal')
+                        ->icon('heroicon-o-chart-pie')
+                        ->color('gray')
+                        ->url(fn(ExamSession $r) => Pages\StatistikSoal::getUrl(['record' => $r->id])),
 
-                Tables\Actions\Action::make('rekap_kecurangan')
-                    ->label('Kecurangan')
-                    ->icon('heroicon-o-shield-exclamation')
-                    ->color('danger')
-                    ->url(fn(ExamSession $r) => Pages\LaporanKecurangan::getUrl(['record' => $r->id])),
+                    Tables\Actions\Action::make('rekap_kecurangan')
+                        ->label('Kecurangan')
+                        ->icon('heroicon-o-shield-exclamation')
+                        ->color('danger')
+                        ->url(fn(ExamSession $r) => Pages\LaporanKecurangan::getUrl(['record' => $r->id])),
 
-                Tables\Actions\Action::make('analisis_ulangan')
-                    ->label('Analisis Ulangan')
-                    ->icon('heroicon-o-document-chart-bar')
-                    ->color('warning')
-                    ->url(fn(ExamSession $r) => route('analisis.index', $r->id))
-                    ->openUrlInNewTab(),
+                    Tables\Actions\Action::make('analisis_ulangan')
+                        ->label('Analisis Ulangan')
+                        ->icon('heroicon-o-document-chart-bar')
+                        ->color('warning')
+                        ->url(fn(ExamSession $r) => route('analisis.index', $r->id))
+                        ->openUrlInNewTab(),
+                ])
+                    ->label('Aksi')
+                    ->icon('heroicon-o-ellipsis-vertical')
+                    ->button(),
             ])
             ->bulkActions([]);
     }

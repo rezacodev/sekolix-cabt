@@ -96,6 +96,7 @@
                 <span class="shrink-0 w-7 text-center text-xs font-bold" style="{{ $opsi['correct'] ? 'color:#16a34a;' : 'color:#6b7280;' }}">
                     {{ $kode }}
                 </span>
+                <span class="text-xs text-gray-400 truncate" style="max-width:40rem">{{ $opsi['teks'] }}</span>
                 <div class="flex-1 h-5 rounded-full bg-gray-100 dark:bg-gray-800 overflow-hidden">
                     <div class="h-full rounded-full" style="{{ $opsi['correct'] ? 'background:#22c55e;' : 'background:#9ca3af;' }} width:{{ max($opsi['persen'], $opsi['count'] > 0 ? 2 : 0) }}%;">
                     </div>
@@ -103,7 +104,6 @@
                 <span class="shrink-0 w-14 text-right text-xs font-medium text-gray-600 dark:text-gray-400">
                     {{ $opsi['count'] }} ({{ $opsi['persen'] }}%)
                 </span>
-                <span class="shrink-0 text-xs text-gray-400 truncate" style="max-width:16rem">{{ $opsi['teks'] }}</span>
                 @if ($opsi['correct'])
                     <span class="shrink-0">
                         <x-filament::badge color="success" size="sm">Kunci</x-filament::badge>

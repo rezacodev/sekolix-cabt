@@ -408,7 +408,7 @@ class QuestionResource extends Resource
                     ->sortable(),
 
                 Tables\Columns\IconColumn::make('lock_position')
-                    ->label('Kunci')
+                    ->label('Kunci Posisi')
                     ->boolean()
                     ->trueIcon('heroicon-o-lock-closed')
                     ->falseIcon('heroicon-o-lock-open'),

@@ -101,6 +101,16 @@ class UserResource extends Resource
                             ->unique(ignoreRecord: true)
                             ->nullable()
                             ->maxLength(50),
+                        Forms\Components\TextInput::make('nip')
+                            ->label('NIP')
+                            ->nullable()
+                            ->maxLength(50)
+                            ->visible(fn(Forms\Get $get) => (int) $get('level') === User::LEVEL_GURU),
+                        Forms\Components\TextInput::make('nuptk')
+                            ->label('NUPTK')
+                            ->nullable()
+                            ->maxLength(50)
+                            ->visible(fn(Forms\Get $get) => (int) $get('level') === User::LEVEL_GURU),
                         Forms\Components\Select::make('rombels')
                             ->label('Rombongan Belajar')
                             ->helperText('Peserta dapat terdaftar di lebih dari satu rombel')
@@ -128,6 +138,14 @@ class UserResource extends Resource
                     ->sortable(),
                 Tables\Columns\TextColumn::make('username')
                     ->label('Username')
+                    ->searchable()
+                    ->placeholder('-'),
+                Tables\Columns\TextColumn::make('nip')
+                    ->label('NIP')
+                    ->searchable()
+                    ->placeholder('-'),
+                Tables\Columns\TextColumn::make('nuptk')
+                    ->label('NUPTK')
                     ->searchable()
                     ->placeholder('-'),
                 Tables\Columns\TextColumn::make('email')
@@ -175,55 +193,60 @@ class UserResource extends Resource
                     ->falseLabel('Nonaktif'),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('lihat_portofolio')
-                    ->label('Portofolio')
-                    ->icon('heroicon-o-chart-bar')
-                    ->color('info')
-                    ->visible(fn(User $record) => $record->level === User::LEVEL_PESERTA)
-                    ->url(fn(User $record) => Pages\PesertaPortfolio::getUrl(['record' => $record->id])),
-                Tables\Actions\Action::make('reset_password')
-                    ->label('Reset Password')
-                    ->icon('heroicon-o-key')
-                    ->color('warning')
-                    ->form([
-                        Forms\Components\TextInput::make('new_password')
-                            ->label('Password Baru')
-                            ->password()
-                            ->required()
-                            ->minLength(8)
-                            ->maxLength(255),
-                    ])
-                    ->action(function (User $record, array $data) {
-                        $record->update(['password' => Hash::make($data['new_password'])]);
-                        AuditLogService::log('reset_password', $record, "Reset password user: {$record->name}");
-                        Notification::make()
-                            ->title('Password berhasil direset.')
-                            ->success()
-                            ->send();
-                    })
-                    ->modalHeading('Reset Password')
-                    ->requiresConfirmation(false),
-                Tables\Actions\Action::make('reset_session')
-                    ->label('Paksa Logout')
-                    ->icon('heroicon-o-arrow-right-on-rectangle')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->modalHeading('Paksa Logout User')
-                    ->modalDescription('Seluruh sesi aktif user ini akan dihapus. User harus login ulang.')
-                    ->action(function (User $record) {
-                        // Hapus semua session DB milik user ini
-                        \Illuminate\Support\Facades\DB::table('sessions')
-                            ->where('user_id', $record->id)
-                            ->delete();
-                        AuditLogService::log('paksa_logout', $record, "Paksa logout user: {$record->name}");
-                        Notification::make()
-                            ->title("Sesi {$record->name} berhasil dihapus.")
-                            ->success()
-                            ->send();
-                    }),
-                Tables\Actions\DeleteAction::make()
-                    ->successNotificationTitle('Pengguna berhasil dihapus'),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\Action::make('lihat_portofolio')
+                        ->label('Portofolio')
+                        ->icon('heroicon-o-chart-bar')
+                        ->color('info')
+                        ->visible(fn(User $record) => $record->level === User::LEVEL_PESERTA)
+                        ->url(fn(User $record) => Pages\PesertaPortfolio::getUrl(['record' => $record->id])),
+                    Tables\Actions\Action::make('reset_password')
+                        ->label('Reset Password')
+                        ->icon('heroicon-o-key')
+                        ->color('warning')
+                        ->form([
+                            Forms\Components\TextInput::make('new_password')
+                                ->label('Password Baru')
+                                ->password()
+                                ->required()
+                                ->minLength(8)
+                                ->maxLength(255),
+                        ])
+                        ->action(function (User $record, array $data) {
+                            $record->update(['password' => Hash::make($data['new_password'])]);
+                            AuditLogService::log('reset_password', $record, "Reset password user: {$record->name}");
+                            Notification::make()
+                                ->title('Password berhasil direset.')
+                                ->success()
+                                ->send();
+                        })
+                        ->modalHeading('Reset Password')
+                        ->requiresConfirmation(false),
+                    Tables\Actions\Action::make('reset_session')
+                        ->label('Paksa Logout')
+                        ->icon('heroicon-o-arrow-right-on-rectangle')
+                        ->color('danger')
+                        ->requiresConfirmation()
+                        ->modalHeading('Paksa Logout User')
+                        ->modalDescription('Seluruh sesi aktif user ini akan dihapus. User harus login ulang.')
+                        ->action(function (User $record) {
+                            // Hapus semua session DB milik user ini
+                            \Illuminate\Support\Facades\DB::table('sessions')
+                                ->where('user_id', $record->id)
+                                ->delete();
+                            AuditLogService::log('paksa_logout', $record, "Paksa logout user: {$record->name}");
+                            Notification::make()
+                                ->title("Sesi {$record->name} berhasil dihapus.")
+                                ->success()
+                                ->send();
+                        }),
+                    Tables\Actions\DeleteAction::make()
+                        ->successNotificationTitle('Pengguna berhasil dihapus'),
+                ])
+                    ->label('Aksi')
+                    ->icon('heroicon-o-ellipsis-vertical')
+                    ->button(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

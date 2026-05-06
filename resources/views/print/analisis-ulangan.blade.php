@@ -78,8 +78,22 @@
     @endif
 
     @if ($schoolName)
-        <div style="font-size: 14pt; font-weight: bold; margin-bottom: 30px; text-transform: uppercase;">
+        <div style="font-size: 14pt; font-weight: bold; margin-bottom: 15px; text-transform: uppercase;">
             {{ $schoolName }}
+        </div>
+    @endif
+
+    @if ($schoolNisn || $schoolAddress)
+        <div style="margin-bottom: 25px; font-size: 10pt; line-height: 1.5;">
+            @if ($schoolNisn)
+                NISN: {{ $schoolNisn }}
+            @endif
+            @if ($schoolNisn && $schoolAddress)
+                <br>
+            @endif
+            @if ($schoolAddress)
+                Alamat: {{ $schoolAddress }}
+            @endif
         </div>
     @endif
 
@@ -241,21 +255,21 @@
                 @foreach ($analisisData['soal_stats'] as $stat)
                     <td>{{ number_format($stat->jml_skor, 0) }}</td>
                 @endforeach
-                <td colspan="3"></td><td></td><td></td>
+                <td colspan="3"></td><td></td>
             </tr>
             <tr>
                 <td colspan="2" style="text-align:left;">Jumlah Skor Maks</td>
                 @foreach ($analisisData['soal_stats'] as $stat)
                     <td>{{ number_format($stat->jml_skor_max, 0) }}</td>
                 @endforeach
-                <td colspan="3"></td><td></td><td></td>
+                <td colspan="3"></td><td></td>
             </tr>
             <tr class="persen-row">
                 <td colspan="2" style="text-align:left;">% Skor yang dicapai</td>
                 @foreach ($analisisData['soal_stats'] as $stat)
                     <td>{{ $stat->persen_skor }}%</td>
                 @endforeach
-                <td colspan="3"></td><td></td><td></td>
+                <td colspan="3"></td><td></td>
             </tr>
         </tfoot>
     </table>
@@ -264,8 +278,8 @@
         <div class="ttd-block">
             <div>Mengetahui,</div>
             <div>Kepala Sekolah</div>
-            <div class="ttd-line">________________________</div>
-            <div class="nip">NIP.</div>
+            <div class="ttd-line">{{ $schoolPrincipalName ?: '________________________' }}</div>
+            <div class="nip">NIP. {{ $schoolPrincipalNip ?: '' }}</div>
         </div>
         <div class="ttd-block">
             <div>{{ $session->waktu_mulai?->format('d F Y') ?? now()->format('d F Y') }}</div>
@@ -345,8 +359,8 @@
         <div class="ttd-block">
             <div>Mengetahui,</div>
             <div>Kepala Sekolah</div>
-            <div class="ttd-line">________________________</div>
-            <div class="nip">NIP.</div>
+            <div class="ttd-line">{{ $schoolPrincipalName ?: '________________________' }}</div>
+            <div class="nip">NIP. {{ $schoolPrincipalNip ?: '' }}</div>
         </div>
         <div class="ttd-block">
             <div>{{ $session->waktu_mulai?->format('d F Y') ?? now()->format('d F Y') }}</div>
@@ -440,8 +454,8 @@
         <div class="ttd-block">
             <div>Mengetahui,</div>
             <div>Kepala Sekolah</div>
-            <div class="ttd-line">________________________</div>
-            <div class="nip">NIP.</div>
+            <div class="ttd-line">{{ $schoolPrincipalName ?: '________________________' }}</div>
+            <div class="nip">NIP. {{ $schoolPrincipalNip ?: '' }}</div>
         </div>
         <div class="ttd-block">
             <div>{{ $session->waktu_mulai?->format('d F Y') ?? now()->format('d F Y') }}</div>
@@ -506,8 +520,8 @@
         <div class="ttd-block">
             <div>Mengetahui,</div>
             <div>Kepala Sekolah</div>
-            <div class="ttd-line">________________________</div>
-            <div class="nip">NIP.</div>
+            <div class="ttd-line">{{ $schoolPrincipalName ?: '________________________' }}</div>
+            <div class="nip">NIP. {{ $schoolPrincipalNip ?: '' }}</div>
         </div>
         <div class="ttd-block">
             <div>{{ $session->waktu_mulai?->format('d F Y') ?? now()->format('d F Y') }}</div>
@@ -577,8 +591,8 @@
         <div class="ttd-block">
             <div>Mengetahui,</div>
             <div>Kepala Sekolah</div>
-            <div class="ttd-line">________________________</div>
-            <div class="nip">NIP.</div>
+            <div class="ttd-line">{{ $schoolPrincipalName ?: '________________________' }}</div>
+            <div class="nip">NIP. {{ $schoolPrincipalNip ?: '' }}</div>
         </div>
         <div class="ttd-block">
             <div>{{ $session->waktu_mulai?->format('d F Y') ?? now()->format('d F Y') }}</div>

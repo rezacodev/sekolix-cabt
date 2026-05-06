@@ -42,6 +42,8 @@ class UserSeeder extends Seeder
                 'username' => 'guru.budi',
                 'password' => Hash::make('guru123'),
                 'level'    => User::LEVEL_GURU,
+                'nip'      => '198712312005121001',
+                'nuptk'    => 'NUPTK-001',
                 'aktif'    => true,
             ]
         );
@@ -53,6 +55,8 @@ class UserSeeder extends Seeder
                 'username' => 'guru.siti',
                 'password' => Hash::make('guru123'),
                 'level'    => User::LEVEL_GURU,
+                'nip'      => '198905152006042002',
+                'nuptk'    => 'NUPTK-002',
                 'aktif'    => true,
             ]
         );

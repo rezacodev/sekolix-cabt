@@ -32,6 +32,8 @@ class UserFactory extends Factory
             'remember_token'    => Str::random(10),
             'level'             => User::LEVEL_PESERTA,
             'username'          => fake()->unique()->userName(),
+            'nip'               => null,
+            'nuptk'             => null,
             'nomor_peserta'     => null,
             'rombel_id'         => null,
             'aktif'             => true,
@@ -40,21 +42,21 @@ class UserFactory extends Factory
 
     public function unverified(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'email_verified_at' => null,
         ]);
     }
 
     public function peserta(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'level' => User::LEVEL_PESERTA,
         ]);
     }
 
     public function guru(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'level'         => User::LEVEL_GURU,
             'nomor_peserta' => null,
         ]);
@@ -62,7 +64,7 @@ class UserFactory extends Factory
 
     public function admin(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'level'         => User::LEVEL_ADMIN,
             'nomor_peserta' => null,
         ]);
@@ -70,7 +72,7 @@ class UserFactory extends Factory
 
     public function superAdmin(): static
     {
-        return $this->state(fn (array $attributes) => [
+        return $this->state(fn(array $attributes) => [
             'level'         => User::LEVEL_SUPER_ADMIN,
             'nomor_peserta' => null,
         ]);

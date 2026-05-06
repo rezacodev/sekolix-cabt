@@ -58,6 +58,10 @@ class GeneralSetting extends Page implements HasForms
             'app_name'                     => AppSetting::getString('app_name', config('app.name')),
             'school_name'                  => AppSetting::getString('school_name', ''),
             'school_logo_url'              => AppSetting::getString('school_logo_url', ''),
+            'school_principal_name'        => AppSetting::getString('school_principal_name', ''),
+            'school_principal_nip'         => AppSetting::getString('school_principal_nip', ''),
+            'school_nisn'                  => AppSetting::getString('school_nisn', ''),
+            'school_address'               => AppSetting::getString('school_address', ''),
             'maintenance_mode'             => AppSetting::getBool('maintenance_mode', false),
 
             // Autentikasi & Sesi
@@ -131,6 +135,38 @@ class GeneralSetting extends Page implements HasForms
                             ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'URL gambar logo sekolah (link eksternal atau path relatif ke storage/public). Ditampilkan di sudut kiri atas dokumen cetak dan PDF.')
                             ->hintColor('info')
                             ->columnSpan(1),
+
+                        TextInput::make('school_principal_name')
+                            ->label('Nama Kepala Sekolah')
+                            ->maxLength(120)
+                            ->helperText('Nama kepala sekolah untuk dokumen cetak dan laporan PDF.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Nama Kepala Sekolah yang akan ditampilkan pada tanda tangan dan header dokumen analisis.')
+                            ->hintColor('info')
+                            ->columnSpan(1),
+
+                        TextInput::make('school_principal_nip')
+                            ->label('NIP Kepala Sekolah')
+                            ->maxLength(30)
+                            ->helperText('NIP Kepala Sekolah untuk dokumen cetak dan laporan PDF.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'NIP Kepala Sekolah yang akan ditampilkan pada cetakan analisis dan dokumen resmi sekolah.')
+                            ->hintColor('info')
+                            ->columnSpan(1),
+
+                        TextInput::make('school_nisn')
+                            ->label('NISN Sekolah')
+                            ->maxLength(20)
+                            ->helperText('NISN sekolah untuk penggunaan administratif dan referensi.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'NISN Sekolah yang dapat ditampilkan pada cetakan dan laporan sekolah.')
+                            ->hintColor('info')
+                            ->columnSpan(1),
+
+                        Textarea::make('school_address')
+                            ->label('Alamat Sekolah')
+                            ->rows(3)
+                            ->helperText('Alamat lengkap sekolah yang akan ditampilkan di cetakan dan laporan.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Alamat lengkap sekolah seperti nama jalan, kelurahan, kecamatan, dan kota.')
+                            ->hintColor('info')
+                            ->columnSpan('full'),
                     ]),
 
                 Section::make('Autentikasi & Sesi')
@@ -341,6 +377,10 @@ class GeneralSetting extends Page implements HasForms
         AppSetting::set('app_name',                     $state['app_name'],                       'string');
         AppSetting::set('school_name',                  $state['school_name'] ?? '',              'string');
         AppSetting::set('school_logo_url',              $state['school_logo_url'] ?? '',          'string');
+        AppSetting::set('school_principal_name',        $state['school_principal_name'] ?? '',    'string');
+        AppSetting::set('school_principal_nip',         $state['school_principal_nip'] ?? '',     'string');
+        AppSetting::set('school_nisn',                  $state['school_nisn'] ?? '',              'string');
+        AppSetting::set('school_address',               $state['school_address'] ?? '',           'string');
         AppSetting::set('maintenance_mode',             $state['maintenance_mode'],               'bool');
 
         // Autentikasi & Sesi

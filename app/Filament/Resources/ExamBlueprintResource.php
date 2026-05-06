@@ -123,60 +123,65 @@ class ExamBlueprintResource extends Resource
                     ->searchable(),
             ])
             ->actions([
-                Tables\Actions\Action::make('validasi_stok')
-                    ->label('Validasi Stok')
-                    ->icon('heroicon-o-magnifying-glass')
-                    ->color('info')
-                    ->modalHeading(fn($record) => 'Validasi Stok Soal: ' . $record->nama)
-                    ->modalContent(function ($record) {
-                        $stock = $record->validateStock();
-                        $rows = '';
-                        $allOk = true;
-                        foreach ($stock as $item) {
-                            $ok    = $item['tersedia'] >= $item['butuh'];
-                            $allOk = $allOk && $ok;
-                            $color = $ok ? 'text-green-600' : 'text-red-600 font-bold';
-                            $rows .= "<tr>
-                                <td class='px-3 py-1 text-sm text-gray-700'>{$item['label']}</td>
-                                <td class='px-3 py-1 text-sm text-center'>{$item['butuh']}</td>
-                                <td class='px-3 py-1 text-sm text-center {$color}'>{$item['tersedia']}</td>
-                                <td class='px-3 py-1 text-sm text-center'>" . ($ok ? '✔' : '✘') . "</td>
-                            </tr>";
-                        }
-                        $summary = $allOk
-                            ? '<p class="mt-2 text-green-700 font-medium">Semua stok mencukupi.</p>'
-                            : '<p class="mt-2 text-red-700 font-medium">Beberapa kriteria kekurangan soal.</p>';
-                        $html = "
-                            <div class='overflow-x-auto'>
-                            <table class='min-w-full divide-y divide-gray-200 border rounded'>
-                                <thead class='bg-gray-50'>
-                                    <tr>
-                                        <th class='px-3 py-2 text-left text-xs font-medium text-gray-500'>Kriteria</th>
-                                        <th class='px-3 py-2 text-xs font-medium text-gray-500'>Dibutuhkan</th>
-                                        <th class='px-3 py-2 text-xs font-medium text-gray-500'>Tersedia</th>
-                                        <th class='px-3 py-2 text-xs font-medium text-gray-500'>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody class='divide-y divide-gray-100'>{$rows}</tbody>
-                            </table>
-                            {$summary}
-                            </div>";
-                        return new \Illuminate\Support\HtmlString($html);
-                    })
-                    ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Tutup'),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('validasi_stok')
+                        ->label('Validasi Stok')
+                        ->icon('heroicon-o-magnifying-glass')
+                        ->color('info')
+                        ->modalHeading(fn($record) => 'Validasi Stok Soal: ' . $record->nama)
+                        ->modalContent(function ($record) {
+                            $stock = $record->validateStock();
+                            $rows = '';
+                            $allOk = true;
+                            foreach ($stock as $item) {
+                                $ok    = $item['tersedia'] >= $item['butuh'];
+                                $allOk = $allOk && $ok;
+                                $color = $ok ? 'text-green-600' : 'text-red-600 font-bold';
+                                $rows .= "<tr>
+                                    <td class='px-3 py-1 text-sm text-gray-700'>{$item['label']}</td>
+                                    <td class='px-3 py-1 text-sm text-center'>{$item['butuh']}</td>
+                                    <td class='px-3 py-1 text-sm text-center {$color}'>{$item['tersedia']}</td>
+                                    <td class='px-3 py-1 text-sm text-center'>" . ($ok ? '✔' : '✘') . "</td>
+                                </tr>";
+                            }
+                            $summary = $allOk
+                                ? '<p class="mt-2 text-green-700 font-medium">Semua stok mencukupi.</p>'
+                                : '<p class="mt-2 text-red-700 font-medium">Beberapa kriteria kekurangan soal.</p>';
+                            $html = "
+                                <div class='overflow-x-auto'>
+                                <table class='min-w-full divide-y divide-gray-200 border rounded'>
+                                    <thead class='bg-gray-50'>
+                                        <tr>
+                                            <th class='px-3 py-2 text-left text-xs font-medium text-gray-500'>Kriteria</th>
+                                            <th class='px-3 py-2 text-xs font-medium text-gray-500'>Dibutuhkan</th>
+                                            <th class='px-3 py-2 text-xs font-medium text-gray-500'>Tersedia</th>
+                                            <th class='px-3 py-2 text-xs font-medium text-gray-500'>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class='divide-y divide-gray-100'>{$rows}</tbody>
+                                </table>
+                                {$summary}
+                                </div>";
+                            return new \Illuminate\Support\HtmlString($html);
+                        })
+                        ->modalSubmitAction(false)
+                        ->modalCancelActionLabel('Tutup'),
 
-                Tables\Actions\Action::make('cetak')
-                    ->label('Cetak Kisi-kisi')
-                    ->icon('heroicon-o-printer')
-                    ->color('gray')
-                    ->url(fn($record) => route('blueprint.cetak', $record->id))
-                    ->openUrlInNewTab(),
+                    Tables\Actions\Action::make('cetak')
+                        ->label('Cetak Kisi-kisi')
+                        ->icon('heroicon-o-printer')
+                        ->color('gray')
+                        ->url(fn($record) => route('blueprint.cetak', $record->id))
+                        ->openUrlInNewTab(),
 
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make()
-                    ->requiresConfirmation()
-                    ->successNotificationTitle('Kisi-kisi ujian berhasil dihapus'),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make()
+                        ->requiresConfirmation()
+                        ->successNotificationTitle('Kisi-kisi ujian berhasil dihapus'),
+                ])
+                    ->label('Aksi')
+                    ->icon('heroicon-o-ellipsis-vertical')
+                    ->button(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

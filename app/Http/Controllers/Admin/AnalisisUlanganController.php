@@ -19,20 +19,38 @@ class AnalisisUlanganController extends Controller
     public function index(ExamSession $session)
     {
         $this->gate($session);
-        [$analisisData, $hasilData, $pengayaanData, $schoolName, $schoolLogoUrl] = $this->buildData($session);
+        [$analisisData, $hasilData, $pengayaanData, $schoolName, $schoolLogoUrl, $schoolPrincipalName, $schoolPrincipalNip, $schoolNisn, $schoolAddress] = $this->buildData($session);
 
         return view('print.analisis-ulangan', compact(
-            'session', 'analisisData', 'hasilData', 'pengayaanData', 'schoolName', 'schoolLogoUrl'
+            'session',
+            'analisisData',
+            'hasilData',
+            'pengayaanData',
+            'schoolName',
+            'schoolLogoUrl',
+            'schoolPrincipalName',
+            'schoolPrincipalNip',
+            'schoolNisn',
+            'schoolAddress'
         ));
     }
 
     public function exportPdf(ExamSession $session)
     {
         $this->gate($session);
-        [$analisisData, $hasilData, $pengayaanData, $schoolName, $schoolLogoUrl] = $this->buildData($session);
+        [$analisisData, $hasilData, $pengayaanData, $schoolName, $schoolLogoUrl, $schoolPrincipalName, $schoolPrincipalNip, $schoolNisn, $schoolAddress] = $this->buildData($session);
 
         $pdf = Pdf::loadView('print.analisis-ulangan', compact(
-            'session', 'analisisData', 'hasilData', 'pengayaanData', 'schoolName', 'schoolLogoUrl'
+            'session',
+            'analisisData',
+            'hasilData',
+            'pengayaanData',
+            'schoolName',
+            'schoolLogoUrl',
+            'schoolPrincipalName',
+            'schoolPrincipalNip',
+            'schoolNisn',
+            'schoolAddress'
         ))->setPaper('a4', 'landscape');
 
         return $pdf->download('analisis-ulangan-' . str($session->nama_sesi)->slug() . '.pdf');
@@ -54,10 +72,14 @@ class AnalisisUlanganController extends Controller
         $analisisData  = $this->service->analisisUlangan($session->id);
         $hasilData     = $this->service->hasilAnalisis($analisisData);
         $pengayaanData = $this->service->programPengayaan($analisisData);
-        $schoolName    = AppSetting::getString('school_name', '');
-        $schoolLogoUrl = AppSetting::getString('school_logo_url', '');
+        $schoolName           = AppSetting::getString('school_name', '');
+        $schoolLogoUrl        = AppSetting::getString('school_logo_url', '');
+        $schoolPrincipalName  = AppSetting::getString('school_principal_name', '');
+        $schoolPrincipalNip   = AppSetting::getString('school_principal_nip', '');
+        $schoolNisn           = AppSetting::getString('school_nisn', '');
+        $schoolAddress        = AppSetting::getString('school_address', '');
 
-        return [$analisisData, $hasilData, $pengayaanData, $schoolName, $schoolLogoUrl];
+        return [$analisisData, $hasilData, $pengayaanData, $schoolName, $schoolLogoUrl, $schoolPrincipalName, $schoolPrincipalNip, $schoolNisn, $schoolAddress];
     }
 
     private function gate(ExamSession $session): void

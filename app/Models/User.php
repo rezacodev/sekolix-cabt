@@ -26,6 +26,8 @@ class User extends Authenticatable implements FilamentUser
         'password',
         'level',
         'username',
+        'nip',
+        'nuptk',
         'nomor_peserta',
         'rombel_id',
         'aktif',
