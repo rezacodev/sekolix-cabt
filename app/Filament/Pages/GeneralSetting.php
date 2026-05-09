@@ -77,6 +77,8 @@ class GeneralSetting extends Page implements HasForms
             'prevent_copy_paste'           => AppSetting::getBool('prevent_copy_paste', false),
             'prevent_right_click'          => AppSetting::getBool('prevent_right_click', false),
             'require_fullscreen'           => AppSetting::getBool('require_fullscreen', false),
+            'show_watermark'               => AppSetting::getBool('show_watermark', false),
+            'detect_devtools'              => AppSetting::getBool('detect_devtools', false),
             'max_upload_mb'                => AppSetting::getInt('max_upload_mb', 5),
             'max_audio_mb'                 => AppSetting::getInt('max_audio_mb', 20),
             'ip_whitelist'                 => AppSetting::getString('ip_whitelist', ''),
@@ -269,6 +271,20 @@ class GeneralSetting extends Page implements HasForms
                             ->hintColor('info')
                             ->columnSpan(1),
 
+                        Toggle::make('show_watermark')
+                            ->label('Tampilkan Watermark Peserta')
+                            ->helperText('Menampilkan overlay nama dan nomor peserta transparan di atas area soal sebagai lapisan anti-kecurangan.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Jika aktif, nama dan nomor peserta ditampilkan sebagai pola watermark transparan yang menutupi seluruh halaman ujian. Watermark juga muncul lebih gelap saat peserta mencoba mencetak halaman, mempersulit penyebaran soal.')
+                            ->hintColor('info')
+                            ->columnSpan(1),
+
+                        Toggle::make('detect_devtools')
+                            ->label('Deteksi DevTools Browser')
+                            ->helperText('Mendeteksi pembukaan Developer Tools browser dan mencatatnya sebagai pelanggaran tab switch.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Mendeteksi DevTools yang dibuka dalam mode docked (menempel di jendela browser) menggunakan selisih ukuran outer vs inner window. Setiap kali DevTools terbuka, dicatat sebagai tab switch event dan dihitung ke batas. Tidak mendeteksi DevTools undocked (jendela terpisah).')
+                            ->hintColor('info')
+                            ->columnSpan(1),
+
                         TextInput::make('max_upload_mb')
                             ->label('Batas Upload File URAIAN')
                             ->numeric()
@@ -396,6 +412,8 @@ class GeneralSetting extends Page implements HasForms
         AppSetting::set('prevent_copy_paste',           $state['prevent_copy_paste'],             'bool');
         AppSetting::set('prevent_right_click',          $state['prevent_right_click'],            'bool');
         AppSetting::set('require_fullscreen',           $state['require_fullscreen'],             'bool');
+        AppSetting::set('show_watermark',               $state['show_watermark'],                 'bool');
+        AppSetting::set('detect_devtools',              $state['detect_devtools'],                'bool');
         AppSetting::set('max_upload_mb',                $state['max_upload_mb'],                  'int');
         AppSetting::set('max_audio_mb',                 $state['max_audio_mb'],                   'int');
         AppSetting::set('ip_whitelist',                 $state['ip_whitelist'] ?? '',             'string');

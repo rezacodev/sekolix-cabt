@@ -33,6 +33,12 @@
                 background: #ffffff;
                 content: "Mencetak halaman ujian tidak diizinkan.";
             }
+            /* Watermark tetap terlihat saat print dengan opacity lebih tinggi */
+            #wm-overlay {
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+            #wm-overlay svg text { fill: rgba(80,80,80,0.45) !important; }
         }
     </style>
 </head>

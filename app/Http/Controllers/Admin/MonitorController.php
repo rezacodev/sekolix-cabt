@@ -29,7 +29,7 @@ class MonitorController extends Controller
             ->whereIn('user_id', $participants->pluck('user_id'))
             ->get()
             ->groupBy('user_id')
-            ->map(fn ($g) => $g->sortByDesc('id')->first());
+            ->map(fn($g) => $g->sortByDesc('id')->first());
 
         $list = $participants->map(function ($p) use ($attempts, $totalSoal) {
             $attempt   = $attempts->get($p->user_id);
@@ -38,7 +38,7 @@ class MonitorController extends Controller
             $tabSwitch = 0;
 
             if ($attempt) {
-                $dijawab   = $attempt->questions->filter(fn ($q) => $q->isDijawab())->count();
+                $dijawab   = $attempt->questions->filter(fn($q) => $q->isDijawab())->count();
                 $sisaWaktu = $attempt->sisaWaktuDetik();
                 $tabSwitch = $attempt->tabSwitchCount();
             }
@@ -84,8 +84,9 @@ class MonitorController extends Controller
             ->where('user_id', $userId)
             ->where('status', ExamAttempt::STATUS_BERLANGSUNG)
             ->update([
-                'status'        => ExamAttempt::STATUS_DISKUALIFIKASI,
-                'waktu_selesai' => now(),
+                'status'         => ExamAttempt::STATUS_DISKUALIFIKASI,
+                'is_auto_submit' => true,
+                'waktu_selesai'  => now(),
             ]);
 
         return response()->json(['success' => true, 'message' => 'Peserta berhasil dikeluarkan.']);

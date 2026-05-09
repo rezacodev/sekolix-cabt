@@ -108,8 +108,9 @@ class MonitorSesi extends Page
             ->where('user_id', $this->kickUserId)
             ->where('status', ExamAttempt::STATUS_BERLANGSUNG)
             ->update([
-                'status'        => ExamAttempt::STATUS_DISKUALIFIKASI,
-                'waktu_selesai' => now(),
+                'status'         => ExamAttempt::STATUS_DISKUALIFIKASI,
+                'is_auto_submit' => true,
+                'waktu_selesai'  => now(),
             ]);
 
         Notification::make()->success()->title('Peserta berhasil dikeluarkan')->send();

@@ -28,6 +28,7 @@ class ExamAttempt extends Model
         'waktu_mulai',
         'waktu_selesai',
         'status',
+        'is_auto_submit',
         'nilai_akhir',
         'jumlah_benar',
         'jumlah_salah',
@@ -38,9 +39,10 @@ class ExamAttempt extends Model
     protected function casts(): array
     {
         return [
-            'waktu_mulai'   => 'datetime',
-            'waktu_selesai' => 'datetime',
-            'nilai_akhir'   => 'decimal:2',
+            'waktu_mulai'    => 'datetime',
+            'waktu_selesai'  => 'datetime',
+            'nilai_akhir'    => 'decimal:2',
+            'is_auto_submit' => 'boolean',
         ];
     }
 

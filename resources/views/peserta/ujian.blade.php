@@ -14,6 +14,37 @@
         @visibilitychange.window="handleVisibility()"
         class="flex flex-col h-screen overflow-hidden"
     >
+        {{-- ── WATERMARK OVERLAY ── --}}
+        @if ($showWatermark)
+        <div id="wm-overlay"
+             aria-hidden="true"
+             class="pointer-events-none fixed inset-0 z-[9999] select-none overflow-hidden">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+                <defs>
+                    <pattern id="wm-pattern" x="0" y="0" width="320" height="180" patternUnits="userSpaceOnUse">
+                        <text
+                            x="160" y="80"
+                            text-anchor="middle"
+                            font-size="14"
+                            font-family="sans-serif"
+                            fill="rgba(100,100,100,0.18)"
+                            transform="rotate(-30, 160, 90)"
+                        >{{ auth()->user()->name }}</text>
+                        <text
+                            x="160" y="100"
+                            text-anchor="middle"
+                            font-size="12"
+                            font-family="sans-serif"
+                            fill="rgba(100,100,100,0.18)"
+                            transform="rotate(-30, 160, 90)"
+                        >{{ auth()->user()->nomor_peserta ?? auth()->user()->username ?? '' }}</text>
+                    </pattern>
+                </defs>
+                <rect width="100%" height="100%" fill="url(#wm-pattern)" />
+            </svg>
+        </div>
+        @endif
+
         {{-- ── TOP BAR ── --}}
         <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50 shrink-0 exam-header">
             <div class="max-w-7xl mx-auto px-3 sm:px-6 flex items-center justify-between h-14 gap-2 sm:gap-3">
@@ -599,6 +630,9 @@
             'preventCopyPaste'   => $preventCopyPaste,
             'preventRightClick'  => $preventRightClick,
             'requireFullscreen'  => $requireFullscreen,
+            'showWatermark'      => $showWatermark,
+            'detectDevtools'     => $detectDevtools,
+            'isProduction'       => app()->isProduction(),
             'pesertaName'        => auth()->user()->name,
             'pesertaNomor'       => auth()->user()->nomor_peserta ?? '',
             'maxTabSwitch'       => $maxTabSwitch ?? 3,
@@ -711,6 +745,70 @@
                     document.addEventListener('fullscreenchange', () => {
                         if (!document.fullscreenElement) { this.handleVisibility(); }
                     });
+                }
+
+                if (_d.detectDevtools) {
+                    // Deteksi DevTools via dua teknik yang dikombinasikan:
+                    //
+                    // Teknik 1 — window size heuristic (docked DevTools):
+                    //   outerHeight mencakup chrome UI browser (~80-100px), threshold diturunkan ke 80
+                    //   agar DevTools docked dengan tinggi minimal sudah terdeteksi.
+                    //
+                    // Teknik 2 — debugger timing attack:
+                    //   DevTools yang terbuka (panel apapun) membuat eksekusi `debugger` statement
+                    //   memerlukan waktu > 100ms, sedangkan tanpa DevTools hampir 0ms.
+                    const DT_SIZE_THRESHOLD = 80;
+                    let _dtOpen = false;
+
+                    const _triggerDevToolsEvent = () => {
+                        if (_dtOpen) return;
+                        _dtOpen = true;
+                        this.tabSwitchCount++;
+                        this.logTabSwitch();
+                        const action = _d.tabSwitchAction ?? 'warn';
+                        if (this.tabSwitchCount >= this.maxTabSwitch) {
+                            if (_d.autoSubmitOnMaxTab || action === 'submit') {
+                                this.doAutoSubmit('tab_switch');
+                                return;
+                            }
+                            this.tabWarningMsg = `Anda telah berpindah tab ${this.tabSwitchCount} kali. Ujian berisiko dikumpulkan otomatis.`;
+                        } else {
+                            this.tabWarningMsg = `Peringatan: Jangan membuka Developer Tools selama ujian. (${this.tabSwitchCount}/${this.maxTabSwitch})`;
+                        }
+                        if (action !== 'log') this.tabWarning = true;
+                    };
+
+                    // Teknik 1: size heuristic — cek resize dan polling
+                    const _checkSize = () => {
+                        const heightDiff = window.outerHeight - window.innerHeight;
+                        const widthDiff  = window.outerWidth  - window.innerWidth;
+                        const isOpen     = heightDiff > DT_SIZE_THRESHOLD || widthDiff > DT_SIZE_THRESHOLD;
+                        if (isOpen) {
+                            _triggerDevToolsEvent();
+                        } else {
+                            _dtOpen = false;
+                        }
+                    };
+                    window.addEventListener('resize', _checkSize);
+                    setInterval(_checkSize, 2000);
+
+                    // Teknik 2: debugger timing attack — hanya aktif di production.
+                    // Di local/dev, debugger statement akan selalu terpause jika breakpoints aktif
+                    // sehingga akan false-positive terus-menerus.
+                    if (_d.isProduction) {
+                        const _checkTiming = () => {
+                            const t0 = performance.now();
+                            // eslint-disable-next-line no-debugger
+                            debugger;
+                            const elapsed = performance.now() - t0;
+                            if (elapsed > 100) {
+                                _triggerDevToolsEvent();
+                            } else {
+                                _dtOpen = false;
+                            }
+                        };
+                        setInterval(_checkTiming, 3000);
+                    }
                 }
             },
 

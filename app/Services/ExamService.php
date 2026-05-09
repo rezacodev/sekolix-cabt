@@ -384,8 +384,14 @@ class ExamService
             $total     = $questions->count();
             $dijawab   = $questions->filter(fn($aq) => $aq->isDijawab())->count();
 
+            $isAutoSubmit = in_array($status, [
+                ExamAttempt::STATUS_TIMEOUT,
+                ExamAttempt::STATUS_DISKUALIFIKASI,
+            ]);
+
             $attempt->update([
                 'status'         => $status,
+                'is_auto_submit' => $isAutoSubmit,
                 'waktu_selesai'  => now(),
                 'jumlah_kosong'  => $total - $dijawab,
             ]);

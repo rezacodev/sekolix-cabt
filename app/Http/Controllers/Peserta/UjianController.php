@@ -187,6 +187,8 @@ class UjianController extends Controller
         $preventCopyPaste   = \App\Models\AppSetting::getBool('prevent_copy_paste', false);
         $preventRightClick  = \App\Models\AppSetting::getBool('prevent_right_click', false);
         $requireFullscreen  = \App\Models\AppSetting::getBool('require_fullscreen', false);
+        $showWatermark      = \App\Models\AppSetting::getBool('show_watermark', false);
+        $detectDevtools     = \App\Models\AppSetting::getBool('detect_devtools', false);
 
         $waktuPerSoalDetik   = (int) ($session->package->waktu_per_soal_detik ?? 0);
         $navigasiPerSoal     = $session->package->waktu_per_soal_navigasi ?? \App\Models\ExamPackage::NAV_SOAL_BEBAS;
@@ -207,6 +209,8 @@ class UjianController extends Controller
             'preventCopyPaste',
             'preventRightClick',
             'requireFullscreen',
+            'showWatermark',
+            'detectDevtools',
             'waktuPerSoalDetik',
             'navigasiPerSoal'
         ));
