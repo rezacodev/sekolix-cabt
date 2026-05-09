@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Jobs\RecalculateItemStatistics;
 use App\Models\AttemptQuestion;
 use App\Models\ExamAttempt;
 use App\Models\ExamPackage;
@@ -47,9 +48,15 @@ class ScoringService
     {
         $attempt = $this->resolveAttempt($attempt);
 
-        return DB::transaction(function () use ($attempt) {
+        $result = DB::transaction(function () use ($attempt) {
             return $this->calculate($attempt, skipAlreadyScored: false);
         });
+
+        if ($result->isSelesai()) {
+            RecalculateItemStatistics::dispatch($result->exam_session_id);
+        }
+
+        return $result;
     }
 
     /**
@@ -60,9 +67,13 @@ class ScoringService
     {
         $attempt = $this->resolveAttempt($attempt);
 
-        return DB::transaction(function () use ($attempt) {
+        $result = DB::transaction(function () use ($attempt) {
             return $this->calculate($attempt, skipAlreadyScored: false);
         });
+
+        RecalculateItemStatistics::dispatch($result->exam_session_id);
+
+        return $result;
     }
 
     // ─────────────────────────────────────────────────────────────────────────

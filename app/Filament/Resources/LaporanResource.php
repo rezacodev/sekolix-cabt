@@ -179,6 +179,12 @@ class LaporanResource extends Resource
                         ->color('info')
                         ->url(fn(ExamSession $r) => Pages\LaporanKehadiran::getUrl(['record' => $r->id])),
 
+                    Tables\Actions\Action::make('analisis_butir')
+                        ->label('Analisis Butir')
+                        ->icon('heroicon-o-beaker')
+                        ->color('success')
+                        ->url(fn(ExamSession $r) => Pages\AnalisisButirSoal::getUrl(['record' => $r->id])),
+
                     Tables\Actions\Action::make('statistik_soal')
                         ->label('Statistik Soal')
                         ->icon('heroicon-o-chart-pie')
@@ -212,6 +218,7 @@ class LaporanResource extends Resource
             'nilai'          => Pages\LaporanNilai::route('/{record}/nilai'),
             'kehadiran'      => Pages\LaporanKehadiran::route('/{record}/kehadiran'),
             'statistik-soal' => Pages\StatistikSoal::route('/{record}/statistik-soal'),
+            'analisis-butir' => Pages\AnalisisButirSoal::route('/{record}/analisis-butir'),
             'komparasi'      => Pages\KomparasiSesi::route('/komparasi'),
             'kecurangan'     => Pages\LaporanKecurangan::route('/{record}/kecurangan'),
         ];

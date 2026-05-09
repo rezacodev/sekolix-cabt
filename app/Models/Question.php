@@ -156,4 +156,9 @@ class Question extends Model
     {
         return $this->hasMany(QuestionClozeBlank::class)->orderBy('urutan');
     }
+
+    public function statistic(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(QuestionStatistic::class);
+    }
 }
