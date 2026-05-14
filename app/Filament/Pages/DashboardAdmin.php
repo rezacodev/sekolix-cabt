@@ -59,13 +59,12 @@ class DashboardAdmin extends \Filament\Pages\Dashboard
 
     // Soal per mata pelajaran (via category.mata_pelajaran_id)
     $soalPerMapel = MataPelajaran::where('aktif', true)
-      ->withCount(['categories as soal_count' => fn($q) => $q->whereHas('questions')])
       ->orderBy('nama')
       ->get()
       ->map(fn($m) => (object) [
         'nama'  => $m->nama,
         'kode'  => $m->kode,
-        'count' => \App\Models\Question::whereHas('category', fn($q) => $q->where('mata_pelajaran_id', $m->id))->count(),
+        'count' => Question::whereHas('category', fn($q) => $q->where('mata_pelajaran_id', $m->id))->count(),
       ])
       ->filter(fn($m) => $m->count > 0)
       ->values();
