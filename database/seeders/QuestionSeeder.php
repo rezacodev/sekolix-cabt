@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
+use App\Models\MataPelajaran;
 use App\Models\Question;
 use App\Models\QuestionClozeBlank;
 use App\Models\QuestionKeyword;
@@ -50,12 +51,19 @@ class QuestionSeeder extends Seeder
     {
         $by = $this->createdBy;
 
-        // Kategori induk
-        $mtk   = Category::firstOrCreate(['nama' => 'Matematika'],       ['deskripsi' => 'Soal-soal Matematika SMA',       'created_by' => $by]);
-        $bind  = Category::firstOrCreate(['nama' => 'Bahasa Indonesia'],  ['deskripsi' => 'Soal-soal Bahasa Indonesia SMA', 'created_by' => $by]);
-        $ipa   = Category::firstOrCreate(['nama' => 'IPA'],               ['deskripsi' => 'Ilmu Pengetahuan Alam',          'created_by' => $by]);
-        $sej   = Category::firstOrCreate(['nama' => 'Sejarah'],           ['deskripsi' => 'Sejarah Indonesia & Dunia',      'created_by' => $by]);
-        $tik   = Category::firstOrCreate(['nama' => 'TIK'],               ['deskripsi' => 'Teknologi Informasi & Komunikasi', 'created_by' => $by]);
+        // ─── Buat / update data Mata Pelajaran ────────────────────────────
+        $mtkMapel  = MataPelajaran::firstOrCreate(['nama' => 'Matematika'],       ['kode' => 'MTK',  'jenjang' => 'SMA', 'aktif' => true, 'created_by' => $by]);
+        $bindMapel = MataPelajaran::firstOrCreate(['nama' => 'Bahasa Indonesia'], ['kode' => 'BIND', 'jenjang' => 'SMA', 'aktif' => true, 'created_by' => $by]);
+        $ipaMapel  = MataPelajaran::firstOrCreate(['nama' => 'IPA'],              ['kode' => 'IPA',  'jenjang' => 'SMA', 'aktif' => true, 'created_by' => $by]);
+        $sejMapel  = MataPelajaran::firstOrCreate(['nama' => 'Sejarah'],          ['kode' => 'SEJ',  'jenjang' => 'SMA', 'aktif' => true, 'created_by' => $by]);
+        $tikMapel  = MataPelajaran::firstOrCreate(['nama' => 'TIK'],              ['kode' => 'TIK',  'jenjang' => 'SMA', 'aktif' => true, 'created_by' => $by]);
+
+        // Kategori induk — updateOrCreate agar mata_pelajaran_id diisi ke data yang sudah ada
+        $mtk   = Category::updateOrCreate(['nama' => 'Matematika'],       ['deskripsi' => 'Soal-soal Matematika SMA',        'mata_pelajaran_id' => $mtkMapel->id,  'created_by' => $by]);
+        $bind  = Category::updateOrCreate(['nama' => 'Bahasa Indonesia'], ['deskripsi' => 'Soal-soal Bahasa Indonesia SMA',  'mata_pelajaran_id' => $bindMapel->id, 'created_by' => $by]);
+        $ipa   = Category::updateOrCreate(['nama' => 'IPA'],              ['deskripsi' => 'Ilmu Pengetahuan Alam',           'mata_pelajaran_id' => $ipaMapel->id,  'created_by' => $by]);
+        $sej   = Category::updateOrCreate(['nama' => 'Sejarah'],          ['deskripsi' => 'Sejarah Indonesia & Dunia',       'mata_pelajaran_id' => $sejMapel->id,  'created_by' => $by]);
+        $tik   = Category::updateOrCreate(['nama' => 'TIK'],              ['deskripsi' => 'Teknologi Informasi & Komunikasi', 'mata_pelajaran_id' => $tikMapel->id,  'created_by' => $by]);
 
         // Sub-kategori Matematika
         $mtkAljabar = Category::firstOrCreate(['nama' => 'Aljabar'],      ['parent_id' => $mtk->id, 'deskripsi' => 'Aljabar dasar dan lanjutan', 'created_by' => $by]);

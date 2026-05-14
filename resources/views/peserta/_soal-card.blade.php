@@ -96,7 +96,7 @@
             @endforeach
         </div>
 
-    {{-- ── PGJ (pilih ganda jamak) ── --}}
+    {{-- ── PGJ (pilihan ganda kompleks) ── --}}
     @elseif ($q->tipe === 'PGJ')
         @php $jawabanPgj = json_decode($aq->jawaban_peserta ?: '[]', true) ?: []; @endphp
         <div class="space-y-2">

@@ -65,8 +65,42 @@
     @endforeach
 </div>
 
-{{-- ── Sesi Aktif Sekarang ─────────────────────────────────────────────────── --}}
+{{-- ── Soal per Mata Pelajaran ─────────────────────────────────────────────── --}}
+@if ($soalPerMapel->isNotEmpty())
 <div class="rounded-xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 overflow-hidden">
+    <div class="flex items-center justify-between px-6 py-3 border-b border-gray-100 dark:border-white/10">
+        <div class="flex items-center gap-2">
+            <x-heroicon-o-book-open class="w-4 h-4 text-gray-500 dark:text-gray-400"/>
+            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Bank Soal per Mata Pelajaran</h3>
+        </div>
+        <a href="{{ \App\Filament\Resources\QuestionResource::getUrl() }}"
+           class="text-xs text-primary-600 dark:text-primary-400 hover:underline font-medium">
+            Lihat Bank Soal →
+        </a>
+    </div>
+    <div class="px-6 py-4">
+        @php $maxCount = $soalPerMapel->max('count') ?: 1; @endphp
+        <div class="space-y-3">
+            @foreach ($soalPerMapel as $mp)
+            <div class="flex items-center gap-3">
+                <div class="w-32 shrink-0">
+                    <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 truncate block" title="{{ $mp->nama }}">{{ $mp->nama }}</span>
+                    @if ($mp->kode)
+                    <span class="text-xs text-gray-400">{{ $mp->kode }}</span>
+                    @endif
+                </div>
+                <div class="flex-1 bg-gray-100 dark:bg-gray-800 rounded-full h-2.5 overflow-hidden">
+                    <div class="h-2.5 rounded-full" style="width:{{ round($mp->count / $maxCount * 100) }}%;background:#2563eb;"></div>
+                </div>
+                <span class="w-12 text-right text-sm font-bold text-gray-700 dark:text-gray-300 shrink-0">{{ number_format($mp->count) }}</span>
+            </div>
+            @endforeach
+        </div>
+    </div>
+</div>
+@endif
+
+{{-- ── Sesi Aktif Sekarang ─────────────────────────────────────────────────── --}}<div class="rounded-xl bg-white dark:bg-gray-900 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10 overflow-hidden">
     <div class="flex items-center justify-between px-6 py-3 border-b border-gray-100 dark:border-white/10">
         <div class="flex items-center gap-2">
             @if ($sesiAktif->isNotEmpty())

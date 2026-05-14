@@ -4,10 +4,13 @@ namespace App\Filament\Resources\ExamBlueprintResource\RelationManagers;
 
 use App\Models\Category;
 use App\Models\CurriculumStandard;
+use App\Models\MataPelajaran;
 use App\Models\Question;
 use App\Models\Tag;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -21,9 +24,28 @@ class ItemsRelationManager extends RelationManager
     public function form(Form $form): Form
     {
         return $form->schema([
+            Forms\Components\Select::make('_mapel_filter')
+                ->label('Mata Pelajaran')
+                ->helperText('Pilih mapel untuk menyaring pilihan kategori')
+                ->options(fn() => MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
+                ->searchable()
+                ->nullable()
+                ->native(false)
+                ->live()
+                ->dehydrated(false)
+                ->afterStateHydrated(function (Forms\Components\Select $component, $record) {
+                    if ($record && $record->category_id) {
+                        $id = Category::find($record->category_id)?->mata_pelajaran_id;
+                        if ($id) $component->state($id);
+                    }
+                })
+                ->afterStateUpdated(fn(Set $set) => $set('category_id', null)),
+
             Forms\Components\Select::make('category_id')
                 ->label('Kategori Soal')
-                ->options(fn() => Category::pluck('nama', 'id'))
+                ->options(fn(Get $get) => $get('_mapel_filter')
+                    ? Category::where('mata_pelajaran_id', $get('_mapel_filter'))->orderBy('nama')->pluck('nama', 'id')
+                    : Category::orderBy('nama')->pluck('nama', 'id'))
                 ->searchable()
                 ->nullable()
                 ->native(false),

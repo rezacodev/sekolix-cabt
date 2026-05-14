@@ -4,9 +4,11 @@ namespace App\Filament\Resources\ExamPackageResource\RelationManagers;
 
 use App\Models\Category;
 use App\Models\ExamPackageQuestion;
+use App\Models\MataPelajaran;
 use App\Models\Question;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
@@ -131,11 +133,22 @@ class QuestionsRelationManager extends RelationManager
                     ->icon('heroicon-o-sparkles')
                     ->color('info')
                     ->form([
+                        Forms\Components\Select::make('_mapel_filter')
+                            ->label('Mata Pelajaran')
+                            ->options(fn() => MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
+                            ->searchable()
+                            ->nullable()
+                            ->native(false)
+                            ->live(),
+
                         Forms\Components\Select::make('kategori_id')
                             ->label('Kategori')
-                            ->options(fn() => Category::whereNull('parent_id')->pluck('nama', 'id'))
+                            ->options(fn(Get $get) => $get('_mapel_filter')
+                                ? Category::whereNull('parent_id')->where('mata_pelajaran_id', $get('_mapel_filter'))->pluck('nama', 'id')
+                                : Category::whereNull('parent_id')->pluck('nama', 'id'))
                             ->nullable()
-                            ->searchable(),
+                            ->searchable()
+                            ->native(false),
 
                         Forms\Components\Select::make('tipe')
                             ->label('Tipe Soal')

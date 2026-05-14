@@ -12,7 +12,7 @@
     ];
 
     $tipeLabels = \App\Models\Question::TIPE_LABELS ?? [
-        'PG' => 'PG', 'PG_BOBOT' => 'PG Bobot', 'PGJ' => 'PGJ',
+        'PG' => 'PG', 'PG_BOBOT' => 'PG Bobot', 'PGJ' => 'PG Kompleks',
         'JODOH' => 'Jodoh', 'ISIAN' => 'Isian', 'URAIAN' => 'Uraian',
     ];
 
@@ -44,6 +44,20 @@
                         {{ $tipeLabels[$stat->tipe] ?? $stat->tipe }}
                     </x-filament::badge>
                 </div>
+                @if ($stat->mapel_nama || $stat->kategori_nama)
+                <div class="flex items-center gap-1">
+                    @if ($stat->mapel_nama)
+                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold" style="background:#eff6ff;color:#1d4ed8;">
+                        {{ $stat->mapel_nama }}
+                    </span>
+                    @endif
+                    @if ($stat->kategori_nama)
+                    <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium" style="background:#f3f4f6;color:#4b5563;">
+                        {{ $stat->kategori_nama }}
+                    </span>
+                    @endif
+                </div>
+                @endif
             </div>
             <p class="text-sm text-gray-800 dark:text-gray-200 line-clamp-3">{{ $stat->teks ?: '(soal memiliki gambar/format khusus)' }}</p>
         </div>

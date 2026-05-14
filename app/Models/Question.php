@@ -22,7 +22,7 @@ class Question extends Model
     const TIPE_LABELS = [
         self::TIPE_PG       => 'Pilihan Ganda',
         self::TIPE_PG_BOBOT => 'PG Berbobot',
-        self::TIPE_PGJ      => 'PG Jawaban Jamak',
+        self::TIPE_PGJ      => 'Pilihan Ganda Kompleks',
         self::TIPE_JODOH    => 'Menjodohkan',
         self::TIPE_ISIAN    => 'Isian Singkat',
         self::TIPE_URAIAN   => 'Uraian',

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\LaporanResource\Pages;
 use App\Filament\Resources\LaporanResource;
 use App\Jobs\RecalculateItemStatistics;
 use App\Models\ExamSession;
+use App\Models\MataPelajaran;
 use App\Models\QuestionStatistic;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -93,7 +94,7 @@ class AnalisisButirSoal extends Page implements HasTable
             ->query(
                 QuestionStatistic::query()
                     ->whereIn('question_id', $questionIds)
-                    ->with(['question'])
+                    ->with(['question.category.mataPelajaran'])
             )
             ->defaultSort('p_value', 'asc')
             ->columns([
@@ -112,6 +113,22 @@ class AnalisisButirSoal extends Page implements HasTable
                         'URAIAN'   => 'danger',
                         default    => 'gray',
                     }),
+
+                Tables\Columns\TextColumn::make('question.category.mataPelajaran.nama')
+                    ->label('Mata Pelajaran')
+                    ->badge()
+                    ->color('info')
+                    ->placeholder('—')
+                    ->sortable()
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('question.category.nama')
+                    ->label('Kategori')
+                    ->badge()
+                    ->color('gray')
+                    ->placeholder('—')
+                    ->sortable()
+                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('question.tingkat_kesulitan')
                     ->label('Kesulitan')
@@ -168,6 +185,15 @@ class AnalisisButirSoal extends Page implements HasTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
+                Tables\Filters\SelectFilter::make('mata_pelajaran')
+                    ->label('Mata Pelajaran')
+                    ->options(MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
+                    ->query(fn($query, $data) => $data['value']
+                        ? $query->whereHas('question.category', fn($q) => $q->where('mata_pelajaran_id', $data['value']))
+                        : $query
+                    )
+                    ->native(false),
+
                 Tables\Filters\SelectFilter::make('question.tipe')
                     ->label('Tipe Soal')
                     ->relationship('question', 'tipe')

@@ -6,13 +6,16 @@ use App\Filament\Resources\ExamBlueprintResource\Pages;
 use App\Filament\Resources\ExamBlueprintResource\RelationManagers;
 use App\Models\CurriculumStandard;
 use App\Models\ExamBlueprint;
+use App\Models\MataPelajaran;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Set;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
 class ExamBlueprintResource extends Resource
@@ -26,19 +29,49 @@ class ExamBlueprintResource extends Resource
     protected static ?string $modelLabel       = 'Blueprint Ujian';
     protected static ?string $pluralModelLabel = 'Kisi-kisi / Blueprint';
 
+    public static function canViewAny(): bool
+    {
+        $user = Auth::user();
+        return $user && $user->level === User::LEVEL_GURU;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Auth::user()?->level === User::LEVEL_GURU;
+    }
+
     public static function canCreate(): bool
     {
-        return Auth::user()->level >= User::LEVEL_GURU;
+        return Auth::user()?->level === User::LEVEL_GURU;
     }
 
     public static function canEdit(\Illuminate\Database\Eloquent\Model $record): bool
     {
-        return Auth::user()->level >= User::LEVEL_GURU;
+        $user = Auth::user();
+        return $user && $user->level === User::LEVEL_GURU && $record->created_by === $user->id;
     }
 
     public static function canDelete(\Illuminate\Database\Eloquent\Model $record): bool
     {
-        return Auth::user()->level >= User::LEVEL_ADMIN;
+        $user = Auth::user();
+        return $user && $user->level === User::LEVEL_GURU && $record->created_by === $user->id;
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        return Auth::user()?->level === User::LEVEL_GURU;
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = Auth::user();
+
+        if ($user && $user->level === User::LEVEL_GURU) {
+            return $query->where('created_by', $user->id);
+        }
+
+        return $query;
     }
 
     public static function form(Form $form): Form
@@ -52,6 +85,21 @@ class ExamBlueprintResource extends Resource
                         ->maxLength(200)
                         ->placeholder('mis. Kisi-kisi UAS Matematika Kelas X Sem 1')
                         ->columnSpan(2),
+
+                    Forms\Components\Select::make('mata_pelajaran_id')
+                        ->label('Mata Pelajaran (dari tabel)')
+                        ->helperText('Pilih dari daftar mapel yang terdaftar, atau isi manual di field bawah')
+                        ->options(fn() => MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
+                        ->searchable()
+                        ->nullable()
+                        ->native(false)
+                        ->live()
+                        ->afterStateUpdated(function ($state, Set $set) {
+                            if ($state) {
+                                $nama = MataPelajaran::find($state)?->nama;
+                                if ($nama) $set('mata_pelajaran', $nama);
+                            }
+                        }),
 
                     Forms\Components\TextInput::make('mata_pelajaran')
                         ->label('Mata Pelajaran')
@@ -117,9 +165,9 @@ class ExamBlueprintResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('mata_pelajaran')
+                Tables\Filters\SelectFilter::make('mata_pelajaran_id')
                     ->label('Mata Pelajaran')
-                    ->options(fn() => ExamBlueprint::distinct()->pluck('mata_pelajaran', 'mata_pelajaran'))
+                    ->options(fn() => MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
                     ->searchable(),
             ])
             ->actions([

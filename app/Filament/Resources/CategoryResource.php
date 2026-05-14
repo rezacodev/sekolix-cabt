@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\CategoryResource\Pages;
 use App\Models\Category;
+use App\Models\MataPelajaran;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -64,11 +65,19 @@ class CategoryResource extends Resource
     {
         return $form
             ->schema([
+                Forms\Components\Select::make('mata_pelajaran_id')
+                    ->label('Mata Pelajaran')
+                    ->helperText('Kaitkan kategori ini ke mata pelajaran tertentu')
+                    ->options(fn() => MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
+                    ->searchable()
+                    ->nullable()
+                    ->native(false)
+                    ->columnSpanFull(),
+
                 Forms\Components\TextInput::make('nama')
                     ->label('Nama Kategori')
                     ->required()
-                    ->maxLength(150)
-                    ->columnSpanFull(),
+                    ->maxLength(150),
 
                 Forms\Components\Select::make('parent_id')
                     ->label('Kategori Induk')
@@ -90,6 +99,13 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
+                Tables\Columns\TextColumn::make('mataPelajaran.nama')
+                    ->label('Mata Pelajaran')
+                    ->placeholder('—')
+                    ->badge()
+                    ->color('info')
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('nama')
                     ->label('Nama Kategori')
                     ->searchable()
@@ -144,6 +160,11 @@ class CategoryResource extends Resource
                     ->visible(fn(): bool => Auth::user()->level === User::LEVEL_GURU),
             ])
             ->filters([
+                Tables\Filters\SelectFilter::make('mata_pelajaran_id')
+                    ->label('Mata Pelajaran')
+                    ->options(fn() => MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
+                    ->searchable(),
+
                 Tables\Filters\SelectFilter::make('parent_id')
                     ->label('Kategori Induk')
                     ->options(fn() => Category::whereNull('parent_id')->pluck('nama', 'id'))

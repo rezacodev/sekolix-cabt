@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             TagSeeder::class,              // depends on: QuestionSeeder
             AnnouncementSeeder::class,     // depends on: UserSeeder, RombelSeeder
             ExamBlueprintSeeder::class,    // depends on: CurriculumStandardSeeder, QuestionSeeder (untuk kategori)
+            Guru1CurriculumStandardBlueprintSeeder::class,
             SessionNoteSeeder::class,      // depends on: ExamSessionSeeder, UserSeeder
             AnalisisUlanganSeeder::class,  // depends on: ExamPackageSeeder, UserSeeder (data khusus fitur analisis)
         ]);

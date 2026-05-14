@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Models\Category;
+use App\Models\MataPelajaran;
 use App\Models\Question;
 use App\Models\QuestionKeyword;
 use App\Models\QuestionMatch;
@@ -139,12 +140,18 @@ class QuestionsImport implements ToCollection, WithHeadingRow
             $data = $item['row'];
 
             try {
+                // Resolve mata_pelajaran_id
+                $mapelId = null;
+                if (! empty($data['mata_pelajaran'])) {
+                    $mapelId = MataPelajaran::where('nama', $data['mata_pelajaran'])->value('id');
+                }
+
                 // Resolve/buat kategori
                 $kategoriId = null;
                 if (! empty($data['kategori'])) {
                     $kategoriId = $kategoriMap->get($data['kategori']);
                     if (! $kategoriId) {
-                        $cat = Category::create(['nama' => $data['kategori']]);
+                        $cat = Category::create(['nama' => $data['kategori'], 'mata_pelajaran_id' => $mapelId]);
                         $kategoriId = $cat->id;
                         $kategoriMap->put($data['kategori'], $kategoriId);
                     }
@@ -199,7 +206,10 @@ class QuestionsImport implements ToCollection, WithHeadingRow
             if (!empty($data['kategori'])) {
                 $kategoriId = $kategoriMap->get($data['kategori']);
                 if (!$kategoriId) {
-                    $cat = Category::create(['nama' => $data['kategori']]);
+                    $mapelId = ! empty($data['mata_pelajaran'])
+                        ? MataPelajaran::where('nama', $data['mata_pelajaran'])->value('id')
+                        : null;
+                    $cat = Category::create(['nama' => $data['kategori'], 'mata_pelajaran_id' => $mapelId]);
                     $kategoriId = $cat->id;
                     $kategoriMap->put($data['kategori'], $kategoriId);
                 }
@@ -227,18 +237,19 @@ class QuestionsImport implements ToCollection, WithHeadingRow
     private static function normalizeRow(array $row): array
     {
         return [
-            'tipe_soal' => strtoupper(trim($row['tipe_soal'] ?? '')),
-            'teks_soal' => trim($row['teks_soal'] ?? ''),
-            'kategori'  => trim($row['kategori'] ?? ''),
-            'kesulitan' => strtolower(trim($row['kesulitan'] ?? 'sedang')),
-            'bobot'     => $row['bobot'] ?? 1,
-            'opsi_a'    => trim($row['opsi_a'] ?? ''),
-            'opsi_b'    => trim($row['opsi_b'] ?? ''),
-            'opsi_c'    => trim($row['opsi_c'] ?? ''),
-            'opsi_d'    => trim($row['opsi_d'] ?? ''),
-            'opsi_e'    => trim($row['opsi_e'] ?? ''),
-            'kunci'     => strtoupper(trim($row['kunci'] ?? '')),
-            'audio_url' => trim($row['audio_url'] ?? ''),
+            'tipe_soal'      => strtoupper(trim($row['tipe_soal'] ?? '')),
+            'teks_soal'      => trim($row['teks_soal'] ?? ''),
+            'mata_pelajaran' => trim($row['mata_pelajaran'] ?? ''),
+            'kategori'       => trim($row['kategori'] ?? ''),
+            'kesulitan'      => strtolower(trim($row['kesulitan'] ?? 'sedang')),
+            'bobot'          => $row['bobot'] ?? 1,
+            'opsi_a'         => trim($row['opsi_a'] ?? ''),
+            'opsi_b'         => trim($row['opsi_b'] ?? ''),
+            'opsi_c'         => trim($row['opsi_c'] ?? ''),
+            'opsi_d'         => trim($row['opsi_d'] ?? ''),
+            'opsi_e'         => trim($row['opsi_e'] ?? ''),
+            'kunci'          => strtoupper(trim($row['kunci'] ?? '')),
+            'audio_url'      => trim($row['audio_url'] ?? ''),
         ];
     }
 

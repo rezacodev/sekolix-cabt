@@ -12,6 +12,7 @@ class Category extends Model
     protected $fillable = [
         'nama',
         'parent_id',
+        'mata_pelajaran_id',
         'created_by',
         'deskripsi',
         'created_at',
@@ -38,6 +39,11 @@ class Category extends Model
     public function parent(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(Category::class, 'parent_id');
+    }
+
+    public function mataPelajaran(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\MataPelajaran::class, 'mata_pelajaran_id');
     }
 
     public function children(): \Illuminate\Database\Eloquent\Relations\HasMany

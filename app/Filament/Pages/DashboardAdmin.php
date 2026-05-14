@@ -6,6 +6,7 @@ use App\Models\Announcement;
 use App\Models\ExamAttempt;
 use App\Models\ExamPackage;
 use App\Models\ExamSession;
+use App\Models\MataPelajaran;
 use App\Models\Question;
 use App\Models\Rombel;
 use App\Models\User;
@@ -45,7 +46,7 @@ class DashboardAdmin extends \Filament\Pages\Dashboard
       : $this->buildGuruData($user);
   }
 
-  // ── Admin / Super-Admin data ──────────────────────────────────────────────
+    // ── Admin / Super-Admin data ──────────────────────────────────────────────
 
   private function buildAdminData(User $user): array
   {
@@ -55,6 +56,19 @@ class DashboardAdmin extends \Filament\Pages\Dashboard
     $totalSoal        = Question::count();
     $totalPaket       = ExamPackage::count();
     $totalSesi        = ExamSession::whereNotIn('status', [ExamSession::STATUS_DIBATALKAN])->count();
+
+    // Soal per mata pelajaran (via category.mata_pelajaran_id)
+    $soalPerMapel = MataPelajaran::where('aktif', true)
+      ->withCount(['categories as soal_count' => fn($q) => $q->whereHas('questions')])
+      ->orderBy('nama')
+      ->get()
+      ->map(fn($m) => (object) [
+        'nama'  => $m->nama,
+        'kode'  => $m->kode,
+        'count' => \App\Models\Question::whereHas('category', fn($q) => $q->where('mata_pelajaran_id', $m->id))->count(),
+      ])
+      ->filter(fn($m) => $m->count > 0)
+      ->values();
 
     // Sesi yang sedang aktif saat ini
     $sesiAktif = ExamSession::where('status', ExamSession::STATUS_AKTIF)
@@ -108,6 +122,7 @@ class DashboardAdmin extends \Filament\Pages\Dashboard
       'sesiAktif',
       'sesiTerbaru',
       'pengumuman',
+      'soalPerMapel',
     );
   }
 

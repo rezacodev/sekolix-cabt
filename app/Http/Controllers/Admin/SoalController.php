@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\MataPelajaran;
 use App\Models\Question;
 use Illuminate\Http\Request;
 
@@ -29,6 +30,10 @@ class SoalController extends Controller
             $query->where('kategori_id', $kategoriId);
         }
 
+        if ($mapelId = $request->get('mata_pelajaran_id')) {
+            $query->whereHas('category', fn($q) => $q->where('mata_pelajaran_id', $mapelId));
+        }
+
         if ($kesulitan = $request->get('kesulitan')) {
             $query->where('tingkat_kesulitan', $kesulitan);
         }
@@ -37,7 +42,7 @@ class SoalController extends Controller
             ->select('id', 'tipe', 'teks_soal', 'tingkat_kesulitan', 'bobot', 'kategori_id')
             ->limit(50)
             ->get()
-            ->map(fn ($q) => [
+            ->map(fn($q) => [
                 'id'          => $q->id,
                 'tipe'        => $q->tipe,
                 'tipe_label'  => Question::TIPE_LABELS[$q->tipe] ?? $q->tipe,

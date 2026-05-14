@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\QuestionResource\Pages;
 use App\Models\Category;
 use App\Models\CurriculumStandard;
+use App\Models\MataPelajaran;
 use App\Models\Question;
 use App\Models\QuestionGroup;
 use App\Models\Tag;
@@ -13,10 +14,12 @@ use App\Services\AuditLogService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Filters\Indicator;
 use Illuminate\Support\Facades\Auth;
 
 class QuestionResource extends Resource
@@ -62,12 +65,39 @@ class QuestionResource extends Resource
                                 }
                             }),
 
-                        Forms\Components\Select::make('kategori_id')
-                            ->label('Kategori')
-                            ->options(fn() => Category::pluck('nama', 'id'))
+                        Forms\Components\Select::make('_mapel_filter')
+                            ->label('Mata Pelajaran')
+                            ->helperText('Pilih mapel untuk menyaring pilihan kategori di bawah')
+                            ->options(fn() => MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
                             ->searchable()
                             ->nullable()
-                            ->native(false),
+                            ->native(false)
+                            ->live()
+                            ->dehydrated(false)
+                            ->afterStateHydrated(function (Forms\Components\Select $component, $state, $record) {
+                                if ($record && $record->kategori_id) {
+                                    $mapelId = Category::find($record->kategori_id)?->mata_pelajaran_id;
+                                    if ($mapelId) {
+                                        $component->state($mapelId);
+                                    }
+                                }
+                            })
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                $set('kategori_id', null);
+                            }),
+
+                        Forms\Components\Select::make('kategori_id')
+                            ->label('Kategori')
+                            ->helperText(fn(Get $get) => $get('_mapel_filter') ? 'Pilih kategori yang sesuai dengan mapel terpilih.' : 'Pilih mata pelajaran terlebih dahulu.')
+                            ->options(fn(Get $get) => $get('_mapel_filter')
+                                ? Category::where('mata_pelajaran_id', $get('_mapel_filter'))->orderBy('nama')->pluck('nama', 'id')
+                                : collect([]))
+                            ->searchable()
+                            ->nullable()
+                            ->native(false)
+                            ->live()
+                            ->disabled(fn(Get $get) => ! $get('_mapel_filter'))
+                            ->placeholder('Pilih mata pelajaran dulu'),
 
                         Forms\Components\Select::make('tingkat_kesulitan')
                             ->label('Tingkat Kesulitan')
@@ -124,7 +154,15 @@ class QuestionResource extends Resource
                             ->multiple()
                             ->searchable()
                             ->preload()
-                            ->nullable(),
+                            ->nullable()
+                            ->createOptionForm([
+                                Forms\Components\TextInput::make('nama')
+                                    ->label('Nama Tag')
+                                    ->required()
+                                    ->maxLength(100)
+                                    ->placeholder('mis. Kurikulum Merdeka, HOTS, Literasi'),
+                            ])
+                            ->createOptionUsing(fn(array $data) => Tag::firstOrCreate(['nama' => $data['nama']])->getKey()),
                     ])->columns(3),
 
                 Forms\Components\Section::make('Pengelompokan Stimulus')
@@ -193,11 +231,7 @@ class QuestionResource extends Resource
                                 Forms\Components\TextInput::make('kode_opsi')
                                     ->label('Kode')
                                     ->required()
-                                    ->maxLength(5)
-                                    ->default(function (Forms\Components\Repeater $repeater) {
-                                        $codes = ['A', 'B', 'C', 'D', 'E', 'F'];
-                                        return $codes[count($repeater->getState())] ?? '';
-                                    }),
+                                    ->maxLength(5),
                                 Forms\Components\RichEditor::make('teks_opsi')
                                     ->label('Teks Opsi')
                                     ->required()
@@ -389,10 +423,14 @@ class QuestionResource extends Resource
                     ->searchable()
                     ->wrap(),
 
-                Tables\Columns\TextColumn::make('category.nama')
-                    ->label('Kategori')
-                    ->placeholder('—')
-                    ->sortable(),
+                Tables\Columns\TextColumn::make('category')
+                    ->label('Mapel / Kategori')
+                    ->html()
+                    ->formatStateUsing(fn($state, $record) => match (true) {
+                        $record->category?->mataPelajaran?->nama && $record->category?->nama => '<div><strong>' . e($record->category->mataPelajaran->nama) . '</strong><br><span class="text-gray-600 text-sm">' . e($record->category->nama) . '</span></div>',
+                        $record->category?->nama => e($record->category->nama),
+                        default => '—',
+                    }),
 
                 Tables\Columns\BadgeColumn::make('tingkat_kesulitan')
                     ->label('Kesulitan')
@@ -407,21 +445,17 @@ class QuestionResource extends Resource
                     ->label('Bobot')
                     ->sortable(),
 
-                Tables\Columns\IconColumn::make('lock_position')
-                    ->label('Kunci Posisi')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-lock-closed')
-                    ->falseIcon('heroicon-o-lock-open'),
-
                 Tables\Columns\ToggleColumn::make('aktif')
                     ->label('Aktif'),
 
                 Tables\Columns\TextColumn::make('group.judul')
                     ->label('Grup')
                     ->placeholder('—')
-                    ->badge()
+                    // ->badge()
                     ->color('gray')
                     ->limit(30)
+                    ->wrap()
+                    ->extraAttributes(['class' => 'max-w-[10rem] whitespace-normal'])
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('bloom_level')
@@ -443,21 +477,6 @@ class QuestionResource extends Resource
                     ->badge()
                     ->color('primary')
                     ->toggleable(isToggledHiddenByDefault: true),
-
-                Tables\Columns\TextColumn::make('visibilitas')
-                    ->label('Visibilitas')
-                    ->badge()
-                    ->formatStateUsing(fn($state) => Question::VISIBILITAS_LABELS[$state] ?? $state)
-                    ->color(fn($state) => match ($state) {
-                        Question::VISIBILITAS_INTERNAL => 'warning',
-                        Question::VISIBILITAS_PUBLIK   => 'success',
-                        default                        => 'gray',
-                    })
-                    ->icon(fn($state) => match ($state) {
-                        Question::VISIBILITAS_INTERNAL => 'heroicon-o-user-group',
-                        Question::VISIBILITAS_PUBLIK   => 'heroicon-o-globe-alt',
-                        default                        => 'heroicon-o-lock-closed',
-                    }),
 
                 Tables\Columns\IconColumn::make('audio_url')
                     ->label('Audio')
@@ -484,10 +503,40 @@ class QuestionResource extends Resource
                     ->options(Question::TIPE_LABELS)
                     ->multiple(),
 
-                Tables\Filters\SelectFilter::make('kategori_id')
-                    ->label('Kategori')
-                    ->options(fn() => Category::pluck('nama', 'id'))
-                    ->searchable(),
+                Tables\Filters\Filter::make('mapel_kategori')
+                    ->label('Mata Pelajaran / Kategori')
+                    ->form([
+                        Forms\Components\Select::make('mata_pelajaran_id')
+                            ->label('Mata Pelajaran')
+                            ->options(fn() => MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
+                            ->searchable()
+                            ->native(false)
+                            ->live(),
+                        Forms\Components\Select::make('kategori_id')
+                            ->label('Kategori')
+                            ->options(fn(Get $get) => $get('mata_pelajaran_id')
+                                ? Category::where('mata_pelajaran_id', $get('mata_pelajaran_id'))->orderBy('nama')->pluck('nama', 'id')
+                                : Category::orderBy('nama')->pluck('nama', 'id'))
+                            ->searchable()
+                            ->native(false),
+                    ])
+                    ->query(function (\Illuminate\Database\Eloquent\Builder $query, array $data) {
+                        $query
+                            ->when($data['kategori_id'] ?? null, fn($q, $v) => $q->where('kategori_id', $v))
+                            ->when($data['mata_pelajaran_id'] ?? null, fn($q, $v) => $q->whereHas('category', fn($cq) => $cq->where('mata_pelajaran_id', $v)));
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if (! empty($data['mata_pelajaran_id'])) {
+                            $nama = MataPelajaran::find($data['mata_pelajaran_id'])?->nama;
+                            if ($nama) $indicators[] = Indicator::make('Mapel: ' . $nama)->removeField('mata_pelajaran_id');
+                        }
+                        if (! empty($data['kategori_id'])) {
+                            $nama = Category::find($data['kategori_id'])?->nama;
+                            if ($nama) $indicators[] = Indicator::make('Kategori: ' . $nama)->removeField('kategori_id');
+                        }
+                        return $indicators;
+                    }),
 
                 Tables\Filters\SelectFilter::make('tingkat_kesulitan')
                     ->label('Kesulitan')

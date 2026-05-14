@@ -120,7 +120,7 @@ class ReportService
         }
 
         $questions = $session->package->questions()
-            ->with(['options', 'keywords'])
+            ->with(['options', 'keywords', 'category.mataPelajaran'])
             ->orderBy('exam_package_questions.urutan')
             ->get();
 
@@ -173,6 +173,8 @@ class ReportService
                 'question'        => $question,
                 'tipe'            => $question->tipe,
                 'teks'            => strip_tags($question->teks_soal),
+                'kategori_nama'   => $question->category?->nama ?? null,
+                'mapel_nama'      => $question->category?->mataPelajaran?->nama ?? null,
                 'total_jawab'     => $totalJawab,
                 'jumlah_benar'    => $jumlahBenar,
                 'jumlah_salah'    => $totalJawab - $jumlahBenar - $jumlahKosong,

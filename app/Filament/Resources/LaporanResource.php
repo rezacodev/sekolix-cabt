@@ -60,7 +60,7 @@ class LaporanResource extends Resource
     {
         $query = ExamSession::query()
             ->whereIn('status', [ExamSession::STATUS_AKTIF, ExamSession::STATUS_SELESAI])
-            ->with(['package', 'creator']);
+            ->with(['package.blueprint.mataPelajaran', 'creator']);
 
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
@@ -81,6 +81,13 @@ class LaporanResource extends Resource
                     ->sortable()
                     ->weight('bold')
                     ->description(fn(ExamSession $r) => $r->package?->nama ?? '—'),
+
+                Tables\Columns\TextColumn::make('package.blueprint.mataPelajaran.nama')
+                    ->label('Mata Pelajaran')
+                    ->badge()
+                    ->color('info')
+                    ->placeholder('—')
+                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
@@ -128,6 +135,15 @@ class LaporanResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Status')
                     ->options(ExamSession::STATUS_LABELS)
+                    ->native(false),
+
+                Tables\Filters\SelectFilter::make('mata_pelajaran')
+                    ->label('Mata Pelajaran')
+                    ->options(\App\Models\MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
+                    ->query(fn($query, $data) => $data['value']
+                        ? $query->whereHas('package.blueprint', fn($q) => $q->where('mata_pelajaran_id', $data['value']))
+                        : $query
+                    )
                     ->native(false),
 
                 Tables\Filters\SelectFilter::make('created_by')

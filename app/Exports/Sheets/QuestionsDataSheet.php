@@ -29,6 +29,7 @@ class QuestionsDataSheet implements FromArray, WithHeadings, WithTitle, WithStyl
       'opsi_d',
       'opsi_e',
       'kunci',
+      'mata_pelajaran',
       'kategori',
       'kesulitan',
       'bobot',
@@ -48,6 +49,7 @@ class QuestionsDataSheet implements FromArray, WithHeadings, WithTitle, WithStyl
         '',
         'B',
         'Pengetahuan Umum',
+        'Pengetahuan Umum',
         'mudah',
         1,
       ],
@@ -60,6 +62,7 @@ class QuestionsDataSheet implements FromArray, WithHeadings, WithTitle, WithStyl
         'Hanya terjadi pada malam hari',
         '',
         'B,C',
+        'IPA',
         'Biologi',
         'sedang',
         2,
@@ -74,6 +77,7 @@ class QuestionsDataSheet implements FromArray, WithHeadings, WithTitle, WithStyl
         '',
         'B',
         'IPA',
+        'IPA',
         'mudah',
         1,
       ],
@@ -87,6 +91,7 @@ class QuestionsDataSheet implements FromArray, WithHeadings, WithTitle, WithStyl
         '',
         'Bandung',
         'Pengetahuan Umum',
+        'Pengetahuan Umum',
         'mudah',
         1,
       ],
@@ -99,6 +104,7 @@ class QuestionsDataSheet implements FromArray, WithHeadings, WithTitle, WithStyl
         '',
         '',
         '',
+        'IPA',
         'Biologi',
         'sedang',
         5,
@@ -117,16 +123,17 @@ class QuestionsDataSheet implements FromArray, WithHeadings, WithTitle, WithStyl
       'F' => 25,  // opsi_d
       'G' => 25,  // opsi_e
       'H' => 15,  // kunci
-      'I' => 20,  // kategori
-      'J' => 12,  // kesulitan
-      'K' => 8,   // bobot
+      'I' => 20,  // mata_pelajaran
+      'J' => 20,  // kategori
+      'K' => 12,  // kesulitan
+      'L' => 8,   // bobot
     ];
   }
 
   public function styles(Worksheet $sheet): array
   {
     // Header row style
-    $sheet->getStyle('A1:K1')->applyFromArray([
+    $sheet->getStyle('A1:L1')->applyFromArray([
       'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF'], 'size' => 11],
       'fill' => [
         'fillType'   => Fill::FILL_SOLID,
@@ -147,13 +154,13 @@ class QuestionsDataSheet implements FromArray, WithHeadings, WithTitle, WithStyl
     // Alternating row background for data rows (2–6)
     for ($row = 2; $row <= 6; $row++) {
       $color = ($row % 2 === 0) ? 'EFF6FF' : 'FFFFFF';
-      $sheet->getStyle("A{$row}:K{$row}")->applyFromArray([
+      $sheet->getStyle("A{$row}:L{$row}")->applyFromArray([
         'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => $color]],
       ]);
     }
 
     // Borders for header + data
-    $sheet->getStyle('A1:K6')->applyFromArray([
+    $sheet->getStyle('A1:L6')->applyFromArray([
       'borders' => [
         'allBorders' => ['borderStyle' => 'thin', 'color' => ['rgb' => 'BFDBFE']],
       ],

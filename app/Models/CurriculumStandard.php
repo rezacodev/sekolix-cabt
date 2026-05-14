@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class CurriculumStandard extends Model
 {
+
   const JENJANG_LABELS = [
     'SD'            => 'SD',
     'SMP'           => 'SMP',
@@ -32,12 +33,28 @@ class CurriculumStandard extends Model
     'kode',
     'nama',
     'mata_pelajaran',
+    'mata_pelajaran_id',
     'jenjang',
     'kurikulum',
     'kelas',
     'tingkat_kognitif',
     'created_by',
   ];
+
+  protected static function boot(): void
+  {
+    parent::boot();
+    static::saving(function ($model) {
+      if ($model->mata_pelajaran_id && ! $model->mata_pelajaran) {
+        $model->mata_pelajaran = \App\Models\MataPelajaran::find($model->mata_pelajaran_id)?->nama ?? '';
+      }
+    });
+  }
+
+  public function mataPelajaran(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+  {
+    return $this->belongsTo(MataPelajaran::class, 'mata_pelajaran_id');
+  }
 
   public function questions(): \Illuminate\Database\Eloquent\Relations\HasMany
   {
