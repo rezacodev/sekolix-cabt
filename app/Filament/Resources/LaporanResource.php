@@ -140,9 +140,10 @@ class LaporanResource extends Resource
                 Tables\Filters\SelectFilter::make('mata_pelajaran')
                     ->label('Mata Pelajaran')
                     ->options(\App\Models\MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
-                    ->query(fn($query, $data) => $data['value']
-                        ? $query->whereHas('package.blueprint', fn($q) => $q->where('mata_pelajaran_id', $data['value']))
-                        : $query
+                    ->query(
+                        fn($query, $data) => $data['value']
+                            ? $query->whereHas('package.blueprint', fn($q) => $q->where('mata_pelajaran_id', $data['value']))
+                            : $query
                     )
                     ->native(false),
 

@@ -46,7 +46,7 @@ class DashboardAdmin extends \Filament\Pages\Dashboard
       : $this->buildGuruData($user);
   }
 
-    // ── Admin / Super-Admin data ──────────────────────────────────────────────
+  // ── Admin / Super-Admin data ──────────────────────────────────────────────
 
   private function buildAdminData(User $user): array
   {

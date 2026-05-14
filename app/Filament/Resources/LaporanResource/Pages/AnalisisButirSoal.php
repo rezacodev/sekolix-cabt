@@ -188,9 +188,10 @@ class AnalisisButirSoal extends Page implements HasTable
                 Tables\Filters\SelectFilter::make('mata_pelajaran')
                     ->label('Mata Pelajaran')
                     ->options(MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
-                    ->query(fn($query, $data) => $data['value']
-                        ? $query->whereHas('question.category', fn($q) => $q->where('mata_pelajaran_id', $data['value']))
-                        : $query
+                    ->query(
+                        fn($query, $data) => $data['value']
+                            ? $query->whereHas('question.category', fn($q) => $q->where('mata_pelajaran_id', $data['value']))
+                            : $query
                     )
                     ->native(false),
 
