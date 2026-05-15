@@ -31,6 +31,9 @@ class MonitorSesi extends Page
 
         /** @var \App\Models\User $user */
         $user = Auth::user();
+        if ($user->level < User::LEVEL_GURU) {
+            abort(403);
+        }
         if ($user->level === User::LEVEL_GURU && $record->created_by !== $user->id) {
             abort(403);
         }

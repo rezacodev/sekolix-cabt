@@ -40,7 +40,7 @@ class UserSeeder extends Seeder
             [
                 'name'     => 'Budi Waluyo',
                 'username' => 'guru.budi',
-                'password' => Hash::make('guru123'),
+                'password' => Hash::make('N'),
                 'level'    => User::LEVEL_GURU,
                 'nip'      => '198712312005121001',
                 'nuptk'    => 'NUPTK-001',

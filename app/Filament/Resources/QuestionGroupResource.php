@@ -33,6 +33,11 @@ class QuestionGroupResource extends Resource
 
   protected static ?string $pluralModelLabel = 'Grup Soal (Stimulus)';
 
+  public static function canViewAny(): bool
+  {
+    return Auth::user()?->level >= User::LEVEL_GURU;
+  }
+
   public static function canEdit(Model $record): bool
   {
     $user = Auth::user();

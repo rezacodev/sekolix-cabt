@@ -47,6 +47,11 @@ class GradingResource extends Resource
         return static::canAccess();
     }
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Auth::user()?->level === User::LEVEL_GURU;
+    }
+
     // ── Query: sesi yang paketnya grading_mode = manual ──────────────────────
     public static function getEloquentQuery(): Builder
     {

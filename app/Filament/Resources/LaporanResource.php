@@ -39,6 +39,12 @@ class LaporanResource extends Resource
     {
         return static::canAccess();
     }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Auth::user()?->level === User::LEVEL_GURU;
+    }
+
     public static function canCreate(): bool
     {
         return false;

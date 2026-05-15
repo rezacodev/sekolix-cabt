@@ -310,12 +310,22 @@ class ExamPackageResource extends Resource
             ]);
     }
 
+    public static function canViewAny(): bool
+    {
+        return Auth::user()?->level >= User::LEVEL_GURU;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Auth::user()?->level === User::LEVEL_GURU;
+    }
+
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
         $query = parent::getEloquentQuery();
-        $user  = \Illuminate\Support\Facades\Auth::user();
+        $user  = Auth::user();
 
-        if ($user->level === \App\Models\User::LEVEL_GURU) {
+        if ($user->level === User::LEVEL_GURU) {
             return $query->where('created_by', $user->id);
         }
 

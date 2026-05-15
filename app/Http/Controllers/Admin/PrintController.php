@@ -61,6 +61,45 @@ class PrintController extends Controller
         return view('print.kisi-kisi', compact('blueprint', 'schoolName', 'schoolLogoUrl'));
     }
 
+    /** Cetak kisi-kisi blueprint format formal (sesuai format dokumen resmi) — printable */
+    public function blueprintFormal(ExamBlueprint $blueprint)
+    {
+        $schoolName    = \App\Models\AppSetting::getString('school_name', '');
+        $schoolLogoUrl = \App\Models\AppSetting::getString('school_logo_url', '');
+
+        $blueprint->load([
+            'items' => fn($q) => $q->orderBy('capaian_pembelajaran')
+                                    ->orderBy('materi')
+                                    ->orderBy('urutan'),
+            'items.category',
+            'items.standard',
+            'items.tag',
+            'creator',
+        ]);
+
+        $bentukMap = [
+            'PG'       => 'PG',
+            'PG_BOBOT' => 'PG',
+            'PGJ'      => 'PGJ',
+            'BS'       => 'B-S',
+            'JODOH'    => 'MENJODOHKAN',
+            'ISIAN'    => 'ISIAN',
+            'CLOZE'    => 'ISIAN',
+            'URAIAN'   => 'URAIAN',
+        ];
+
+        $bentukSoalList = $blueprint->items
+            ->map(fn($i) => $bentukMap[$i->tipe_soal] ?? null)
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        return view('print.kisi-kisi-formal', compact(
+            'blueprint', 'schoolName', 'schoolLogoUrl', 'bentukMap', 'bentukSoalList'
+        ));
+    }
+
     /** Pastikan Guru hanya cetak sesi miliknya. */
     private function authorize(ExamSession $session): void
     {

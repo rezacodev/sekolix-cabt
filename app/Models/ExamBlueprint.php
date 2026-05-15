@@ -12,6 +12,11 @@ class ExamBlueprint extends Model
     'mata_pelajaran_id',
     'deskripsi',
     'total_soal',
+    'jenis_ujian',
+    'kelas',
+    'bab',
+    'penyusun',
+    'tahun_ajaran',
     'created_by',
   ];
 

@@ -664,6 +664,16 @@ class QuestionResource extends Resource
             ->defaultSort('created_at', 'desc');
     }
 
+    public static function canViewAny(): bool
+    {
+        return Auth::user()?->level >= \App\Models\User::LEVEL_GURU;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Auth::user()?->level === \App\Models\User::LEVEL_GURU;
+    }
+
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
         $query = parent::getEloquentQuery();

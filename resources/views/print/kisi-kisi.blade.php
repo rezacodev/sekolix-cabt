@@ -13,9 +13,9 @@
         .meta { font-size: 10pt; border: 1px solid #000; padding: 8px 12px; margin-bottom: 16px; }
         .meta table { width: 100%; border-collapse: collapse; }
         .meta td { padding: 2px 4px; vertical-align: top; }
-        .meta td:first-child { width: 30%; font-weight: bold; }
-        table.kisi { width: 100%; border-collapse: collapse; font-size: 10pt; }
-        table.kisi th, table.kisi td { border: 1px solid #000; padding: 5px 7px; vertical-align: top; }
+        .meta td:first-child { width: 22%; font-weight: bold; }
+        table.kisi { width: 100%; border-collapse: collapse; font-size: 9pt; }
+        table.kisi th, table.kisi td { border: 1px solid #000; padding: 4px 6px; vertical-align: top; }
         table.kisi thead tr { background: #e0e0e0; font-weight: bold; text-align: center; }
         table.kisi td.center { text-align: center; }
         table.kisi tfoot td { font-weight: bold; background: #f5f5f5; }
@@ -25,6 +25,7 @@
         .print-btn { position: fixed; bottom: 20px; right: 20px; padding: 10px 20px;
                      background: #2563eb; color: white; border: none; border-radius: 6px;
                      font-size: 12pt; cursor: pointer; }
+        @page { size: A4 landscape; margin: 10mm 15mm; }
         @media print {
             body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .no-print { display: none !important; }
@@ -54,9 +55,31 @@
             <tr>
                 <td>Mata Pelajaran</td>
                 <td>: {{ $blueprint->mata_pelajaran }}</td>
-                <td style="width:25%;font-weight:bold;">Total Soal</td>
+                <td style="width:22%;font-weight:bold;">Total Soal</td>
                 <td>: {{ $blueprint->total_soal }}</td>
             </tr>
+            @if ($blueprint->jenis_ujian)
+            <tr>
+                <td>Jenis Ujian</td>
+                <td colspan="3">: {{ $blueprint->jenis_ujian }}</td>
+            </tr>
+            @endif
+            @if ($blueprint->kelas || $blueprint->bab)
+            <tr>
+                <td>Kelas / Semester</td>
+                <td>: {{ $blueprint->kelas ?? '—' }}</td>
+                <td style="font-weight:bold;">Bab</td>
+                <td>: {{ $blueprint->bab ?? '—' }}</td>
+            </tr>
+            @endif
+            @if ($blueprint->penyusun || $blueprint->tahun_ajaran)
+            <tr>
+                <td>Penyusun</td>
+                <td>: {{ $blueprint->penyusun ?? '—' }}</td>
+                <td style="font-weight:bold;">Tahun Ajaran</td>
+                <td>: {{ $blueprint->tahun_ajaran ?? '—' }}</td>
+            </tr>
+            @endif
             @if ($blueprint->deskripsi)
             <tr>
                 <td>Keterangan</td>
@@ -73,7 +96,6 @@
     </div>
 
     @php
-        $totalBaris = $blueprint->items->count();
         $totalSoal  = $blueprint->items->sum('jumlah_soal');
         $totalBobot = $blueprint->items->sum(fn($i) => $i->jumlah_soal * $i->bobot_per_soal);
     @endphp
@@ -81,28 +103,34 @@
     <table class="kisi">
         <thead>
             <tr>
-                <th style="width:4%">No</th>
-                <th style="width:14%">Kategori</th>
-                <th style="width:14%">KD / CP</th>
-                <th style="width:10%">Tipe Soal</th>
-                <th style="width:10%">Kesulitan</th>
-                <th style="width:8%">Bloom</th>
-                <th style="width:8%">Tag</th>
-                <th style="width:8%">Jml Soal</th>
-                <th style="width:9%">Bobot/Soal</th>
-                <th style="width:9%">Total Bobot</th>
-                <th style="width:16%">Keterangan Kriteria</th>
+                <th style="width:3%">No</th>
+                <th style="width:12%">Capaian Pembelajaran</th>
+                <th style="width:10%">Materi</th>
+                <th style="width:16%">Indikator</th>
+                <th style="width:10%">Kategori</th>
+                <th style="width:10%">KD / CP</th>
+                <th style="width:7%">Tipe Soal</th>
+                <th style="width:7%">Kesulitan</th>
+                <th style="width:5%">Bloom</th>
+                <th style="width:5%">Tag</th>
+                <th style="width:5%">Jml</th>
+                <th style="width:5%">Bobot</th>
+                <th style="width:5%">Total</th>
+                <th style="width:5%">No. Soal</th>
             </tr>
         </thead>
         <tbody>
             @foreach ($blueprint->items as $item)
             <tr>
                 <td class="center">{{ $loop->iteration }}</td>
+                <td>{{ $item->capaian_pembelajaran ?? '—' }}</td>
+                <td>{{ $item->materi ?? '—' }}</td>
+                <td><small>{{ $item->indikator ?? '—' }}</small></td>
                 <td>{{ optional($item->category)->nama ?? '—' }}</td>
                 <td>
                     @if ($item->standard)
                         <strong>{{ $item->standard->kode }}</strong><br>
-                        <small>{{ Str::limit($item->standard->nama, 60) }}</small>
+                        <small>{{ Str::limit($item->standard->nama, 40) }}</small>
                     @else
                         —
                     @endif
@@ -114,13 +142,13 @@
                 <td class="center">{{ $item->jumlah_soal }}</td>
                 <td class="center">{{ number_format($item->bobot_per_soal, 1) }}</td>
                 <td class="center">{{ number_format($item->jumlah_soal * $item->bobot_per_soal, 1) }}</td>
-                <td><small>{{ $item->kriteria_label }}</small></td>
+                <td class="center">{{ $item->nomor_soal ?? '—' }}</td>
             </tr>
             @endforeach
         </tbody>
         <tfoot>
             <tr>
-                <td colspan="7" class="center">TOTAL</td>
+                <td colspan="10" class="center">TOTAL</td>
                 <td class="center">{{ $totalSoal }}</td>
                 <td class="center">—</td>
                 <td class="center">{{ number_format($totalBobot, 1) }}</td>
@@ -133,7 +161,7 @@
         <div class="ttd">
             <div>{{ now()->translatedFormat('d F Y') }}</div>
             <div>Guru / Penyusun,</div>
-            <div class="ttd-line">{{ optional($blueprint->creator)->name ?? '___________________' }}</div>
+            <div class="ttd-line">{{ $blueprint->penyusun ?? optional($blueprint->creator)->name ?? '___________________' }}</div>
         </div>
     </div>
 

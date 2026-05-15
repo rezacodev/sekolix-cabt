@@ -75,13 +75,25 @@ class CurriculumStandardResource extends Resource
     public static function form(Form $form): Form
     {
         return $form->schema([
-            Forms\Components\Section::make('Identitas Standar')
+            // ── Identitas ─────────────────────────────────────────────────────
+            Forms\Components\Section::make('Identitas KD/CP')
                 ->schema([
-                    Forms\Components\TextInput::make('kode')
-                        ->label('Kode KD/CP')
+                    Forms\Components\Select::make('mata_pelajaran_id')
+                        ->label('Mata Pelajaran')
+                        ->helperText('Belum ada? Tambahkan di menu Kurikulum → Mata Pelajaran')
+                        ->options(fn() => MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
+                        ->searchable()
                         ->required()
-                        ->maxLength(50)
-                        ->placeholder('mis. 3.1, CP.BIN.10.1'),
+                        ->native(false)
+                        ->live()
+                        ->afterStateUpdated(function ($state, Set $set) {
+                            if ($state) {
+                                $mapel = MataPelajaran::find($state);
+                                if ($mapel?->jenjang && $mapel->jenjang !== 'Umum') {
+                                    $set('jenjang', $mapel->jenjang);
+                                }
+                            }
+                        }),
 
                     Forms\Components\Select::make('kurikulum')
                         ->label('Kurikulum')
@@ -89,33 +101,54 @@ class CurriculumStandardResource extends Resource
                         ->required()
                         ->native(false),
 
+                    Forms\Components\TextInput::make('kode')
+                        ->label('Kode KD/CP')
+                        ->required()
+                        ->maxLength(50)
+                        ->placeholder('mis. 3.1, CP.BIN.10.1'),
+
                     Forms\Components\Select::make('jenjang')
                         ->label('Jenjang')
                         ->options(CurriculumStandard::JENJANG_LABELS)
                         ->required()
-                        ->native(false),
-
-                    Forms\Components\Select::make('mata_pelajaran_id')
-                        ->label('Mata Pelajaran (dari tabel)')
-                        ->helperText('Pilih dari daftar mapel yang terdaftar, atau isi manual di field bawah')
-                        ->options(fn() => MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
-                        ->searchable()
-                        ->nullable()
                         ->native(false)
-                        ->live()
-                        ->afterStateUpdated(function ($state, Set $set) {
-                            if ($state) {
-                                $nama = MataPelajaran::find($state)?->nama;
-                                if ($nama) $set('mata_pelajaran', $nama);
-                            }
-                        }),
+                        ->helperText('Otomatis terisi saat mapel dipilih'),
+                ])->columns(2),
 
-                    Forms\Components\TextInput::make('mata_pelajaran')
-                        ->label('Mata Pelajaran')
+            // ── Deskripsi ─────────────────────────────────────────────────────
+            Forms\Components\Section::make('Deskripsi KD/CP')
+                ->schema([
+                    Forms\Components\Textarea::make('nama')
+                        ->label('Rumusan KD/CP / Indikator')
                         ->required()
-                        ->maxLength(100)
-                        ->placeholder('mis. Bahasa Indonesia'),
+                        ->rows(3)
+                        ->columnSpanFull(),
+                ]),
 
+            // ── Konteks Kisi-kisi ─────────────────────────────────────────────
+            Forms\Components\Section::make('Konteks Kisi-kisi Formal')
+                ->description('Digunakan untuk auto-fill baris kisi-kisi saat KD/CP ini dipilih')
+                ->collapsible()
+                ->collapsed()
+                ->schema([
+                    Forms\Components\TextInput::make('capaian_pembelajaran')
+                        ->label('Capaian Pembelajaran')
+                        ->maxLength(200)
+                        ->nullable()
+                        ->placeholder('mis. Algoritma dan Pemrograman'),
+
+                    Forms\Components\TextInput::make('materi')
+                        ->label('Materi')
+                        ->maxLength(200)
+                        ->nullable()
+                        ->placeholder('mis. Scratch dan Blockly'),
+                ])->columns(2),
+
+            // ── Detail Tambahan ───────────────────────────────────────────────
+            Forms\Components\Section::make('Detail Tambahan')
+                ->collapsible()
+                ->collapsed()
+                ->schema([
                     Forms\Components\TextInput::make('kelas')
                         ->label('Kelas / Semester')
                         ->maxLength(20)
@@ -127,17 +160,8 @@ class CurriculumStandardResource extends Resource
                         ->options(CurriculumStandard::BLOOM_LABELS)
                         ->nullable()
                         ->native(false)
-                        ->helperText('Tingkat kognitif default KD ini (dapat di-override di soal)'),
-                ])->columns(3),
-
-            Forms\Components\Section::make('Deskripsi')
-                ->schema([
-                    Forms\Components\Textarea::make('nama')
-                        ->label('Deskripsi / Rumusan KD/CP')
-                        ->required()
-                        ->rows(3)
-                        ->columnSpanFull(),
-                ]),
+                        ->helperText('Tingkat kognitif default KD ini'),
+                ])->columns(2),
         ]);
     }
 
@@ -145,6 +169,12 @@ class CurriculumStandardResource extends Resource
     {
         return $table
             ->defaultSort('mata_pelajaran')
+            ->groups([
+                Tables\Grouping\Group::make('mata_pelajaran')
+                    ->label('Mata Pelajaran')
+                    ->collapsible(),
+            ])
+            ->defaultGroup('mata_pelajaran')
             ->columns([
                 Tables\Columns\TextColumn::make('kode')
                     ->label('Kode')
@@ -155,7 +185,8 @@ class CurriculumStandardResource extends Resource
                 Tables\Columns\TextColumn::make('mata_pelajaran')
                     ->label('Mapel')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('nama')
                     ->label('Deskripsi')
@@ -186,11 +217,13 @@ class CurriculumStandardResource extends Resource
 
                 Tables\Columns\TextColumn::make('kelas')
                     ->label('Kelas')
-                    ->sortable(),
+                    ->sortable()
+                    ->placeholder('—'),
 
                 Tables\Columns\TextColumn::make('tingkat_kognitif')
                     ->label('Bloom')
                     ->badge()
+                    ->placeholder('—')
                     ->color(fn($state) => match ($state) {
                         'C1', 'C2' => 'gray',
                         'C3'       => 'info',

@@ -17,6 +17,10 @@ class ExamBlueprintItem extends Model
     'jumlah_soal',
     'bobot_per_soal',
     'urutan',
+    'capaian_pembelajaran',
+    'materi',
+    'indikator',
+    'nomor_soal',
   ];
 
   protected function casts(): array

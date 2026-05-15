@@ -25,6 +25,11 @@ class TagResource extends Resource
     protected static ?string $modelLabel       = 'Tag';
     protected static ?string $pluralModelLabel = 'Tag Soal';
 
+    public static function canViewAny(): bool
+    {
+        return Auth::user()?->level >= User::LEVEL_GURU;
+    }
+
     public static function canCreate(): bool
     {
         return Auth::user()->level >= User::LEVEL_GURU;

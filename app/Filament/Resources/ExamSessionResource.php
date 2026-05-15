@@ -29,6 +29,16 @@ class ExamSessionResource extends Resource
     protected static ?string $pluralModelLabel     = 'Sesi Ujian';
     protected static ?string $recordTitleAttribute = 'nama_sesi';
 
+    public static function canViewAny(): bool
+    {
+        return Auth::user()?->level >= User::LEVEL_GURU;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return Auth::user()?->level === User::LEVEL_GURU;
+    }
+
     // ── Guru hanya melihat sesi milik sendiri ────────────────────────────────
     public static function getEloquentQuery(): Builder
     {

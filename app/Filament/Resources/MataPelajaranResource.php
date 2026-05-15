@@ -3,11 +3,11 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\MataPelajaranResource\Pages;
+use App\Filament\Resources\MataPelajaranResource\RelationManagers;
 use App\Models\MataPelajaran;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -19,8 +19,8 @@ class MataPelajaranResource extends Resource
 
   protected static ?string $navigationIcon  = 'heroicon-o-book-open';
   protected static ?string $navigationLabel = 'Mata Pelajaran';
-  // protected static ?string $navigationGroup = 'Kurikulum';
-  protected static ?int    $navigationSort  = 3;
+  protected static ?string $navigationGroup = 'Kurikulum';
+  protected static ?int    $navigationSort  = 0;
   protected static ?string $modelLabel       = 'Mata Pelajaran';
   protected static ?string $pluralModelLabel = 'Mata Pelajaran';
 
@@ -125,6 +125,11 @@ class MataPelajaranResource extends Resource
           })
           ->sortable(),
 
+        Tables\Columns\TextColumn::make('curriculum_standards_count')
+          ->label('Jml KD/CP')
+          ->counts('curriculumStandards')
+          ->sortable(),
+
         Tables\Columns\IconColumn::make('aktif')
           ->label('Aktif')
           ->boolean()
@@ -159,6 +164,7 @@ class MataPelajaranResource extends Resource
           ->falseLabel('Non-aktif'),
       ])
       ->actions([
+        Tables\Actions\ViewAction::make(),
         Tables\Actions\EditAction::make(),
         Tables\Actions\DeleteAction::make()
           ->successNotificationTitle('Mata pelajaran berhasil dihapus'),
@@ -172,7 +178,9 @@ class MataPelajaranResource extends Resource
 
   public static function getRelations(): array
   {
-    return [];
+    return [
+      RelationManagers\CurriculumStandardsRelationManager::class,
+    ];
   }
 
   public static function getPages(): array
@@ -180,6 +188,7 @@ class MataPelajaranResource extends Resource
     return [
       'index'  => Pages\ListMataPelajaran::route('/'),
       'create' => Pages\CreateMataPelajaran::route('/create'),
+      'view'   => Pages\ViewMataPelajaran::route('/{record}'),
       'edit'   => Pages\EditMataPelajaran::route('/{record}/edit'),
     ];
   }

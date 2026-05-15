@@ -32,6 +32,8 @@ class CurriculumStandard extends Model
   protected $fillable = [
     'kode',
     'nama',
+    'capaian_pembelajaran',
+    'materi',
     'mata_pelajaran',
     'mata_pelajaran_id',
     'jenjang',

@@ -10,7 +10,6 @@ use App\Models\MataPelajaran;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
-use Filament\Forms\Set;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -87,25 +86,12 @@ class ExamBlueprintResource extends Resource
                         ->columnSpan(2),
 
                     Forms\Components\Select::make('mata_pelajaran_id')
-                        ->label('Mata Pelajaran (dari tabel)')
-                        ->helperText('Pilih dari daftar mapel yang terdaftar, atau isi manual di field bawah')
+                        ->label('Mata Pelajaran')
+                        ->helperText('Belum ada? Tambahkan di menu Kurikulum → Mata Pelajaran')
                         ->options(fn() => MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
                         ->searchable()
-                        ->nullable()
-                        ->native(false)
-                        ->live()
-                        ->afterStateUpdated(function ($state, Set $set) {
-                            if ($state) {
-                                $nama = MataPelajaran::find($state)?->nama;
-                                if ($nama) $set('mata_pelajaran', $nama);
-                            }
-                        }),
-
-                    Forms\Components\TextInput::make('mata_pelajaran')
-                        ->label('Mata Pelajaran')
                         ->required()
-                        ->maxLength(100)
-                        ->placeholder('mis. Matematika'),
+                        ->native(false),
 
                     Forms\Components\TextInput::make('total_soal')
                         ->label('Total Soal')
@@ -120,6 +106,42 @@ class ExamBlueprintResource extends Resource
                         ->rows(2)
                         ->nullable()
                         ->columnSpanFull(),
+                ])->columns(3),
+
+            Forms\Components\Section::make('Informasi Dokumen Formal')
+                ->description('Digunakan untuk format cetak kisi-kisi formal')
+                ->collapsible()
+                ->collapsed()
+                ->schema([
+                    Forms\Components\TextInput::make('jenis_ujian')
+                        ->label('Jenis Ujian')
+                        ->maxLength(100)
+                        ->nullable()
+                        ->placeholder('mis. ASLIM SEMESTER GENAP'),
+
+                    Forms\Components\TextInput::make('kelas')
+                        ->label('Kelas / Semester')
+                        ->maxLength(50)
+                        ->nullable()
+                        ->placeholder('mis. IX / 2'),
+
+                    Forms\Components\TextInput::make('bab')
+                        ->label('Bab')
+                        ->maxLength(100)
+                        ->nullable()
+                        ->placeholder('mis. 7 DAN 8'),
+
+                    Forms\Components\TextInput::make('penyusun')
+                        ->label('Penyusun')
+                        ->maxLength(200)
+                        ->nullable()
+                        ->placeholder('mis. MGMP INFORMATIKA'),
+
+                    Forms\Components\TextInput::make('tahun_ajaran')
+                        ->label('Tahun Ajaran')
+                        ->maxLength(20)
+                        ->nullable()
+                        ->placeholder('mis. 2025/2026'),
                 ])->columns(3),
         ]);
     }
@@ -222,6 +244,13 @@ class ExamBlueprintResource extends Resource
                         ->url(fn($record) => route('blueprint.cetak', $record->id))
                         ->openUrlInNewTab(),
 
+                    Tables\Actions\Action::make('cetak_formal')
+                        ->label('Cetak Format Formal')
+                        ->icon('heroicon-o-document-text')
+                        ->color('warning')
+                        ->url(fn($record) => route('blueprint.cetak.formal', $record->id))
+                        ->openUrlInNewTab(),
+
                     Tables\Actions\EditAction::make(),
                     Tables\Actions\DeleteAction::make()
                         ->requiresConfirmation()
@@ -248,9 +277,11 @@ class ExamBlueprintResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => Pages\ListExamBlueprints::route('/'),
-            'create' => Pages\CreateExamBlueprint::route('/create'),
-            'edit'   => Pages\EditExamBlueprint::route('/{record}/edit'),
+            'index'        => Pages\ListExamBlueprints::route('/'),
+            'create'       => Pages\CreateExamBlueprint::route('/create'),
+            'edit'         => Pages\EditExamBlueprint::route('/{record}/edit'),
+            'items.create' => Pages\CreateBlueprintItem::route('/{record}/items/create'),
+            'items.edit'   => Pages\EditBlueprintItem::route('/{record}/items/{item}/edit'),
         ];
     }
 }

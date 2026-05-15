@@ -28,7 +28,7 @@ class AnnouncementResource extends Resource
 
   public static function canViewAny(): bool
   {
-    return Auth::user()?->level >= User::LEVEL_GURU;
+    return Auth::user()?->level >= User::LEVEL_ADMIN;
   }
 
   public static function form(Form $form): Form

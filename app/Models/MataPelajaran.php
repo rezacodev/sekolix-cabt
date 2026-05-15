@@ -36,4 +36,9 @@ class MataPelajaran extends Model
   {
     return $this->belongsTo(User::class, 'created_by');
   }
+
+  public function curriculumStandards(): \Illuminate\Database\Eloquent\Relations\HasMany
+  {
+    return $this->hasMany(CurriculumStandard::class, 'mata_pelajaran_id');
+  }
 }

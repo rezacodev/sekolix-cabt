@@ -33,6 +33,11 @@ class CategoryResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Kategori Soal';
 
+    public static function canViewAny(): bool
+    {
+        return Auth::user()?->level >= User::LEVEL_GURU;
+    }
+
     /**
      * Guru hanya bisa edit/delete kategori milik sendiri.
      * Admin & SuperAdmin bisa mengelola semua kategori.

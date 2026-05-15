@@ -74,6 +74,11 @@ Route::middleware(['auth', 'check.level:2'])
     ->get('/cabt/blueprint/{blueprint}/cetak', [PrintController::class, 'blueprint'])
     ->name('blueprint.cetak');
 
+// Blueprint kisi-kisi format formal print (level >= 2)
+Route::middleware(['auth', 'check.level:2'])
+    ->get('/cabt/blueprint/{blueprint}/cetak-formal', [PrintController::class, 'blueprintFormal'])
+    ->name('blueprint.cetak.formal');
+
 // Serve private URAIAN files — owner (peserta) or admin/guru (level >= 2)
 Route::middleware('auth')->get('/file/uraian/{attemptId}/{filename}', [UjianController::class, 'serveFile'])
     ->name('ujian.file.uraian')
