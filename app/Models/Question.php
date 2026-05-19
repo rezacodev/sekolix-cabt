@@ -5,6 +5,7 @@ namespace App\Models;
 use Database\Factories\QuestionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\ExamPackage;
 
 class Question extends Model
 {
@@ -105,6 +106,13 @@ class Question extends Model
     public function standard(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(CurriculumStandard::class, 'curriculum_standard_id');
+    }
+
+    public function examPackages(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(ExamPackage::class, 'exam_package_questions')
+            ->withPivot('urutan')
+            ->withTimestamps();
     }
 
     public function tags(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
