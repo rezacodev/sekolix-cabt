@@ -272,9 +272,12 @@ class UjianController extends Controller
                 isRagu: (bool) $request->input('is_ragu', false),
             );
 
-            $attempt->load('questions');
-            $total    = $attempt->questions()->count();
-            $terjawab = $attempt->questions->filter(fn($q) => $q->isDijawab())->count();
+            // Hitung langsung via query — hindari load semua questions ke memory
+            $total    = AttemptQuestion::where('attempt_id', $attemptId)->count();
+            $terjawab = AttemptQuestion::where('attempt_id', $attemptId)
+                ->whereNotNull('jawaban')
+                ->where('jawaban', '!=', '')
+                ->count();
 
             return response()->json([
                 'success'         => true,
