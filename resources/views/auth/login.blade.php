@@ -84,8 +84,4 @@
         </button>
     </form>
 
-    <p class="mt-6 text-center text-xs text-gray-400">
-        Untuk administrator, gunakan
-        <a href="/cabt/login" class="text-indigo-500 hover:underline">/cabt/login</a>
-    </p>
 </x-guest-layout>
