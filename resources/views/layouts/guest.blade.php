@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'CAT Sekolix') }}</title>
+    <title>{{ config('app.name', 'Aplikasi CABT') }}</title>
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -21,7 +21,7 @@
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                     </div>
-                    <span class="text-white font-bold text-xl">{{ config('app.name') }}</span>
+                    <span class="text-white font-bold text-xl">{{ config('app.name', 'Aplikasi CABT') }}</span>
                 </div>
             </div>
 
@@ -50,7 +50,7 @@
             </div>
 
             <div class="text-indigo-300 text-sm">
-                &copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.
+                &copy; {{ date('Y') }} {{ config('app.name', 'Aplikasi CABT') }}. All rights reserved.
             </div>
         </div>
 
@@ -65,7 +65,7 @@
                                 d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                         </svg>
                     </div>
-                    <span class="font-bold text-gray-900 text-lg">{{ config('app.name') }}</span>
+                    <span class="font-bold text-gray-900 text-lg">{{ config('app.name', 'Aplikasi CABT') }}</span>
                 </div>
 
                 {{ $slot }}

@@ -23,11 +23,10 @@
                 id="login"
                 type="text"
                 name="login"
-                value="{{ old('login', 'andi.p') }}"
+                value="{{ old('login') }}"
                 required
                 autofocus
                 autocomplete="username"
-                placeholder="contoh: andi.p atau andi@sekolah.id"
                 class="w-full rounded-xl border-gray-300 shadow-sm text-sm px-4 py-3
                     focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition
                     @error('login') border-red-400 ring-2 ring-red-100 @enderror"
@@ -52,7 +51,6 @@
                     id="password"
                     :type="show ? 'text' : 'password'"
                     name="password"
-                    value="peserta123"
                     required
                     autocomplete="current-password"
                     class="w-full rounded-xl border-gray-300 shadow-sm text-sm px-4 py-3 pr-11

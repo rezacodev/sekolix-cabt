@@ -18,8 +18,7 @@ class Login extends BaseLogin
             ->required()
             ->autocomplete()
             ->autofocus()
-            ->extraInputAttributes(['tabindex' => 1])
-            ->default(app()->isLocal() ? 'admin@cabt.local' : null);
+            ->extraInputAttributes(['tabindex' => 1]);
     }
 
     protected function getPasswordFormComponent(): Component
@@ -35,8 +34,7 @@ class Login extends BaseLogin
             ->revealable(filament()->arePasswordsRevealable())
             ->autocomplete('current-password')
             ->required()
-            ->extraInputAttributes(['tabindex' => 2])
-            ->default(app()->isLocal() ? 'admin123' : null);
+            ->extraInputAttributes(['tabindex' => 2]);
     }
 
     /**

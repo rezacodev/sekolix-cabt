@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name', 'Sekolix CABT') }} Masuk</title>
+    <title>Aplikasi CABT</title>
     <meta name="description" content="Platform Computer Assisted Test (CAT) berbasis web untuk sekolah.">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=plus-jakarta-sans:400,600,700,800&family=syne:700,800" rel="stylesheet" />
@@ -309,7 +309,7 @@
             </a>
         </div>
 
-        <p class="footer-note">&copy; {{ date('Y') }} {{ config('app.name', 'Sekolix CABT') }}</p>
+        <p class="footer-note">&copy; {{ date('Y') }} {{ config('app.name', 'Aplikasi CABT') }}</p>
     </div>
 </body>
 
