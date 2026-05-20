@@ -11,7 +11,9 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
+use App\Models\User;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use ShuvroRoy\FilamentSpatieLaravelHealth\FilamentSpatieLaravelHealthPlugin;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
@@ -35,6 +37,10 @@ class CabtPanelProvider extends PanelProvider
             ->pages([])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([])
+            ->plugin(
+                FilamentSpatieLaravelHealthPlugin::make()
+                    ->authorize(fn(): bool => auth()->check() && auth()->user()->level >= User::LEVEL_SUPER_ADMIN)
+            )
             ->renderHook(PanelsRenderHook::USER_MENU_PROFILE_AFTER, fn() => view('filament.panels.user-menu-settings'))
             ->middleware([
                 EncryptCookies::class,

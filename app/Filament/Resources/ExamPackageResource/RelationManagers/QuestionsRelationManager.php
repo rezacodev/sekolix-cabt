@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ExamPackageResource\RelationManagers;
 
+use App\Filament\Resources\ExamPackageResource;
 use App\Models\Category;
 use App\Models\ExamPackageQuestion;
 use App\Models\MataPelajaran;
@@ -14,6 +15,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class QuestionsRelationManager extends RelationManager
 {
@@ -107,24 +109,140 @@ class QuestionsRelationManager extends RelationManager
                     ])
                     ->action(fn() => null),
             ] : [
+                Tables\Actions\Action::make('tambah_soal_sekaligus')
+                    ->label('Tambah Soal - Sekaligus')
+                    ->icon('heroicon-o-squares-2x2')
+                    ->color('success')
+                    ->button()
+                    ->url(fn() => ExamPackageResource::getUrl('addMultipleQuestions', ['record' => $this->getOwnerRecord()]))
+                    ->openUrlInNewTab(false),
+
                 // 1. Tambah Soal Manual
-                Tables\Actions\AttachAction::make()
-                    ->label('Tambah Soal')
+                Tables\Actions\Action::make('tambah_soal')
+                    ->label('Tambah Soal - Satu per Satu')
                     ->icon('heroicon-o-plus')
                     ->color('primary')
-                    ->preloadRecordSelect()
-                    ->recordSelectOptionsQuery(fn(Builder $query) => $query->where('aktif', true))
-                    ->recordSelectSearchColumns(['teks_soal'])
-                    ->after(function ($livewire) {
-                        // set urutan = max + 1
-                        $owner    = $livewire->getOwnerRecord();
-                        $maxUrutan = ExamPackageQuestion::where('exam_package_id', $owner->id)->max('urutan') ?? 0;
-                        $pivot     = ExamPackageQuestion::where('exam_package_id', $owner->id)
-                            ->orderByDesc('id')
-                            ->first();
-                        if ($pivot && $pivot->urutan === 0) {
-                            $pivot->update(['urutan' => $maxUrutan + 1]);
+                    ->form([
+                        Forms\Components\Select::make('_mapel_filter')
+                            ->label('Mata Pelajaran')
+                            ->options(fn() => MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
+                            ->searchable()
+                            ->nullable()
+                            ->native(false)
+                            ->reactive()
+                            ->afterStateUpdated(fn(callable $set) => $set('kategori_id', null)),
+
+                        Forms\Components\Select::make('kategori_id')
+                            ->label('Kategori')
+                            ->options(fn(Get $get) => $get('_mapel_filter')
+                                ? Category::where('mata_pelajaran_id', $get('_mapel_filter'))
+                                ->orderBy('parent_id')
+                                ->orderBy('nama')
+                                ->get()
+                                ->mapWithKeys(fn(Category $category) => [
+                                    $category->id => ($category->parent_id ? '→ ' : '') . $category->nama,
+                                ])
+                                ->toArray()
+                                : [])
+                            ->searchable()
+                            ->nullable()
+                            ->native(false)
+                            ->disabled(fn(Get $get) => ! filled($get('_mapel_filter')))
+                            ->reactive(),
+
+                        Forms\Components\Select::make('question_ids')
+                            ->label('Soal')
+                            ->multiple()
+                            ->searchable()
+                            ->options(fn(Get $get) => Question::query()
+                                ->where('aktif', true)
+                                ->where(function ($query) {
+                                    $query->where('created_by', auth()->id())
+                                        ->orWhereIn('visibilitas', [
+                                            Question::VISIBILITAS_INTERNAL,
+                                            Question::VISIBILITAS_PUBLIK,
+                                        ]);
+                                })
+                                ->when($get('_mapel_filter'), fn($query, $mapelId) => $query->whereHas('category', fn($query) => $query->where('mata_pelajaran_id', $mapelId)))
+                                ->when($get('kategori_id'), fn($query, $kategoriId) => $query->where(function ($query) use ($kategoriId) {
+                                    $query->where('kategori_id', $kategoriId)
+                                        ->orWhereHas('category', fn($query) => $query->where('parent_id', $kategoriId));
+                                }))
+                                ->orderBy('id')
+                                ->limit(50)
+                                ->get()
+                                ->mapWithKeys(fn(Question $question) => [
+                                    $question->id => Str::limit(strip_tags($question->teks_soal), 100),
+                                ])
+                                ->toArray())
+                            ->getSearchResultsUsing(function (string $search, Get $get): array {
+                                $query = Question::query()
+                                    ->where('aktif', true)
+                                    ->where(function ($query) {
+                                        $query->where('created_by', auth()->id())
+                                            ->orWhereIn('visibilitas', [
+                                                Question::VISIBILITAS_INTERNAL,
+                                                Question::VISIBILITAS_PUBLIK,
+                                            ]);
+                                    });
+
+                                if ($mapelId = $get('_mapel_filter')) {
+                                    $query->whereHas('category', fn($query) => $query->where('mata_pelajaran_id', $mapelId));
+                                }
+
+                                if ($kategoriId = $get('kategori_id')) {
+                                    $query->where(function ($query) use ($kategoriId) {
+                                        $query->where('kategori_id', $kategoriId)
+                                            ->orWhereHas('category', fn($query) => $query->where('parent_id', $kategoriId));
+                                    });
+                                }
+
+                                if (filled($search)) {
+                                    $query->where('teks_soal', 'like', "%{$search}%");
+                                }
+
+                                return $query
+                                    ->orderBy('id')
+                                    ->limit(50)
+                                    ->get()
+                                    ->mapWithKeys(fn(Question $question) => [
+                                        $question->id => Str::limit(strip_tags($question->teks_soal), 100),
+                                    ])
+                                    ->toArray();
+                            })
+                            ->getOptionLabelsUsing(fn(array $values) => Question::whereIn('id', $values)
+                                ->get()
+                                ->mapWithKeys(fn(Question $question) => [
+                                    $question->id => Str::limit(strip_tags($question->teks_soal), 100),
+                                ])
+                                ->toArray())
+                            ->required(),
+                    ])
+                    ->action(function (array $data) {
+                        $owner = $this->getOwnerRecord();
+                        $questionIds = $data['question_ids'] ?? [];
+
+                        if (empty($questionIds)) {
+                            Notification::make()
+                                ->title('Pilih minimal satu soal.')
+                                ->danger()
+                                ->send();
+                            return;
                         }
+
+                        $maxUrutan = ExamPackageQuestion::where('exam_package_id', $owner->id)->max('urutan') ?? 0;
+
+                        foreach ($questionIds as $questionId) {
+                            ExamPackageQuestion::firstOrCreate(
+                                ['exam_package_id' => $owner->id, 'question_id' => $questionId],
+                                ['urutan' => ++$maxUrutan],
+                            );
+                        }
+
+                        Notification::make()
+                            ->title(count($questionIds) . ' soal berhasil ditambahkan.')
+                            ->success()
+                            ->send();
                     }),
 
                 // 2. Auto-Pilih Soal
@@ -174,8 +292,20 @@ class QuestionsRelationManager extends RelationManager
 
                         $query = Question::query()
                             ->where('aktif', true)
-                            ->whereNotIn('id', $existing);
+                            ->whereNotIn('id', $existing)
+                            ->where(function ($query) {
+                                $query->where('created_by', auth()->id())
+                                    ->orWhereIn('visibilitas', [
+                                        Question::VISIBILITAS_INTERNAL,
+                                        Question::VISIBILITAS_PUBLIK,
+                                    ]);
+                            });
 
+                        if (! empty($data['_mapel_filter'])) {
+                            $query->whereHas('category', function ($q) use ($data) {
+                                $q->where('mata_pelajaran_id', $data['_mapel_filter']);
+                            });
+                        }
                         if (! empty($data['tipe'])) {
                             $query->where('tipe', $data['tipe']);
                         }
@@ -183,9 +313,9 @@ class QuestionsRelationManager extends RelationManager
                             $query->where('tingkat_kesulitan', $data['kesulitan']);
                         }
                         if (! empty($data['kategori_id'])) {
-                            $query->whereHas('category', function ($q) use ($data) {
-                                $q->where('id', $data['kategori_id'])
-                                    ->orWhere('parent_id', $data['kategori_id']);
+                            $query->where(function ($q) use ($data) {
+                                $q->where('kategori_id', $data['kategori_id'])
+                                    ->orWhereHas('category', fn($q) => $q->where('parent_id', $data['kategori_id']));
                             });
                         }
 

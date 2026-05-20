@@ -346,6 +346,7 @@ class ExamPackageResource extends Resource
             'index'  => Pages\ListExamPackages::route('/'),
             'create' => Pages\CreateExamPackage::route('/create'),
             'edit'   => Pages\EditExamPackage::route('/{record}/edit'),
+            'addMultipleQuestions' => Pages\AddMultipleQuestions::route('/{record}/tambah-soal-sekaligus'),
         ];
     }
 }
