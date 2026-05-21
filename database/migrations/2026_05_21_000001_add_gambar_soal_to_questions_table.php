@@ -6,17 +6,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
-    {
-        Schema::table('questions', function (Blueprint $table) {
-            $table->string('gambar_soal', 500)->nullable()->after('teks_soal');
-        });
-    }
+  public function up(): void
+  {
+    Schema::table('questions', function (Blueprint $table) {
+      $table->string('gambar_soal', 500)->nullable()->after('teks_soal');
+    });
+  }
 
-    public function down(): void
-    {
-        Schema::table('questions', function (Blueprint $table) {
-            $table->dropColumn('gambar_soal');
-        });
-    }
+  public function down(): void
+  {
+    Schema::table('questions', function (Blueprint $table) {
+      $table->dropColumn('gambar_soal');
+    });
+  }
 };
