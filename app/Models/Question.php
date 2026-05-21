@@ -52,6 +52,7 @@ class Question extends Model
         'group_urutan',
         'curriculum_standard_id',
         'bloom_level',
+        'mata_pelajaran_id',
         'kategori_id',
         'tipe',
         'teks_soal',

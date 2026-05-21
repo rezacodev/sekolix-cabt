@@ -65,7 +65,7 @@ class QuestionResource extends Resource
                                 }
                             }),
 
-                        Forms\Components\Select::make('_mapel_filter')
+                        Forms\Components\Select::make('mata_pelajaran_id')
                             ->label('Mata Pelajaran')
                             ->helperText('Pilih mapel untuk menyaring pilihan kategori di bawah')
                             ->options(fn() => MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
@@ -73,30 +73,22 @@ class QuestionResource extends Resource
                             ->nullable()
                             ->native(false)
                             ->live()
-                            ->dehydrated(false)
-                            ->afterStateHydrated(function (Forms\Components\Select $component, $state, $record) {
-                                if ($record && $record->kategori_id) {
-                                    $mapelId = Category::find($record->kategori_id)?->mata_pelajaran_id;
-                                    if ($mapelId) {
-                                        $component->state($mapelId);
-                                    }
-                                }
-                            })
                             ->afterStateUpdated(function ($state, Forms\Set $set) {
                                 $set('kategori_id', null);
                             }),
 
                         Forms\Components\Select::make('kategori_id')
                             ->label('Kategori')
-                            ->helperText(fn(Get $get) => $get('_mapel_filter') ? 'Pilih kategori yang sesuai dengan mapel terpilih.' : 'Pilih mata pelajaran terlebih dahulu.')
-                            ->options(fn(Get $get) => $get('_mapel_filter')
-                                ? Category::where('mata_pelajaran_id', $get('_mapel_filter'))->orderBy('nama')->pluck('nama', 'id')
+                            ->helperText(fn(Get $get) => $get('mata_pelajaran_id') ? 'Pilih kategori yang sesuai dengan mapel terpilih.' : 'Pilih mata pelajaran terlebih dahulu.')
+                            ->options(fn(Get $get) => $get('mata_pelajaran_id')
+                                ? Category::where('mata_pelajaran_id', $get('mata_pelajaran_id'))->orderBy('nama')->pluck('nama', 'id')
                                 : collect([]))
                             ->searchable()
                             ->nullable()
                             ->native(false)
                             ->live()
-                            ->disabled(fn(Get $get) => ! $get('_mapel_filter'))
+                            ->disabled(fn(Get $get) => ! $get('mata_pelajaran_id'))
+                            ->dehydrated()
                             ->placeholder('Pilih mata pelajaran dulu'),
 
                         Forms\Components\Select::make('tingkat_kesulitan')
