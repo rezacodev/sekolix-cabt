@@ -102,6 +102,15 @@ class QuestionSeeder extends Seeder
     // HELPER
     // ─────────────────────────────────────────────────────────────────────────
 
+    private function resolveMapelId(int $kategoriId): ?int
+    {
+        $cat = Category::find($kategoriId);
+        if (! $cat) return null;
+        if ($cat->mata_pelajaran_id) return $cat->mata_pelajaran_id;
+        if ($cat->parent_id) return $this->resolveMapelId($cat->parent_id);
+        return null;
+    }
+
     private function makePG(int $kategoriId, string $teks, array $opsi, string $kunci, string $kesulitan = 'sedang', float $bobot = 1, ?string $penjelasan = null): void
     {
         if (Question::where('teks_soal', $teks)->exists()) {
@@ -109,6 +118,7 @@ class QuestionSeeder extends Seeder
         }
         $q = Question::create([
             'kategori_id'       => $kategoriId,
+            'mata_pelajaran_id' => $this->resolveMapelId($kategoriId),
             'tipe'              => Question::TIPE_PG,
             'teks_soal'         => $teks,
             'penjelasan'        => $penjelasan,
@@ -138,6 +148,7 @@ class QuestionSeeder extends Seeder
         }
         $q = Question::create([
             'kategori_id'       => $kategoriId,
+            'mata_pelajaran_id' => $this->resolveMapelId($kategoriId),
             'tipe'              => Question::TIPE_PG_BOBOT,
             'teks_soal'         => $teks,
             'tingkat_kesulitan' => $kesulitan,
@@ -165,6 +176,7 @@ class QuestionSeeder extends Seeder
         }
         $q = Question::create([
             'kategori_id'       => $kategoriId,
+            'mata_pelajaran_id' => $this->resolveMapelId($kategoriId),
             'tipe'              => Question::TIPE_PGJ,
             'teks_soal'         => $teks,
             'penjelasan'        => $penjelasan,
@@ -194,6 +206,7 @@ class QuestionSeeder extends Seeder
         }
         $q = Question::create([
             'kategori_id'       => $kategoriId,
+            'mata_pelajaran_id' => $this->resolveMapelId($kategoriId),
             'tipe'              => Question::TIPE_JODOH,
             'teks_soal'         => $teks,
             'tingkat_kesulitan' => $kesulitan,
@@ -218,6 +231,7 @@ class QuestionSeeder extends Seeder
         }
         $q = Question::create([
             'kategori_id'       => $kategoriId,
+            'mata_pelajaran_id' => $this->resolveMapelId($kategoriId),
             'tipe'              => Question::TIPE_ISIAN,
             'teks_soal'         => $teks,
             'penjelasan'        => $penjelasan,
@@ -238,6 +252,7 @@ class QuestionSeeder extends Seeder
         }
         Question::create([
             'kategori_id'       => $kategoriId,
+            'mata_pelajaran_id' => $this->resolveMapelId($kategoriId),
             'tipe'              => Question::TIPE_URAIAN,
             'teks_soal'         => $teks,
             'penjelasan'        => $penjelasan,

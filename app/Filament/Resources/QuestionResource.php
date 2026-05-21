@@ -474,7 +474,7 @@ class QuestionResource extends Resource
                     ->label('Mapel / Kategori')
                     ->html()
                     ->formatStateUsing(fn($state, $record) => match (true) {
-                        $record->category?->mataPelajaran?->nama && $record->category?->nama => '<div><strong>' . e($record->category->mataPelajaran->nama) . '</strong><br><span class="text-gray-600 text-sm">' . e($record->category->nama) . '</span></div>',
+                        $record->mataPelajaran?->nama && $record->category?->nama => '<div><strong>' . e($record->mataPelajaran->nama) . '</strong><br><span class="text-gray-600 text-sm">' . e($record->category->nama) . '</span></div>',
                         $record->category?->nama => e($record->category->nama),
                         default => '—',
                     }),
@@ -570,7 +570,7 @@ class QuestionResource extends Resource
                     ->query(function (\Illuminate\Database\Eloquent\Builder $query, array $data) {
                         $query
                             ->when($data['kategori_id'] ?? null, fn($q, $v) => $q->where('kategori_id', $v))
-                            ->when($data['mata_pelajaran_id'] ?? null, fn($q, $v) => $q->whereHas('category', fn($cq) => $cq->where('mata_pelajaran_id', $v)));
+                            ->when($data['mata_pelajaran_id'] ?? null, fn($q, $v) => $q->where('mata_pelajaran_id', $v));
                     })
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
@@ -723,7 +723,7 @@ class QuestionResource extends Resource
 
     public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
     {
-        $query = parent::getEloquentQuery();
+        $query = parent::getEloquentQuery()->with(['mataPelajaran', 'category']);
         $user  = Auth::user();
 
         if ($user->level === \App\Models\User::LEVEL_GURU) {

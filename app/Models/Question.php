@@ -85,6 +85,11 @@ class Question extends Model
         return $this->belongsTo(Category::class, 'kategori_id');
     }
 
+    public function mataPelajaran(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\MataPelajaran::class, 'mata_pelajaran_id');
+    }
+
     public function options(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(QuestionOption::class)->orderBy('urutan');

@@ -159,6 +159,7 @@ class QuestionsImport implements ToCollection, WithHeadingRow
 
                 $question = Question::create([
                     'kategori_id'       => $kategoriId,
+                    'mata_pelajaran_id' => $mapelId,
                     'tipe'              => $data['tipe_soal'],
                     'teks_soal'         => $data['teks_soal'],
                     'tingkat_kesulitan' => $data['kesulitan'],
@@ -217,6 +218,7 @@ class QuestionsImport implements ToCollection, WithHeadingRow
 
             $question = Question::create([
                 'kategori_id'       => $kategoriId,
+                'mata_pelajaran_id' => $mapelId ?? null,
                 'tipe'              => $data['tipe_soal'],
                 'teks_soal'         => $data['teks_soal'],
                 'tingkat_kesulitan' => $data['kesulitan'],
