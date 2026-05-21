@@ -16,6 +16,7 @@ class QuestionOption extends Model
         'question_id',
         'kode_opsi',
         'teks_opsi',
+        'gambar_opsi',
         'is_correct',
         'bobot_persen',
         'urutan',

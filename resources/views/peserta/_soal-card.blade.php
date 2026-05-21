@@ -75,6 +75,14 @@
     @endif
 
     <div class="text-gray-100 mb-5 leading-relaxed prose prose-invert prose-sm max-w-none exam-soal-text">
+        @if ($q->gambar_soal)
+            @php
+                $gambarSoalSrc = \Illuminate\Support\Str::startsWith($q->gambar_soal, ['http://', 'https://'])
+                    ? $q->gambar_soal
+                    : \Illuminate\Support\Facades\Storage::disk('public')->url($q->gambar_soal);
+            @endphp
+            <img src="{{ $gambarSoalSrc }}" alt="Gambar soal" class="max-w-full rounded-lg mb-3 border border-slate-600">
+        @endif
         {!! $q->teks_soal !!}
     </div>
 
@@ -91,7 +99,17 @@
                         @change="simpanJawaban({{ $attempt->id }}, {{ $aq->question_id }}, '{{ $opt->id }}', {{ $loop->index }})"
                         @if ($aq->jawaban_peserta == $opt->id) checked @endif
                     >
-                    <span class="text-gray-200 text-sm leading-relaxed exam-opt-text">{!! $opt->teks_opsi !!}</span>
+                    <span class="text-gray-200 text-sm leading-relaxed exam-opt-text">
+                        @if ($opt->gambar_opsi)
+                            @php
+                                $gambarOpsiSrc = \Illuminate\Support\Str::startsWith($opt->gambar_opsi, ['http://', 'https://'])
+                                    ? $opt->gambar_opsi
+                                    : \Illuminate\Support\Facades\Storage::disk('public')->url($opt->gambar_opsi);
+                            @endphp
+                            <img src="{{ $gambarOpsiSrc }}" alt="Gambar opsi" class="max-w-xs rounded mb-1 border border-slate-600">
+                        @endif
+                        {!! $opt->teks_opsi !!}
+                    </span>
                 </label>
             @endforeach
         </div>
@@ -110,7 +128,17 @@
                         @change="togglePgj({{ $attempt->id }}, {{ $aq->question_id }}, {{ $opt->id }}, $event.target.checked, {{ $loop->index }})"
                         @if (in_array($opt->id, $jawabanPgj)) checked @endif
                     >
-                    <span class="text-gray-200 text-sm leading-relaxed exam-opt-text">{!! $opt->teks_opsi !!}</span>
+                    <span class="text-gray-200 text-sm leading-relaxed exam-opt-text">
+                        @if ($opt->gambar_opsi)
+                            @php
+                                $gambarOpsiSrc = \Illuminate\Support\Str::startsWith($opt->gambar_opsi, ['http://', 'https://'])
+                                    ? $opt->gambar_opsi
+                                    : \Illuminate\Support\Facades\Storage::disk('public')->url($opt->gambar_opsi);
+                            @endphp
+                            <img src="{{ $gambarOpsiSrc }}" alt="Gambar opsi" class="max-w-xs rounded mb-1 border border-slate-600">
+                        @endif
+                        {!! $opt->teks_opsi !!}
+                    </span>
                 </label>
             @endforeach
         </div>
@@ -121,7 +149,17 @@
         <div class="space-y-3">
             @foreach ($q->matches as $match)
                 <div class="flex items-center gap-3">
-                    <span class="text-gray-200 text-sm flex-1 exam-opt-text">{!! $match->premis !!}</span>
+                    <div class="flex-1">
+                        @if ($match->gambar_premis)
+                            @php
+                                $gambarPremisSrc = \Illuminate\Support\Str::startsWith($match->gambar_premis, ['http://', 'https://'])
+                                    ? $match->gambar_premis
+                                    : \Illuminate\Support\Facades\Storage::disk('public')->url($match->gambar_premis);
+                            @endphp
+                            <img src="{{ $gambarPremisSrc }}" alt="Gambar premis" class="max-w-xs rounded mb-1 border border-slate-600">
+                        @endif
+                        <span class="text-gray-200 text-sm exam-opt-text">{!! $match->premis !!}</span>
+                    </div>
                     <select
                         class="exam-input bg-slate-700 border-slate-600 rounded-lg text-sm text-gray-200 flex-1
                             focus:ring-indigo-500 focus:border-indigo-500"

@@ -192,6 +192,7 @@ class QuestionResource extends Resource
                             ->label('Teks Soal')
                             ->required()
                             ->toolbarButtons([
+                                'attachFiles',
                                 'bold',
                                 'italic',
                                 'underline',
@@ -204,12 +205,29 @@ class QuestionResource extends Resource
                                 'codeBlock',
                                 'link',
                             ])
+                            ->fileAttachmentsDisk('public')
+                            ->fileAttachmentsDirectory('soal-images')
+                            ->fileAttachmentsVisibility('public')
+                            ->columnSpanFull(),
+
+                        Forms\Components\FileUpload::make('gambar_soal')
+                            ->label('Gambar Soal (opsional)')
+                            ->helperText('Gambar ditampilkan di atas teks soal. Gunakan attachFiles di editor untuk gambar inline.')
+                            ->disk('public')
+                            ->directory('soal-images')
+                            ->visibility('public')
+                            ->image()
+                            ->imagePreviewHeight('180')
+                            ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
+                            ->maxSize(fn() => \App\Models\AppSetting::getInt('max_image_mb', 5) * 1024)
+                            ->nullable()
                             ->columnSpanFull(),
 
                         Forms\Components\RichEditor::make('penjelasan')
                             ->label('Pembahasan / Penjelasan Jawaban')
                             ->helperText('Ditampilkan saat peserta review setelah ujian')
                             ->toolbarButtons([
+                                'attachFiles',
                                 'bold',
                                 'italic',
                                 'underline',
@@ -217,6 +235,9 @@ class QuestionResource extends Resource
                                 'orderedList',
                                 'link',
                             ])
+                            ->fileAttachmentsDisk('public')
+                            ->fileAttachmentsDirectory('soal-images')
+                            ->fileAttachmentsVisibility('public')
                             ->nullable()
                             ->columnSpanFull(),
                     ]),
@@ -235,7 +256,10 @@ class QuestionResource extends Resource
                                 Forms\Components\RichEditor::make('teks_opsi')
                                     ->label('Teks Opsi')
                                     ->required()
-                                    ->toolbarButtons(['bold', 'italic', 'underline'])
+                                    ->toolbarButtons(['attachFiles', 'bold', 'italic', 'underline'])
+                                    ->fileAttachmentsDisk('public')
+                                    ->fileAttachmentsDirectory('soal-images')
+                                    ->fileAttachmentsVisibility('public')
                                     ->columnSpan(3),
                                 Forms\Components\Toggle::make('is_correct')
                                     ->label('Benar')
@@ -252,6 +276,17 @@ class QuestionResource extends Resource
                                     ->numeric()
                                     ->default(0)
                                     ->hidden(),
+                                Forms\Components\FileUpload::make('gambar_opsi')
+                                    ->label('Gambar Opsi (opsional)')
+                                    ->disk('public')
+                                    ->directory('soal-images')
+                                    ->visibility('public')
+                                    ->image()
+                                    ->imagePreviewHeight('120')
+                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
+                                    ->maxSize(fn() => \App\Models\AppSetting::getInt('max_image_mb', 5) * 1024)
+                                    ->nullable()
+                                    ->columnSpanFull(),
                             ])
                             ->columns(5)
                             ->addActionLabel('Tambah Opsi')
@@ -284,6 +319,26 @@ class QuestionResource extends Resource
                                     ->label('Respon / Jawaban')
                                     ->required()
                                     ->rows(2),
+                                Forms\Components\FileUpload::make('gambar_premis')
+                                    ->label('Gambar Premis (opsional)')
+                                    ->disk('public')
+                                    ->directory('soal-images')
+                                    ->visibility('public')
+                                    ->image()
+                                    ->imagePreviewHeight('120')
+                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
+                                    ->maxSize(fn() => \App\Models\AppSetting::getInt('max_image_mb', 5) * 1024)
+                                    ->nullable(),
+                                Forms\Components\FileUpload::make('gambar_respon')
+                                    ->label('Gambar Respon (opsional)')
+                                    ->disk('public')
+                                    ->directory('soal-images')
+                                    ->visibility('public')
+                                    ->image()
+                                    ->imagePreviewHeight('120')
+                                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/gif', 'image/webp'])
+                                    ->maxSize(fn() => \App\Models\AppSetting::getInt('max_image_mb', 5) * 1024)
+                                    ->nullable(),
                                 Forms\Components\TextInput::make('urutan')
                                     ->label('Urutan')
                                     ->numeric()

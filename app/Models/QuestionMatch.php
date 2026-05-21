@@ -15,7 +15,9 @@ class QuestionMatch extends Model
     protected $fillable = [
         'question_id',
         'premis',
+        'gambar_premis',
         'respon',
+        'gambar_respon',
         'urutan',
     ];
 

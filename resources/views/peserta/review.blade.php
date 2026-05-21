@@ -53,6 +53,14 @@
                     <div class="p-5">
                         {{-- Pertanyaan --}}
                         <div class="prose prose-sm max-w-none mb-4 text-gray-800">
+                            @if ($q->gambar_soal)
+                                @php
+                                    $gambarSoalUrl = \Illuminate\Support\Str::startsWith($q->gambar_soal, ['http://', 'https://'])
+                                        ? $q->gambar_soal
+                                        : \Illuminate\Support\Facades\Storage::disk('public')->url($q->gambar_soal);
+                                @endphp
+                                <img src="{{ $gambarSoalUrl }}" alt="Gambar soal" class="max-w-full rounded-lg mb-3 border border-gray-200">
+                            @endif
                             {!! $q->teks_soal !!}
                         </div>
 
@@ -69,6 +77,14 @@
                             @elseif (in_array($q->tipe, ['PG', 'PG_BOBOT']))
                                 @php $selectedOpt = $q->options->firstWhere('id', $aq->jawaban_peserta); @endphp
                                 @if ($selectedOpt)
+                                    @if ($selectedOpt->gambar_opsi)
+                                        @php
+                                            $gambarOpsiUrl = \Illuminate\Support\Str::startsWith($selectedOpt->gambar_opsi, ['http://', 'https://'])
+                                                ? $selectedOpt->gambar_opsi
+                                                : \Illuminate\Support\Facades\Storage::disk('public')->url($selectedOpt->gambar_opsi);
+                                        @endphp
+                                        <img src="{{ $gambarOpsiUrl }}" alt="Gambar opsi" class="max-w-xs rounded mb-1 border border-gray-200">
+                                    @endif
                                     <p class="text-sm text-gray-800">{!! $selectedOpt->teks_opsi !!}</p>
                                 @else
                                     {{-- jawaban_peserta is user input — always escape --}}
@@ -77,6 +93,14 @@
                             @elseif ($q->tipe === 'PGJ')
                                 @php $ids = json_decode($aq->jawaban_peserta, true) ?: []; @endphp
                                 @foreach ($q->options->whereIn('id', $ids) as $opt)
+                                    @if ($opt->gambar_opsi)
+                                        @php
+                                            $gambarOpsiUrl = \Illuminate\Support\Str::startsWith($opt->gambar_opsi, ['http://', 'https://'])
+                                                ? $opt->gambar_opsi
+                                                : \Illuminate\Support\Facades\Storage::disk('public')->url($opt->gambar_opsi);
+                                        @endphp
+                                        <img src="{{ $gambarOpsiUrl }}" alt="Gambar opsi" class="max-w-xs rounded mb-1 border border-gray-200">
+                                    @endif
                                     <p class="text-sm text-gray-800">• {!! $opt->teks_opsi !!}</p>
                                 @endforeach
                             @else
@@ -89,7 +113,16 @@
                             @php $kunci = $q->options->firstWhere('is_correct', true); @endphp
                             @if ($kunci)
                                 <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-800">
-                                    <span class="font-semibold">Kunci: </span>{!! $kunci->teks_opsi !!}
+                                    <span class="font-semibold">Kunci: </span>
+                                    @if ($kunci->gambar_opsi)
+                                        @php
+                                            $gambarKunciUrl = \Illuminate\Support\Str::startsWith($kunci->gambar_opsi, ['http://', 'https://'])
+                                                ? $kunci->gambar_opsi
+                                                : \Illuminate\Support\Facades\Storage::disk('public')->url($kunci->gambar_opsi);
+                                        @endphp
+                                        <img src="{{ $gambarKunciUrl }}" alt="Gambar kunci" class="max-w-xs rounded my-1 border border-green-200">
+                                    @endif
+                                    {!! $kunci->teks_opsi !!}
                                 </div>
                             @endif
                         @endif

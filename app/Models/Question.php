@@ -56,6 +56,7 @@ class Question extends Model
         'tipe',
         'teks_soal',
         'penjelasan',
+        'gambar_soal',
         'audio_url',
         'audio_play_limit',
         'audio_auto_play',
