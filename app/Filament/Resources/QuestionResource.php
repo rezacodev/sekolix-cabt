@@ -475,6 +475,7 @@ class QuestionResource extends Resource
                     ->html()
                     ->formatStateUsing(fn($state, $record) => match (true) {
                         $record->mataPelajaran?->nama && $record->category?->nama => '<div><strong>' . e($record->mataPelajaran->nama) . '</strong><br><span class="text-gray-600 text-sm">' . e($record->category->nama) . '</span></div>',
+                        $record->mataPelajaran?->nama => '<strong>' . e($record->mataPelajaran->nama) . '</strong>',
                         $record->category?->nama => e($record->category->nama),
                         default => '—',
                     }),
