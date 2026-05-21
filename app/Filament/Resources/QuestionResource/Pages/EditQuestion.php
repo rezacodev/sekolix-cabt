@@ -15,6 +15,11 @@ class EditQuestion extends EditRecord
         return 'Soal berhasil diperbarui';
     }
 
+    protected function afterSave(): void
+    {
+        $this->fillForm();
+    }
+
     protected function getHeaderActions(): array
     {
         return [
