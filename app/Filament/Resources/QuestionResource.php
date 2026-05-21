@@ -470,13 +470,13 @@ class QuestionResource extends Resource
                     ->searchable()
                     ->wrap(),
 
-                Tables\Columns\TextColumn::make('category')
+                Tables\Columns\TextColumn::make('mata_pelajaran_id')
                     ->label('Mapel / Kategori')
                     ->html()
-                    ->formatStateUsing(fn($state, $record) => match (true) {
-                        $record->mataPelajaran?->nama && $record->category?->nama => '<div><strong>' . e($record->mataPelajaran->nama) . '</strong><br><span class="text-gray-600 text-sm">' . e($record->category->nama) . '</span></div>',
-                        $record->mataPelajaran?->nama => '<strong>' . e($record->mataPelajaran->nama) . '</strong>',
-                        $record->category?->nama => e($record->category->nama),
+                    ->getStateUsing(fn($record) => match (true) {
+                        (bool) ($record->mataPelajaran?->nama) && (bool) ($record->category?->nama) => '<div><strong>' . e($record->mataPelajaran->nama) . '</strong><br><span class="text-gray-600 text-sm">' . e($record->category->nama) . '</span></div>',
+                        (bool) ($record->mataPelajaran?->nama) => '<strong>' . e($record->mataPelajaran->nama) . '</strong>',
+                        (bool) ($record->category?->nama) => e($record->category->nama),
                         default => '—',
                     }),
 
