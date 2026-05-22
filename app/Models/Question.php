@@ -5,12 +5,30 @@ namespace App\Models;
 use Database\Factories\QuestionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use App\Models\ExamPackage;
 
 class Question extends Model
 {
     /** @use HasFactory<QuestionFactory> */
     use HasFactory;
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::updating(function (self $model) {
+            if ($model->isDirty('gambar_soal') && $model->getOriginal('gambar_soal')) {
+                Storage::disk('public')->delete($model->getOriginal('gambar_soal'));
+            }
+        });
+
+        static::deleted(function (self $model) {
+            if ($model->gambar_soal) {
+                Storage::disk('public')->delete($model->gambar_soal);
+            }
+        });
+    }
     const TIPE_PG       = 'PG';
     const TIPE_PG_BOBOT = 'PG_BOBOT';
     const TIPE_PGJ      = 'PGJ';

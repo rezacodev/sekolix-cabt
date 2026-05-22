@@ -6,13 +6,17 @@ use App\Filament\Resources\ExamPackageResource\Pages;
 use App\Filament\Resources\ExamPackageResource\RelationManagers;
 use App\Models\ExamBlueprint;
 use App\Models\ExamPackage;
+use App\Models\MataPelajaran;
+use App\Models\Category;
 use App\Models\User;
 use Filament\Notifications\Notification;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Filters\Indicator;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
 class ExamPackageResource extends Resource
@@ -45,6 +49,32 @@ class ExamPackageResource extends Resource
                             ->rows(3)
                             ->nullable()
                             ->columnSpanFull(),
+                    ]),
+
+                // ── Mata Pelajaran & Kategori ────────────────────────
+                Forms\Components\Section::make('Mata Pelajaran & Kategori')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\Select::make('mata_pelajaran_id')
+                            ->label('Mata Pelajaran')
+                            ->options(fn() => MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
+                            ->searchable()
+                            ->nullable()
+                            ->native(false)
+                            ->live()
+                            ->afterStateUpdated(fn(Forms\Set $set) => $set('kategori_id', null)),
+
+                        Forms\Components\Select::make('kategori_id')
+                            ->label('Kategori / Bab (opsional)')
+                            ->options(fn(Forms\Get $get) => $get('mata_pelajaran_id')
+                                ? Category::where('mata_pelajaran_id', $get('mata_pelajaran_id'))->orderBy('nama')->pluck('nama', 'id')
+                                : collect([]))
+                            ->searchable()
+                            ->nullable()
+                            ->native(false)
+                            ->disabled(fn(Forms\Get $get) => ! $get('mata_pelajaran_id'))
+                            ->dehydrated()
+                            ->placeholder('Pilih mata pelajaran dulu'),
                     ]),
 
                 // ── Blueprint Kisi-kisi ──────────────────────────────
@@ -243,9 +273,62 @@ class ExamPackageResource extends Resource
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
+                Tables\Filters\Filter::make('mapel_kategori')
+                    ->label('Mata Pelajaran / Kategori')
+                    ->form([
+                        Forms\Components\Select::make('mata_pelajaran_id')
+                            ->label('Mata Pelajaran')
+                            ->options(fn() => MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
+                            ->searchable()
+                            ->native(false)
+                            ->live(),
+                        Forms\Components\Select::make('kategori_id')
+                            ->label('Kategori')
+                            ->options(fn(Forms\Get $get) => $get('mata_pelajaran_id')
+                                ? Category::where('mata_pelajaran_id', $get('mata_pelajaran_id'))->orderBy('nama')->pluck('nama', 'id')
+                                : Category::orderBy('nama')->pluck('nama', 'id'))
+                            ->searchable()
+                            ->native(false),
+                    ])
+                    ->query(fn(Builder $query, array $data) => $query
+                        ->when($data['mata_pelajaran_id'] ?? null, fn($q, $v) => $q->where('mata_pelajaran_id', $v))
+                        ->when($data['kategori_id'] ?? null, fn($q, $v) => $q->where('kategori_id', $v))
+                    )
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if (! empty($data['mata_pelajaran_id'])) {
+                            $nama = MataPelajaran::find($data['mata_pelajaran_id'])?->nama;
+                            if ($nama) $indicators[] = Indicator::make('Mapel: ' . $nama)->removeField('mata_pelajaran_id');
+                        }
+                        if (! empty($data['kategori_id'])) {
+                            $nama = Category::find($data['kategori_id'])?->nama;
+                            if ($nama) $indicators[] = Indicator::make('Kategori: ' . $nama)->removeField('kategori_id');
+                        }
+                        return $indicators;
+                    }),
+
                 Tables\Filters\SelectFilter::make('grading_mode')
                     ->label('Mode Penilaian')
                     ->options(ExamPackage::GRADING_LABELS),
+
+                Tables\Filters\TernaryFilter::make('has_sections')
+                    ->label('Tipe Paket')
+                    ->trueLabel('Multi-Seksi')
+                    ->falseLabel('Single Paket')
+                    ->placeholder('Semua'),
+
+                Tables\Filters\TernaryFilter::make('acak_soal')
+                    ->label('Acak Soal')
+                    ->trueLabel('Diacak')
+                    ->falseLabel('Tidak Diacak')
+                    ->placeholder('Semua'),
+
+                Tables\Filters\TernaryFilter::make('tampilkan_hasil')
+                    ->label('Tampilkan Hasil')
+                    ->trueLabel('Ya')
+                    ->falseLabel('Tidak')
+                    ->placeholder('Semua'),
+
                 Tables\Filters\SelectFilter::make('created_by')
                     ->label('Dibuat Oleh')
                     ->options(fn() => User::where('level', '>=', User::LEVEL_GURU)->orderBy('name')->pluck('name', 'id'))
@@ -297,6 +380,59 @@ class ExamPackageResource extends Resource
                                 ->body(count($newIds) . ' soal ditambahkan. Kekurangan: ' . implode('; ', $missing))
                                 ->warning()->send();
                         }
+                    }),
+
+                Tables\Actions\Action::make('copy')
+                    ->label('Salin')
+                    ->icon('heroicon-o-document-duplicate')
+                    ->color('gray')
+                    ->requiresConfirmation()
+                    ->modalHeading('Salin Paket Ujian')
+                    ->modalDescription('Paket ujian beserta seluruh soal dan seksinya akan disalin. Salinan tidak memiliki sesi ujian sehingga dapat langsung diedit.')
+                    ->action(function (ExamPackage $record) {
+                        \Illuminate\Support\Facades\DB::transaction(function () use ($record) {
+                            // 1. Salin paket
+                            $newPackage = $record->replicate(['id', 'created_at', 'updated_at']);
+                            $newPackage->nama       = 'Salinan — ' . $record->nama;
+                            $newPackage->created_by = \Illuminate\Support\Facades\Auth::id();
+                            $newPackage->save();
+
+                            if ($record->has_sections) {
+                                // 2a. Salin seksi + soal per seksi
+                                $record->sections()->with('questionPivots')->each(function (\App\Models\ExamSection $section) use ($newPackage) {
+                                    $newSection = $section->replicate(['id', 'exam_package_id', 'created_at', 'updated_at']);
+                                    $newSection->exam_package_id = $newPackage->id;
+                                    $newSection->save();
+
+                                    $pivots = $section->questionPivots->map(fn($p) => [
+                                        'section_id'  => $newSection->id,
+                                        'question_id' => $p->question_id,
+                                        'urutan'      => $p->urutan,
+                                    ])->all();
+
+                                    if (! empty($pivots)) {
+                                        \App\Models\ExamSectionQuestion::insert($pivots);
+                                    }
+                                });
+                            } else {
+                                // 2b. Salin soal langsung di paket
+                                $pivots = $record->questionPivots->map(fn($p) => [
+                                    'exam_package_id' => $newPackage->id,
+                                    'question_id'     => $p->question_id,
+                                    'urutan'          => $p->urutan,
+                                ])->all();
+
+                                if (! empty($pivots)) {
+                                    \App\Models\ExamPackageQuestion::insert($pivots);
+                                }
+                            }
+                        });
+
+                        Notification::make()
+                            ->title('Paket berhasil disalin')
+                            ->body('Salinan — ' . $record->nama . ' telah dibuat dan siap diedit.')
+                            ->success()
+                            ->send();
                     }),
 
                 Tables\Actions\EditAction::make(),

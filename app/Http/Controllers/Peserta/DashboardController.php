@@ -16,7 +16,8 @@ class DashboardController extends Controller
         $userId = $user->id;
 
         $participations = ExamSessionParticipant::with([
-            'session.package',
+            'session.package.mataPelajaran',
+            'session.package.category',
             'session.attempts' => function ($q) use ($userId) {
                 $q->where('user_id', $userId)->latest('waktu_mulai');
             },

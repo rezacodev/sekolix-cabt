@@ -4,10 +4,13 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ExamSessionResource\Pages;
 use App\Filament\Resources\ExamSessionResource\RelationManagers;
+use App\Models\Category;
 use App\Models\ExamPackage;
 use App\Models\ExamSession;
+use App\Models\MataPelajaran;
 use App\Models\User;
 use App\Services\AuditLogService;
+use Filament\Tables\Filters\Indicator;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -211,10 +214,62 @@ class ExamSessionResource extends Resource
                     ->options(ExamSession::STATUS_LABELS)
                     ->multiple(),
 
+                Tables\Filters\SelectFilter::make('exam_package_id')
+                    ->label('Paket Ujian')
+                    ->options(fn() => ExamPackage::orderBy('nama')->pluck('nama', 'id'))
+                    ->searchable()
+                    ->native(false),
+
+                Tables\Filters\Filter::make('mapel_kategori')
+                    ->label('Mata Pelajaran / Kategori')
+                    ->form([
+                        Forms\Components\Select::make('mata_pelajaran_id')
+                            ->label('Mata Pelajaran')
+                            ->options(fn() => MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
+                            ->searchable()
+                            ->native(false)
+                            ->live(),
+                        Forms\Components\Select::make('kategori_id')
+                            ->label('Kategori')
+                            ->options(fn(Forms\Get $get) => $get('mata_pelajaran_id')
+                                ? Category::where('mata_pelajaran_id', $get('mata_pelajaran_id'))->orderBy('nama')->pluck('nama', 'id')
+                                : Category::orderBy('nama')->pluck('nama', 'id'))
+                            ->searchable()
+                            ->native(false),
+                    ])
+                    ->query(fn(Builder $query, array $data) => $query
+                        ->when($data['mata_pelajaran_id'] ?? null, fn($q, $v) => $q->whereHas('package', fn($p) => $p->where('mata_pelajaran_id', $v)))
+                        ->when($data['kategori_id'] ?? null, fn($q, $v) => $q->whereHas('package', fn($p) => $p->where('kategori_id', $v)))
+                    )
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if (! empty($data['mata_pelajaran_id'])) {
+                            $nama = MataPelajaran::find($data['mata_pelajaran_id'])?->nama;
+                            if ($nama) $indicators[] = Indicator::make('Mapel: ' . $nama)->removeField('mata_pelajaran_id');
+                        }
+                        if (! empty($data['kategori_id'])) {
+                            $nama = Category::find($data['kategori_id'])?->nama;
+                            if ($nama) $indicators[] = Indicator::make('Kategori: ' . $nama)->removeField('kategori_id');
+                        }
+                        return $indicators;
+                    }),
+
                 Tables\Filters\Filter::make('waktu_mulai')
                     ->label('Hari Ini')
                     ->query(fn(Builder $query) => $query->whereDate('waktu_mulai', today()))
                     ->toggle(),
+
+                Tables\Filters\TernaryFilter::make('token_akses')
+                    ->label('Token Akses'
+                    )
+                    ->trueLabel('Perlu Token')
+                    ->falseLabel('Tanpa Token')
+                    ->placeholder('Semua')
+                    ->queries(
+                        true: fn($q) => $q->whereNotNull('token_akses')->where('token_akses', '!=', ''),
+                        false: fn($q) => $q->where(fn($s) => $s->whereNull('token_akses')->orWhere('token_akses', '')),
+                        blank: fn($q) => $q,
+                    ),
 
                 Tables\Filters\SelectFilter::make('created_by')
                     ->label('Dibuat Oleh (Guru)')

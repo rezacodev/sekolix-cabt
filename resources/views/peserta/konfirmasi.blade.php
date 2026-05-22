@@ -17,10 +17,69 @@
         {{-- Info Card --}}
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-5">
             <div class="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-5">
-                <h2 class="text-white font-bold text-lg">{{ $session->nama_sesi }}</h2>
-                <p class="text-indigo-200 text-sm mt-0.5">{{ $session->package->nama }}</p>
+                <p class="text-indigo-300 text-[10px] font-semibold uppercase tracking-widest mb-0.5">Sesi Ujian</p>
+                <h2 class="text-white font-bold text-lg leading-snug">{{ $session->nama_sesi }}</h2>
+                <p class="text-indigo-300 text-[10px] font-semibold uppercase tracking-widest mt-3 mb-0.5">Paket Ujian</p>
+                <p class="text-white text-sm font-medium">{{ $session->package->nama }}</p>
+                @if ($session->package->mataPelajaran)
+                <div class="mt-3 flex flex-wrap gap-1.5">
+                    <span class="inline-flex items-center gap-1 text-xs font-semibold bg-white/20 text-white px-2.5 py-0.5 rounded-full">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                        {{ $session->package->mataPelajaran->nama }}
+                    </span>
+                    @if ($session->package->category)
+                    <span class="inline-flex items-center text-xs font-medium bg-white/15 text-indigo-100 px-2.5 py-0.5 rounded-full">
+                        {{ $session->package->category->nama }}
+                    </span>
+                    @endif
+                </div>
+                @endif
             </div>
             <div class="p-6">
+
+                {{-- Jadwal & Status --}}
+                @php
+                    $isAktif   = $session->isAktif();
+                    $isSelesai = $session->isSelesai();
+                    $statusLabel = \App\Models\ExamSession::STATUS_LABELS[$session->status] ?? $session->status;
+                    $statusClass = $isAktif ? 'bg-green-100 text-green-700 ring-green-200'
+                        : ($isSelesai ? 'bg-blue-100 text-blue-700 ring-blue-200'
+                        : 'bg-gray-100 text-gray-500 ring-gray-200');
+                @endphp
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mb-5 pb-5 border-b border-gray-100">
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ring-1 {{ $statusClass }}">
+                        {{ $statusLabel }}
+                    </span>
+                    @if ($session->waktu_mulai)
+                    <span class="flex items-center gap-1.5 text-sm text-gray-600">
+                        <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>
+                            <span class="font-medium">{{ $session->waktu_mulai->translatedFormat('l, d F Y') }}</span>
+                            <span class="text-gray-400 mx-1">&bull;</span>
+                            {{ $session->waktu_mulai->format('H:i') }}
+                            @if ($session->waktu_selesai)
+                                <span class="text-gray-400 mx-0.5">–</span>{{ $session->waktu_selesai->format('H:i') }} WIB
+                            @endif
+                        </span>
+                    </span>
+                    @endif
+                    @if ($session->token_akses)
+                    <span class="flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full ring-1 ring-amber-200">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                        </svg>
+                        Perlu Token
+                    </span>
+                    @endif
+                </div>
+
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-gray-50 rounded-xl p-4">
                         <p class="text-xs text-gray-500 mb-1">Durasi</p>

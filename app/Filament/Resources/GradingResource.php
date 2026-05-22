@@ -3,12 +3,16 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\GradingResource\Pages;
+use App\Models\Category;
 use App\Models\ExamAttempt;
 use App\Models\ExamPackage;
 use App\Models\ExamSession;
+use App\Models\MataPelajaran;
 use App\Models\User;
+use Filament\Forms;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Filters\Indicator;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -187,7 +191,43 @@ class GradingResource extends Resource
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Status Sesi')
                     ->options(ExamSession::STATUS_LABELS)
+                    ->multiple()
                     ->native(false),
+
+                Tables\Filters\Filter::make('mapel_kategori')
+                    ->label('Mata Pelajaran / Kategori')
+                    ->form([
+                        Forms\Components\Select::make('mata_pelajaran_id')
+                            ->label('Mata Pelajaran')
+                            ->options(fn() => MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
+                            ->searchable()
+                            ->native(false)
+                            ->live(),
+                        Forms\Components\Select::make('kategori_id')
+                            ->label('Kategori')
+                            ->options(fn(Forms\Get $get) => $get('mata_pelajaran_id')
+                                ? Category::where('mata_pelajaran_id', $get('mata_pelajaran_id'))->orderBy('nama')->pluck('nama', 'id')
+                                : Category::orderBy('nama')->pluck('nama', 'id'))
+                            ->searchable()
+                            ->native(false),
+                    ])
+                    ->query(fn(Builder $query, array $data) => $query
+                        ->when($data['mata_pelajaran_id'] ?? null, fn($q, $v) => $q->whereHas('package', fn($p) => $p->where('mata_pelajaran_id', $v)))
+                        ->when($data['kategori_id'] ?? null, fn($q, $v) => $q->whereHas('package', fn($p) => $p->where('kategori_id', $v)))
+                    )
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if (! empty($data['mata_pelajaran_id'])) {
+                            $nama = MataPelajaran::find($data['mata_pelajaran_id'])?->nama;
+                            if ($nama) $indicators[] = Indicator::make('Mapel: ' . $nama)->removeField('mata_pelajaran_id');
+                        }
+                        if (! empty($data['kategori_id'])) {
+                            $nama = Category::find($data['kategori_id'])?->nama;
+                            if ($nama) $indicators[] = Indicator::make('Kategori: ' . $nama)->removeField('kategori_id');
+                        }
+                        return $indicators;
+                    }),
+
                 Tables\Filters\SelectFilter::make('created_by')
                     ->label('Dibuat Oleh')
                     ->options(fn() => User::where('level', '>=', User::LEVEL_GURU)->orderBy('name')->pluck('name', 'id'))

@@ -28,7 +28,7 @@ class UjianController extends Controller
 
     public function show(Request $request, int $sesiId): \Illuminate\View\View|RedirectResponse
     {
-        $session = ExamSession::with('package')->findOrFail($sesiId);
+        $session = ExamSession::with('package.mataPelajaran', 'package.category')->findOrFail($sesiId);
 
         // Cek peserta terdaftar
         $participant = ExamSessionParticipant::where('exam_session_id', $sesiId)

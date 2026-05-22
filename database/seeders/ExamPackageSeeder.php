@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use App\Models\ExamPackage;
 use App\Models\ExamPackageQuestion;
+use App\Models\MataPelajaran;
+use App\Models\Category;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -37,7 +39,14 @@ class ExamPackageSeeder extends Seeder
         $guru1Id ??= $adminId;
         $guru2Id ??= $adminId;
 
-        $packages = $this->packageDefinitions($guru1Id, $guru2Id, $adminId);
+        // Resolve ID mata pelajaran & kategori top-level
+        $mapelIds = MataPelajaran::whereIn('nama', ['Matematika', 'Bahasa Indonesia', 'IPA', 'Sejarah', 'TIK'])
+            ->pluck('id', 'nama');
+        $kategoriIds = Category::whereNull('parent_id')
+            ->whereIn('nama', ['Matematika', 'Bahasa Indonesia', 'IPA', 'Sejarah', 'TIK'])
+            ->pluck('id', 'nama');
+
+        $packages = $this->packageDefinitions($guru1Id, $guru2Id, $adminId, $mapelIds, $kategoriIds);
 
         $created  = 0;
         $skipped  = 0;
@@ -65,7 +74,7 @@ class ExamPackageSeeder extends Seeder
     //  Package Definitions
     // ────────────────────────────────────────────────────────────────────────────
 
-    private function packageDefinitions(?int $guru1Id, ?int $guru2Id, ?int $adminId): array
+    private function packageDefinitions(?int $guru1Id, ?int $guru2Id, ?int $adminId, $mapelIds, $kategoriIds): array
     {
         return [
 
@@ -80,8 +89,10 @@ class ExamPackageSeeder extends Seeder
                 'max_pengulangan'     => 0,
                 'tampilkan_hasil'     => true,
                 'tampilkan_review'    => true,
-                'grading_mode'        => 'manual', // ada soal URAIAN
+                'grading_mode'        => 'manual',
                 'created_by'          => $guru1Id,
+                'mata_pelajaran_id'   => $mapelIds['Matematika'] ?? null,
+                'kategori_id'         => null,
                 'soal_ids'            => [1, 2, 4, 5, 6, 18, 20, 23, 7, 8, 9, 10, 21, 11, 12, 13, 14, 22, 15, 16, 17],
             ],
 
@@ -96,8 +107,10 @@ class ExamPackageSeeder extends Seeder
                 'max_pengulangan'     => 0,
                 'tampilkan_hasil'     => true,
                 'tampilkan_review'    => false,
-                'grading_mode'        => 'manual', // ada URAIAN di biologi & kimia
+                'grading_mode'        => 'manual',
                 'created_by'          => $guru1Id,
+                'mata_pelajaran_id'   => $mapelIds['IPA'] ?? null,
+                'kategori_id'         => null,
                 'soal_ids'            => [37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56],
             ],
 
@@ -114,6 +127,8 @@ class ExamPackageSeeder extends Seeder
                 'tampilkan_review'    => true,
                 'grading_mode'        => 'manual',
                 'created_by'          => $guru1Id,
+                'mata_pelajaran_id'   => $mapelIds['Bahasa Indonesia'] ?? null,
+                'kategori_id'         => $kategoriIds['Bahasa Indonesia'] ?? null,
                 'soal_ids'            => [27, 28, 29, 30, 31, 32, 33, 34, 35, 36],
             ],
 
@@ -130,6 +145,8 @@ class ExamPackageSeeder extends Seeder
                 'tampilkan_review'    => false,
                 'grading_mode'        => 'manual',
                 'created_by'          => $guru2Id,
+                'mata_pelajaran_id'   => $mapelIds['Sejarah'] ?? null,
+                'kategori_id'         => $kategoriIds['Sejarah'] ?? null,
                 'soal_ids'            => [57, 58, 59, 60, 61, 62, 63, 64, 65, 66],
             ],
 
@@ -144,8 +161,10 @@ class ExamPackageSeeder extends Seeder
                 'max_pengulangan'     => 0,
                 'tampilkan_hasil'     => true,
                 'tampilkan_review'    => true,
-                'grading_mode'        => 'manual', // ada URAIAN
+                'grading_mode'        => 'manual',
                 'created_by'          => $guru2Id,
+                'mata_pelajaran_id'   => $mapelIds['TIK'] ?? null,
+                'kategori_id'         => null,
                 'soal_ids'            => [67, 68, 69, 70, 71, 72, 77, 79, 73, 74, 75, 76, 78, 80],
             ],
 
@@ -160,8 +179,10 @@ class ExamPackageSeeder extends Seeder
                 'max_pengulangan'     => 3,
                 'tampilkan_hasil'     => true,
                 'tampilkan_review'    => false,
-                'grading_mode'        => 'manual', // ada URAIAN di beberapa mapel
+                'grading_mode'        => 'manual',
                 'created_by'          => $guru1Id,
+                'mata_pelajaran_id'   => null,
+                'kategori_id'         => null,
                 'soal_ids'            => [
                     1,
                     3,
@@ -209,6 +230,8 @@ class ExamPackageSeeder extends Seeder
                 'tampilkan_review'    => true,
                 'grading_mode'        => 'realtime',
                 'created_by'          => $adminId,
+                'mata_pelajaran_id'   => null,
+                'kategori_id'         => null,
                 'soal_ids'            => [81, 82, 83, 84, 85, 86, 87, 88, 89],
             ],
 

@@ -49,6 +49,8 @@ class ExamPackage extends Model
         'grading_mode',
         'created_by',
         'blueprint_id',
+        'mata_pelajaran_id',
+        'kategori_id',
         'has_sections',
         'navigasi_seksi',
         'nilai_negatif',
@@ -76,6 +78,16 @@ class ExamPackage extends Model
     public function blueprint(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(ExamBlueprint::class, 'blueprint_id');
+    }
+
+    public function mataPelajaran(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\MataPelajaran::class, 'mata_pelajaran_id');
+    }
+
+    public function category(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Category::class, 'kategori_id');
     }
 
     public function creator(): \Illuminate\Database\Eloquent\Relations\BelongsTo

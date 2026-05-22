@@ -166,9 +166,12 @@
                     <div class="p-5">
                         {{-- Header --}}
                         <div class="flex items-start justify-between gap-2 mb-3">
-                            <h3 class="font-semibold text-gray-900 leading-snug group-hover:text-indigo-700 transition-colors">
-                                {{ $session->nama_sesi }}
-                            </h3>
+                            <div class="min-w-0">
+                                <p class="text-[10px] font-semibold uppercase tracking-wide text-gray-400 mb-0.5">Sesi Ujian</p>
+                                <h3 class="font-semibold text-gray-900 leading-snug group-hover:text-indigo-700 transition-colors">
+                                    {{ $session->nama_sesi }}
+                                </h3>
+                            </div>
                             @php
                                 $statusBadge = match(true) {
                                     $isAktif => 'bg-green-100 text-green-700 ring-green-200',
@@ -181,9 +184,28 @@
                             </span>
                         </div>
 
-                        <p class="text-sm text-gray-500 font-medium">{{ $package->nama }}</p>
+                        <div class="mt-2">
+                            <p class="text-[10px] font-semibold uppercase tracking-wide text-gray-400 mb-0.5">Paket Ujian</p>
+                            <p class="text-sm text-gray-600 font-medium">{{ $package->nama }}</p>
+                        </div>
 
-                        {{-- Meta --}}
+                        {{-- Mapel & Kategori --}}
+                        @if ($package->mataPelajaran)
+                        <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+                            <span class="inline-flex items-center gap-1 text-xs font-medium text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                </svg>
+                                {{ $package->mataPelajaran->nama }}
+                            </span>
+                            @if ($package->category)
+                            <span class="inline-flex items-center text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                                {{ $package->category->nama }}
+                            </span>
+                            @endif
+                        </div>
+                        @endif
                         <div class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-400">
                             <span class="flex items-center gap-1">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
