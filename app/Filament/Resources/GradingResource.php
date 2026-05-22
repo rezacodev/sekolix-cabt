@@ -211,9 +211,10 @@ class GradingResource extends Resource
                             ->searchable()
                             ->native(false),
                     ])
-                    ->query(fn(Builder $query, array $data) => $query
-                        ->when($data['mata_pelajaran_id'] ?? null, fn($q, $v) => $q->whereHas('package', fn($p) => $p->where('mata_pelajaran_id', $v)))
-                        ->when($data['kategori_id'] ?? null, fn($q, $v) => $q->whereHas('package', fn($p) => $p->where('kategori_id', $v)))
+                    ->query(
+                        fn(Builder $query, array $data) => $query
+                            ->when($data['mata_pelajaran_id'] ?? null, fn($q, $v) => $q->whereHas('package', fn($p) => $p->where('mata_pelajaran_id', $v)))
+                            ->when($data['kategori_id'] ?? null, fn($q, $v) => $q->whereHas('package', fn($p) => $p->where('kategori_id', $v)))
                     )
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];

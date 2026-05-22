@@ -290,9 +290,10 @@ class ExamPackageResource extends Resource
                             ->searchable()
                             ->native(false),
                     ])
-                    ->query(fn(Builder $query, array $data) => $query
-                        ->when($data['mata_pelajaran_id'] ?? null, fn($q, $v) => $q->where('mata_pelajaran_id', $v))
-                        ->when($data['kategori_id'] ?? null, fn($q, $v) => $q->where('kategori_id', $v))
+                    ->query(
+                        fn(Builder $query, array $data) => $query
+                            ->when($data['mata_pelajaran_id'] ?? null, fn($q, $v) => $q->where('mata_pelajaran_id', $v))
+                            ->when($data['kategori_id'] ?? null, fn($q, $v) => $q->where('kategori_id', $v))
                     )
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];

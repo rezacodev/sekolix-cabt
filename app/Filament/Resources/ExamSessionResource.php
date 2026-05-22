@@ -237,9 +237,10 @@ class ExamSessionResource extends Resource
                             ->searchable()
                             ->native(false),
                     ])
-                    ->query(fn(Builder $query, array $data) => $query
-                        ->when($data['mata_pelajaran_id'] ?? null, fn($q, $v) => $q->whereHas('package', fn($p) => $p->where('mata_pelajaran_id', $v)))
-                        ->when($data['kategori_id'] ?? null, fn($q, $v) => $q->whereHas('package', fn($p) => $p->where('kategori_id', $v)))
+                    ->query(
+                        fn(Builder $query, array $data) => $query
+                            ->when($data['mata_pelajaran_id'] ?? null, fn($q, $v) => $q->whereHas('package', fn($p) => $p->where('mata_pelajaran_id', $v)))
+                            ->when($data['kategori_id'] ?? null, fn($q, $v) => $q->whereHas('package', fn($p) => $p->where('kategori_id', $v)))
                     )
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
@@ -260,7 +261,8 @@ class ExamSessionResource extends Resource
                     ->toggle(),
 
                 Tables\Filters\TernaryFilter::make('token_akses')
-                    ->label('Token Akses'
+                    ->label(
+                        'Token Akses'
                     )
                     ->trueLabel('Perlu Token')
                     ->falseLabel('Tanpa Token')
