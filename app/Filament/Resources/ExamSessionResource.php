@@ -39,7 +39,7 @@ class ExamSessionResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        return Auth::user()?->level === User::LEVEL_GURU;
+        return Auth::user()?->level >= User::LEVEL_GURU;
     }
 
     // ── Guru hanya melihat sesi milik sendiri ────────────────────────────────
