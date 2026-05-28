@@ -15,6 +15,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class QuestionsRelationManager extends RelationManager
@@ -154,32 +155,34 @@ class QuestionsRelationManager extends RelationManager
                             ->label('Soal')
                             ->multiple()
                             ->searchable()
-                            ->options(fn(Get $get) => Question::query()
+                            ->placeholder('Pilih mata pelajaran dulu untuk memuat soal')
+                            ->options(fn(Get $get) => filled($get('_mapel_filter'))
+                                ? Question::query()
                                 ->where('aktif', true)
                                 ->where(function ($query) {
-                                    $query->where('created_by', auth()->id())
+                                    $query->where('created_by', Auth::id())
                                         ->orWhereIn('visibilitas', [
                                             Question::VISIBILITAS_INTERNAL,
                                             Question::VISIBILITAS_PUBLIK,
                                         ]);
                                 })
-                                ->when($get('_mapel_filter'), fn($query, $mapelId) => $query->whereHas('category', fn($query) => $query->where('mata_pelajaran_id', $mapelId)))
+                                ->whereHas('category', fn($query) => $query->where('mata_pelajaran_id', $get('_mapel_filter')))
                                 ->when($get('kategori_id'), fn($query, $kategoriId) => $query->where(function ($query) use ($kategoriId) {
                                     $query->where('kategori_id', $kategoriId)
                                         ->orWhereHas('category', fn($query) => $query->where('parent_id', $kategoriId));
                                 }))
                                 ->orderBy('id')
-                                ->limit(50)
                                 ->get()
                                 ->mapWithKeys(fn(Question $question) => [
                                     $question->id => Str::limit(strip_tags($question->teks_soal), 100),
                                 ])
-                                ->toArray())
+                                ->toArray()
+                                : [])
                             ->getSearchResultsUsing(function (string $search, Get $get): array {
                                 $query = Question::query()
                                     ->where('aktif', true)
                                     ->where(function ($query) {
-                                        $query->where('created_by', auth()->id())
+                                        $query->where('created_by', Auth::id())
                                             ->orWhereIn('visibilitas', [
                                                 Question::VISIBILITAS_INTERNAL,
                                                 Question::VISIBILITAS_PUBLIK,
@@ -294,7 +297,7 @@ class QuestionsRelationManager extends RelationManager
                             ->where('aktif', true)
                             ->whereNotIn('id', $existing)
                             ->where(function ($query) {
-                                $query->where('created_by', auth()->id())
+                                $query->where('created_by', Auth::id())
                                     ->orWhereIn('visibilitas', [
                                         Question::VISIBILITAS_INTERNAL,
                                         Question::VISIBILITAS_PUBLIK,
