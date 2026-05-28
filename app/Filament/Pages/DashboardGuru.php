@@ -97,26 +97,26 @@ class DashboardGuru extends Page
         $rombelData = $rombelsAmpu->map(function ($rombel) use ($sesi) {
             $pesertaIds = $rombel->peserta->pluck('id');
 
-            $attempts = ExamAttempt::where('exam_session_id', $sesi->id)
+            $allAttempts = ExamAttempt::where('exam_session_id', $sesi->id)
                 ->whereIn('user_id', $pesertaIds)
                 ->get()
-                ->groupBy('user_id')
-                ->map(fn($g) => $g->sortByDesc('nilai_akhir')->first());
+                ->groupBy('user_id');
+
+            $attempts      = $allAttempts->map(fn($g) => $g->sortByDesc('nilai_akhir')->first());
+            $attemptCounts = $allAttempts->map(fn($g) => $g->count());
 
             $pesertaList = $rombel->peserta
                 ->sortBy('name')
                 ->values()
-                ->map(function ($p, $idx) use ($attempts, $sesi) {
-                    $attempt    = $attempts->get($p->id);
-                    $totalAttempt = ExamAttempt::where('exam_session_id', $sesi->id)
-                        ->where('user_id', $p->id)
-                        ->count();
+                ->map(function ($p, $idx) use ($attempts, $attemptCounts) {
+                    $attempt = $attempts->get($p->id);
 
                     $durasi = null;
                     if ($attempt && $attempt->waktu_selesai && $attempt->waktu_mulai) {
-                        $menit  = $attempt->waktu_selesai->diffInMinutes($attempt->waktu_mulai);
-                        $detik  = $attempt->waktu_selesai->diffInSeconds($attempt->waktu_mulai) % 60;
-                        $durasi = $menit . 'm ' . $detik . 'd';
+                        $totalDetik = (int) abs($attempt->waktu_mulai->diffInSeconds($attempt->waktu_selesai));
+                        $menit      = intdiv($totalDetik, 60);
+                        $detik      = $totalDetik % 60;
+                        $durasi     = $menit . 'm ' . str_pad($detik, 2, '0', STR_PAD_LEFT) . 'd';
                     }
 
                     return (object) [
@@ -128,7 +128,7 @@ class DashboardGuru extends Page
                         'salah'       => $attempt?->jumlah_salah,
                         'kosong'      => $attempt?->jumlah_kosong,
                         'durasi'      => $durasi,
-                        'attempt_ke'  => $totalAttempt,
+                        'attempt_ke'  => $attemptCounts->get($p->id, 0),
                         'status'      => $attempt?->status,
                     ];
                 });

@@ -27,6 +27,7 @@ use Filament\Tables\Table;
 use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Auth;
 
 class AddMultipleQuestions extends ResourcePage implements HasForms, HasTable
 {
@@ -93,7 +94,7 @@ class AddMultipleQuestions extends ResourcePage implements HasForms, HasTable
         $query = Question::query()
           ->where('aktif', true)
           ->where(function (Builder $query) {
-            $query->where('created_by', auth()->id())
+            $query->where('created_by', Auth::id())
               ->orWhereIn('visibilitas', [
                 Question::VISIBILITAS_INTERNAL,
                 Question::VISIBILITAS_PUBLIK,

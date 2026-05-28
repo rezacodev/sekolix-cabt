@@ -35,23 +35,26 @@ class RombelNilaiExport implements FromCollection, WithHeadings, WithMapping, Wi
         $peserta    = $this->rombel->peserta()->orderBy('name')->get();
         $pesertaIds = $peserta->pluck('id');
 
-        $attempts = ExamAttempt::with('user')
-            ->where('exam_session_id', $this->session->id)
+        // Single query: load all attempts, reuse for both best-attempt and count
+        $allAttempts = ExamAttempt::where('exam_session_id', $this->session->id)
             ->whereIn('user_id', $pesertaIds)
             ->get()
-            ->groupBy('user_id')
-            ->map(fn ($g) => $g->sortByDesc('nilai_akhir')->first());
+            ->groupBy('user_id');
+
+        $bestAttempts  = $allAttempts->map(fn($g) => $g->sortByDesc('nilai_akhir')->first());
+        $attemptCounts = $allAttempts->map(fn($g) => $g->count());
 
         $this->rowNo = 0;
 
-        return $peserta->map(function ($p) use ($attempts) {
-            $attempt = $attempts->get($p->id);
+        return $peserta->map(function ($p) use ($bestAttempts, $attemptCounts) {
+            $attempt = $bestAttempts->get($p->id);
 
             $durasi = '—';
             if ($attempt && $attempt->waktu_selesai && $attempt->waktu_mulai) {
-                $menit  = $attempt->waktu_selesai->diffInMinutes($attempt->waktu_mulai);
-                $detik  = $attempt->waktu_selesai->diffInSeconds($attempt->waktu_mulai) % 60;
-                $durasi = $menit . 'm ' . $detik . 'd';
+                $totalDetik = (int) abs($attempt->waktu_mulai->diffInSeconds($attempt->waktu_selesai));
+                $menit      = intdiv($totalDetik, 60);
+                $detik      = $totalDetik % 60;
+                $durasi     = $menit . 'm ' . str_pad($detik, 2, '0', STR_PAD_LEFT) . 'd';
             }
 
             return (object) [
@@ -61,8 +64,7 @@ class RombelNilaiExport implements FromCollection, WithHeadings, WithMapping, Wi
                 'benar'         => $attempt?->jumlah_benar,
                 'salah'         => $attempt?->jumlah_salah,
                 'kosong'        => $attempt?->jumlah_kosong,
-                'attempt_ke'    => ExamAttempt::where('exam_session_id', $this->session->id)
-                                    ->where('user_id', $p->id)->count(),
+                'attempt_ke'    => $attemptCounts->get($p->id, 0),
                 'status'        => $attempt?->status,
                 'durasi'        => $durasi,
             ];
