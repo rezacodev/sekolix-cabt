@@ -174,7 +174,7 @@ class QuestionsRelationManager extends RelationManager
                                 ->limit(200)
                                 ->get()
                                 ->mapWithKeys(fn(Question $question) => [
-                                    $question->id => Str::limit(strip_tags($question->teks_soal), 200),
+                                    $question->id => ($question->kelas ? '[Kelas ' . $question->kelas . '] ' : '') . Str::limit(strip_tags($question->teks_soal), 180),
                                 ])
                                 ->toArray())
                             ->getSearchResultsUsing(function (string $search, Get $get): array {
@@ -208,14 +208,14 @@ class QuestionsRelationManager extends RelationManager
                                     ->limit(50)
                                     ->get()
                                     ->mapWithKeys(fn(Question $question) => [
-                                        $question->id => Str::limit(strip_tags($question->teks_soal), 100),
+                                        $question->id => ($question->kelas ? '[Kelas ' . $question->kelas . '] ' : '') . Str::limit(strip_tags($question->teks_soal), 90),
                                     ])
                                     ->toArray();
                             })
                             ->getOptionLabelsUsing(fn(array $values) => Question::whereIn('id', $values)
                                 ->get()
                                 ->mapWithKeys(fn(Question $question) => [
-                                    $question->id => Str::limit(strip_tags($question->teks_soal), 100),
+                                    $question->id => ($question->kelas ? '[Kelas ' . $question->kelas . '] ' : '') . Str::limit(strip_tags($question->teks_soal), 90),
                                 ])
                                 ->toArray())
                             ->required(),
