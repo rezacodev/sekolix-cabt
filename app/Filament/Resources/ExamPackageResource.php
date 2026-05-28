@@ -227,6 +227,20 @@ class ExamPackageResource extends Resource
                     ->sortable()
                     ->weight('bold'),
 
+                Tables\Columns\TextColumn::make('mata_pelajaran_id')
+                    ->label('Mapel / Kategori')
+                    ->html()
+                    ->getStateUsing(function ($record) {
+                        $mapel = $record->mataPelajaran?->nama;
+                        $kategori = $record->category?->nama;
+                        if ($mapel && $kategori) {
+                            return '<div><strong>' . e($mapel) . '</strong><br><span class="text-gray-500 text-xs">' . e($kategori) . '</span></div>';
+                        }
+                        if ($mapel)    return '<strong>' . e($mapel) . '</strong>';
+                        if ($kategori) return '<span class="text-gray-500 text-xs">' . e($kategori) . '</span>';
+                        return '<span class="text-gray-400">—</span>';
+                    }),
+
                 Tables\Columns\TextColumn::make('durasi_menit')
                     ->label('Durasi')
                     ->suffix(' mnt')

@@ -487,21 +487,20 @@ class QuestionResource extends Resource
                     ->wrap(),
 
                 Tables\Columns\TextColumn::make('mata_pelajaran_id')
-                    ->label('Mapel / Kategori')
+                    ->label('Mapel / Kelas / Kategori')
                     ->html()
-                    ->getStateUsing(fn($record) => match (true) {
-                        (bool) ($record->mataPelajaran?->nama) && (bool) ($record->category?->nama) => '<div><strong>' . e($record->mataPelajaran->nama) . '</strong><br><span class="text-gray-600 text-sm">' . e($record->category->nama) . '</span></div>',
-                        (bool) ($record->mataPelajaran?->nama) => '<strong>' . e($record->mataPelajaran->nama) . '</strong>',
-                        (bool) ($record->category?->nama) => e($record->category->nama),
-                        default => '—',
+                    ->getStateUsing(function ($record) {
+                        $mapel = $record->mataPelajaran?->nama;
+                        $kategori = $record->category?->nama;
+                        $kelas = $record->kelas ? 'Kelas ' . $record->kelas : null;
+                        $sub = implode(' · ', array_filter([$kelas, $kategori]));
+                        if ($mapel && $sub) {
+                            return '<div><strong>' . e($mapel) . '</strong><br><span class="text-gray-500 text-xs">' . e($sub) . '</span></div>';
+                        }
+                        if ($mapel) return '<strong>' . e($mapel) . '</strong>';
+                        if ($sub)   return '<span class="text-gray-500 text-xs">' . e($sub) . '</span>';
+                        return '—';
                     }),
-
-                Tables\Columns\TextColumn::make('kelas')
-                    ->label('Kelas')
-                    ->formatStateUsing(fn($state) => $state ? 'Kelas ' . $state : '—')
-                    ->sortable()
-                    ->placeholder('—')
-                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\BadgeColumn::make('tingkat_kesulitan')
                     ->label('Kesulitan')
