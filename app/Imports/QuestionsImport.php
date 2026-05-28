@@ -160,6 +160,7 @@ class QuestionsImport implements ToCollection, WithHeadingRow
                 $question = Question::create([
                     'kategori_id'       => $kategoriId,
                     'mata_pelajaran_id' => $mapelId,
+                    'kelas'             => $data['kelas'],
                     'tipe'              => $data['tipe_soal'],
                     'teks_soal'         => $data['teks_soal'],
                     'tingkat_kesulitan' => $data['kesulitan'],
@@ -219,6 +220,7 @@ class QuestionsImport implements ToCollection, WithHeadingRow
             $question = Question::create([
                 'kategori_id'       => $kategoriId,
                 'mata_pelajaran_id' => $mapelId ?? null,
+                'kelas'             => $data['kelas'],
                 'tipe'              => $data['tipe_soal'],
                 'teks_soal'         => $data['teks_soal'],
                 'tingkat_kesulitan' => $data['kesulitan'],
@@ -251,6 +253,7 @@ class QuestionsImport implements ToCollection, WithHeadingRow
             'opsi_d'         => trim($row['opsi_d'] ?? ''),
             'opsi_e'         => trim($row['opsi_e'] ?? ''),
             'kunci'          => strtoupper(trim($row['kunci'] ?? '')),
+            'kelas'          => isset($row['kelas']) && is_numeric($row['kelas']) ? (int) $row['kelas'] : null,
             'audio_url'      => trim($row['audio_url'] ?? ''),
         ];
     }

@@ -5,9 +5,12 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\CategoryResource\Pages;
 use App\Models\Category;
 use App\Models\MataPelajaran;
+use App\Models\Question;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -77,7 +80,21 @@ class CategoryResource extends Resource
                     ->searchable()
                     ->nullable()
                     ->native(false)
+                    ->live()
+                    ->afterStateUpdated(fn(Set $set) => $set('kelas', null))
                     ->columnSpanFull(),
+
+                Forms\Components\Select::make('kelas')
+                    ->label('Kelas')
+                    ->helperText(fn(Get $get) => $get('mata_pelajaran_id') ? 'Pilih kelas yang sesuai.' : 'Pilih mata pelajaran terlebih dahulu.')
+                    ->options(fn(Get $get) => Question::getKelasOptions(
+                        MataPelajaran::find($get('mata_pelajaran_id'))?->jenjang
+                    ))
+                    ->nullable()
+                    ->native(false)
+                    ->disabled(fn(Get $get) => ! $get('mata_pelajaran_id'))
+                    ->dehydrated()
+                    ->placeholder('Pilih kelas (opsional)'),
 
                 Forms\Components\TextInput::make('nama')
                     ->label('Nama Kategori')
@@ -116,6 +133,13 @@ class CategoryResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
+
+                Tables\Columns\TextColumn::make('kelas')
+                    ->label('Kelas')
+                    ->formatStateUsing(fn($state) => $state ? 'Kelas ' . $state : '—')
+                    ->sortable()
+                    ->placeholder('—')
+                    ->toggleable(),
 
                 Tables\Columns\TextColumn::make('parent.nama')
                     ->label('Kategori Induk')
@@ -169,6 +193,10 @@ class CategoryResource extends Resource
                     ->label('Mata Pelajaran')
                     ->options(fn() => MataPelajaran::where('aktif', true)->orderBy('nama')->pluck('nama', 'id'))
                     ->searchable(),
+
+                Tables\Filters\SelectFilter::make('kelas')
+                    ->label('Kelas')
+                    ->options(Question::getKelasOptions(null)),
 
                 Tables\Filters\SelectFilter::make('parent_id')
                     ->label('Kategori Induk')

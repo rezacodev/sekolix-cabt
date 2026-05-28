@@ -13,6 +13,7 @@ class Category extends Model
         'nama',
         'parent_id',
         'mata_pelajaran_id',
+        'kelas',
         'created_by',
         'deskripsi',
         'created_at',

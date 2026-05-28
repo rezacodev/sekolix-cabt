@@ -75,6 +75,7 @@ class QuestionResource extends Resource
                             ->live()
                             ->afterStateUpdated(function ($state, Forms\Set $set) {
                                 $set('kategori_id', null);
+                                $set('kelas', null);
                             }),
 
                         Forms\Components\Select::make('kategori_id')
@@ -90,6 +91,18 @@ class QuestionResource extends Resource
                             ->disabled(fn(Get $get) => ! $get('mata_pelajaran_id'))
                             ->dehydrated()
                             ->placeholder('Pilih mata pelajaran dulu'),
+
+                        Forms\Components\Select::make('kelas')
+                            ->label('Kelas')
+                            ->helperText(fn(Get $get) => $get('mata_pelajaran_id') ? 'Pilih kelas yang sesuai.' : 'Pilih mata pelajaran terlebih dahulu.')
+                            ->options(fn(Get $get) => Question::getKelasOptions(
+                                MataPelajaran::find($get('mata_pelajaran_id'))?->jenjang
+                            ))
+                            ->nullable()
+                            ->native(false)
+                            ->disabled(fn(Get $get) => ! $get('mata_pelajaran_id'))
+                            ->dehydrated()
+                            ->placeholder('Pilih kelas (opsional)'),
 
                         Forms\Components\Select::make('tingkat_kesulitan')
                             ->label('Tingkat Kesulitan')
@@ -483,6 +496,13 @@ class QuestionResource extends Resource
                         default => '—',
                     }),
 
+                Tables\Columns\TextColumn::make('kelas')
+                    ->label('Kelas')
+                    ->formatStateUsing(fn($state) => $state ? 'Kelas ' . $state : '—')
+                    ->sortable()
+                    ->placeholder('—')
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\BadgeColumn::make('tingkat_kesulitan')
                     ->label('Kesulitan')
                     ->colors([
@@ -588,6 +608,10 @@ class QuestionResource extends Resource
                         }
                         return $indicators;
                     }),
+
+                Tables\Filters\SelectFilter::make('kelas')
+                    ->label('Kelas')
+                    ->options(Question::getKelasOptions(null)),
 
                 Tables\Filters\SelectFilter::make('tingkat_kesulitan')
                     ->label('Kesulitan')

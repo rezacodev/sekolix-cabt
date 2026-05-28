@@ -65,6 +65,24 @@ class Question extends Model
         self::VISIBILITAS_PUBLIK   => 'Publik (Seluruh Sekolah)',
     ];
 
+    const KELAS_BY_JENJANG = [
+        'SD'   => [1, 2, 3, 4, 5, 6],
+        'SMP'  => [7, 8, 9],
+        'SMA'  => [10, 11, 12],
+        'SMK'  => [10, 11, 12],
+        'Umum' => [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+    ];
+
+    public static function getKelasOptions(?string $jenjang): array
+    {
+        $list = self::KELAS_BY_JENJANG[$jenjang] ?? range(1, 12);
+        $options = [];
+        foreach ($list as $k) {
+            $options[$k] = 'Kelas ' . $k;
+        }
+        return $options;
+    }
+
     protected $fillable = [
         'question_group_id',
         'group_urutan',
@@ -72,6 +90,7 @@ class Question extends Model
         'bloom_level',
         'mata_pelajaran_id',
         'kategori_id',
+        'kelas',
         'tipe',
         'teks_soal',
         'penjelasan',
