@@ -107,7 +107,7 @@ class AddMultipleQuestions extends ResourcePage implements HasForms, HasTable
           return $query->whereRaw('0 = 1');
         }
 
-        $query->whereHas('category', fn(Builder $query) => $query->where('mata_pelajaran_id', $mapelId));
+        $query->where('mata_pelajaran_id', $mapelId);
 
         if (filled($kategoriId)) {
           $query->where(function (Builder $query) use ($kategoriId) {
@@ -129,6 +129,11 @@ class AddMultipleQuestions extends ResourcePage implements HasForms, HasTable
           ->html()
           ->limit(80)
           ->tooltip(fn($record) => strip_tags($record->teks_soal)),
+
+        TextColumn::make('kelas')
+          ->label('Kelas')
+          ->formatStateUsing(fn($state) => $state ? 'Kelas ' . $state : '—')
+          ->placeholder('—'),
 
         TextColumn::make('category.nama')
           ->label('Kategori')
