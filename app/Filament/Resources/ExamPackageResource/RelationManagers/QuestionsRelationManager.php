@@ -155,9 +155,8 @@ class QuestionsRelationManager extends RelationManager
                             ->label('Soal')
                             ->multiple()
                             ->searchable()
-                            ->placeholder('Pilih mata pelajaran dulu untuk memuat soal')
-                            ->options(fn(Get $get) => filled($get('_mapel_filter'))
-                                ? Question::query()
+                            ->placeholder('Cari atau pilih soal...')
+                            ->options(fn(Get $get) => Question::query()
                                 ->where('aktif', true)
                                 ->where(function ($query) {
                                     $query->where('created_by', Auth::id())
@@ -166,18 +165,18 @@ class QuestionsRelationManager extends RelationManager
                                             Question::VISIBILITAS_PUBLIK,
                                         ]);
                                 })
-                                ->whereHas('category', fn($query) => $query->where('mata_pelajaran_id', $get('_mapel_filter')))
+                                ->when($get('_mapel_filter'), fn($query, $mapelId) => $query->where('mata_pelajaran_id', $mapelId))
                                 ->when($get('kategori_id'), fn($query, $kategoriId) => $query->where(function ($query) use ($kategoriId) {
                                     $query->where('kategori_id', $kategoriId)
                                         ->orWhereHas('category', fn($query) => $query->where('parent_id', $kategoriId));
                                 }))
                                 ->orderBy('id')
+                                ->limit(200)
                                 ->get()
                                 ->mapWithKeys(fn(Question $question) => [
-                                    $question->id => Str::limit(strip_tags($question->teks_soal), 100),
+                                    $question->id => Str::limit(strip_tags($question->teks_soal), 200),
                                 ])
-                                ->toArray()
-                                : [])
+                                ->toArray())
                             ->getSearchResultsUsing(function (string $search, Get $get): array {
                                 $query = Question::query()
                                     ->where('aktif', true)
