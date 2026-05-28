@@ -67,6 +67,11 @@ class QuestionsRelationManager extends RelationManager
                     ->limit(60)
                     ->tooltip(fn($record) => $record ? strip_tags($record->teks_soal) : null),
 
+                Tables\Columns\TextColumn::make('kelas')
+                    ->label('Kelas')
+                    ->formatStateUsing(fn($state) => $state ? 'Kelas ' . $state : '—')
+                    ->placeholder('—'),
+
                 Tables\Columns\TextColumn::make('category.nama')
                     ->label('Kategori')
                     ->placeholder('—'),
