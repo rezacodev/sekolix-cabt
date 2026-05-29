@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\PaketSoalExport;
 use App\Http\Controllers\Controller;
 use App\Models\ExamBlueprint;
+use App\Models\ExamPackage;
 use App\Models\ExamSession;
 use App\Services\ReportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Maatwebsite\Excel\Facades\Excel;
 
 class PrintController extends Controller
 {
@@ -69,8 +72,8 @@ class PrintController extends Controller
 
         $blueprint->load([
             'items' => fn($q) => $q->orderBy('capaian_pembelajaran')
-                                    ->orderBy('materi')
-                                    ->orderBy('urutan'),
+                ->orderBy('materi')
+                ->orderBy('urutan'),
             'items.category',
             'items.standard',
             'items.tag',
@@ -96,8 +99,62 @@ class PrintController extends Controller
             ->all();
 
         return view('print.kisi-kisi-formal', compact(
-            'blueprint', 'schoolName', 'schoolLogoUrl', 'bentukMap', 'bentukSoalList'
+            'blueprint',
+            'schoolName',
+            'schoolLogoUrl',
+            'bentukMap',
+            'bentukSoalList'
         ));
+    }
+
+    // ── ExamPackage print & export ────────────────────────────────────────
+
+    /** Halaman kunci jawaban (browser print) */
+    public function kunciJawaban(ExamPackage $package)
+    {
+        $this->authorizePackage($package);
+
+        $questions = $package->questions()->with([
+            'options'    => fn($q) => $q->orderBy('urutan'),
+            'matches'    => fn($q) => $q->orderBy('urutan'),
+            'keywords',
+            'clozeBlank' => fn($q) => $q->orderBy('urutan'),
+            'category',
+        ])->get();
+
+        $package->load('mataPelajaran', 'creator', 'category');
+        $schoolName    = \App\Models\AppSetting::getString('school_name', '');
+        $schoolLogoUrl = \App\Models\AppSetting::getString('school_logo_url', '');
+
+        return view('print.kunci-jawaban', compact('package', 'questions', 'schoolName', 'schoolLogoUrl'));
+    }
+
+    /** Halaman naskah soal tanpa kunci (browser print) */
+    public function paketSoal(ExamPackage $package)
+    {
+        $this->authorizePackage($package);
+
+        $questions = $package->questions()->with([
+            'options'    => fn($q) => $q->orderBy('urutan'),
+            'matches'    => fn($q) => $q->orderBy('urutan'),
+            'clozeBlank' => fn($q) => $q->orderBy('urutan'),
+        ])->get();
+
+        $package->load('mataPelajaran', 'creator', 'category');
+        $schoolName    = \App\Models\AppSetting::getString('school_name', '');
+        $schoolLogoUrl = \App\Models\AppSetting::getString('school_logo_url', '');
+
+        return view('print.paket-soal', compact('package', 'questions', 'schoolName', 'schoolLogoUrl'));
+    }
+
+    /** Download Excel soal + kunci jawaban */
+    public function paketSoalExcel(ExamPackage $package)
+    {
+        $this->authorizePackage($package);
+
+        $filename = 'soal-' . str($package->nama)->slug() . '.xlsx';
+
+        return Excel::download(new PaketSoalExport($package), $filename);
     }
 
     /** Pastikan Guru hanya cetak sesi miliknya. */
@@ -105,6 +162,15 @@ class PrintController extends Controller
     {
         $user = Auth::user();
         if ($user->level === \App\Models\User::LEVEL_GURU && $session->created_by !== $user->id) {
+            abort(403);
+        }
+    }
+
+    /** Pastikan Guru hanya cetak paket miliknya sendiri. */
+    private function authorizePackage(ExamPackage $package): void
+    {
+        $user = Auth::user();
+        if ($user->level === \App\Models\User::LEVEL_GURU && $package->created_by !== $user->id) {
             abort(403);
         }
     }

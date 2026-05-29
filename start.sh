@@ -76,6 +76,7 @@ fi
 echo ""
 echo "=== [2/6] Mempersiapkan direktori storage ==="
 mkdir -p storage/framework/cache/data
+mkdir -p storage/framework/cache/laravel-excel
 mkdir -p storage/framework/sessions
 mkdir -p storage/framework/views
 mkdir -p storage/app/public

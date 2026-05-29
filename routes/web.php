@@ -69,6 +69,13 @@ Route::middleware(['auth', 'check.level:2'])->prefix('cabt/analisis')->name('ana
     Route::get('/{session}/export', [AnalisisUlanganController::class, 'exportExcel'])->name('export');
 });
 
+// ExamPackage print & export routes (level >= 2: Guru dan Admin)
+Route::middleware(['auth', 'check.level:2'])->prefix('cabt/paket')->name('paket.')->group(function () {
+    Route::get('/{package}/kunci-jawaban', [PrintController::class, 'kunciJawaban'])->name('kunci-jawaban');
+    Route::get('/{package}/cetak-soal',    [PrintController::class, 'paketSoal'])->name('cetak-soal');
+    Route::get('/{package}/export-excel',  [PrintController::class, 'paketSoalExcel'])->name('export-excel');
+});
+
 // Blueprint kisi-kisi print (level >= 2)
 Route::middleware(['auth', 'check.level:2'])
     ->get('/cabt/blueprint/{blueprint}/cetak', [PrintController::class, 'blueprint'])
