@@ -6,6 +6,7 @@ use App\Models\AppSetting;
 use App\Models\User;
 use App\Services\AuditLogService;
 use App\Filament\Concerns\HasHelpHeader;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -60,6 +61,7 @@ class GeneralSetting extends Page implements HasForms
             'school_logo_url'              => AppSetting::getString('school_logo_url', ''),
             'school_principal_name'        => AppSetting::getString('school_principal_name', ''),
             'school_principal_nip'         => AppSetting::getString('school_principal_nip', ''),
+            'school_principal_signature'   => AppSetting::getString('school_principal_signature', '') ?: null,
             'school_nisn'                  => AppSetting::getString('school_nisn', ''),
             'school_address'               => AppSetting::getString('school_address', ''),
             'maintenance_mode'             => AppSetting::getBool('maintenance_mode', false),
@@ -152,6 +154,19 @@ class GeneralSetting extends Page implements HasForms
                             ->helperText('NIP Kepala Sekolah untuk dokumen cetak dan laporan PDF.')
                             ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'NIP Kepala Sekolah yang akan ditampilkan pada cetakan analisis dan dokumen resmi sekolah.')
                             ->hintColor('info')
+                            ->columnSpan(1),
+
+                        FileUpload::make('school_principal_signature')
+                            ->label('Tanda Tangan Kepala Sekolah')
+                            ->helperText('Upload gambar TTD (PNG transparan direkomendasikan, maks 2 MB). Digunakan di laporan dan dokumen cetak.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'Gambar tanda tangan Kepala Sekolah yang akan ditampilkan pada dokumen cetak. Gunakan format PNG dengan latar belakang transparan untuk hasil terbaik.')
+                            ->hintColor('info')
+                            ->disk('public')
+                            ->directory('signatures')
+                            ->image()
+                            ->imagePreviewHeight('80')
+                            ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/webp'])
+                            ->maxSize(2048)
                             ->columnSpan(1),
 
                         TextInput::make('school_nisn')
@@ -395,6 +410,7 @@ class GeneralSetting extends Page implements HasForms
         AppSetting::set('school_logo_url',              $state['school_logo_url'] ?? '',          'string');
         AppSetting::set('school_principal_name',        $state['school_principal_name'] ?? '',    'string');
         AppSetting::set('school_principal_nip',         $state['school_principal_nip'] ?? '',     'string');
+        AppSetting::set('school_principal_signature',   $state['school_principal_signature'] ?? '', 'string');
         AppSetting::set('school_nisn',                  $state['school_nisn'] ?? '',              'string');
         AppSetting::set('school_address',               $state['school_address'] ?? '',           'string');
         AppSetting::set('maintenance_mode',             $state['maintenance_mode'],               'bool');

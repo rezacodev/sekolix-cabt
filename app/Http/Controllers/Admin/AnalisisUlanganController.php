@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Services\AnalisisService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
 class AnalisisUlanganController extends Controller
@@ -19,7 +20,7 @@ class AnalisisUlanganController extends Controller
     public function index(ExamSession $session)
     {
         $this->gate($session);
-        [$analisisData, $hasilData, $pengayaanData, $schoolName, $schoolLogoUrl, $schoolPrincipalName, $schoolPrincipalNip, $schoolNisn, $schoolAddress] = $this->buildData($session);
+        [$analisisData, $hasilData, $pengayaanData, $schoolName, $schoolLogoUrl, $schoolPrincipalName, $schoolPrincipalNip, $schoolPrincipalSignatureUrl, $schoolNisn, $schoolAddress] = $this->buildData($session);
 
         return view('print.analisis-ulangan', compact(
             'session',
@@ -30,6 +31,7 @@ class AnalisisUlanganController extends Controller
             'schoolLogoUrl',
             'schoolPrincipalName',
             'schoolPrincipalNip',
+            'schoolPrincipalSignatureUrl',
             'schoolNisn',
             'schoolAddress'
         ));
@@ -38,7 +40,7 @@ class AnalisisUlanganController extends Controller
     public function exportPdf(ExamSession $session)
     {
         $this->gate($session);
-        [$analisisData, $hasilData, $pengayaanData, $schoolName, $schoolLogoUrl, $schoolPrincipalName, $schoolPrincipalNip, $schoolNisn, $schoolAddress] = $this->buildData($session);
+        [$analisisData, $hasilData, $pengayaanData, $schoolName, $schoolLogoUrl, $schoolPrincipalName, $schoolPrincipalNip, $schoolPrincipalSignatureUrl, $schoolNisn, $schoolAddress] = $this->buildData($session);
 
         $pdf = Pdf::loadView('print.analisis-ulangan', compact(
             'session',
@@ -49,6 +51,7 @@ class AnalisisUlanganController extends Controller
             'schoolLogoUrl',
             'schoolPrincipalName',
             'schoolPrincipalNip',
+            'schoolPrincipalSignatureUrl',
             'schoolNisn',
             'schoolAddress'
         ))->setPaper('a4', 'landscape');
@@ -76,10 +79,12 @@ class AnalisisUlanganController extends Controller
         $schoolLogoUrl        = AppSetting::getString('school_logo_url', '');
         $schoolPrincipalName  = AppSetting::getString('school_principal_name', '');
         $schoolPrincipalNip   = AppSetting::getString('school_principal_nip', '');
+        $schoolPrincipalSignature = AppSetting::getString('school_principal_signature', '');
+        $schoolPrincipalSignatureUrl = $schoolPrincipalSignature ? Storage::url($schoolPrincipalSignature) : null;
         $schoolNisn           = AppSetting::getString('school_nisn', '');
         $schoolAddress        = AppSetting::getString('school_address', '');
 
-        return [$analisisData, $hasilData, $pengayaanData, $schoolName, $schoolLogoUrl, $schoolPrincipalName, $schoolPrincipalNip, $schoolNisn, $schoolAddress];
+        return [$analisisData, $hasilData, $pengayaanData, $schoolName, $schoolLogoUrl, $schoolPrincipalName, $schoolPrincipalNip, $schoolPrincipalSignatureUrl, $schoolNisn, $schoolAddress];
     }
 
     private function gate(ExamSession $session): void
