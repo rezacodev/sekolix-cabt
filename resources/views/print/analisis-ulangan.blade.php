@@ -140,8 +140,8 @@
         }
 
         .ttd-block .ttd-line {
-            margin-top: 50px;
-            border-top: 1px solid #000;
+            margin-top: 80px;
+            /* border-top: 1px solid #000; */
             padding-top: 2px;
             font-weight: bold;
         }
@@ -477,7 +477,7 @@
                 <div>Kepala Sekolah</div>
                 @if (!empty($schoolPrincipalSignatureUrl))
                     <img src="{{ $schoolPrincipalSignatureUrl }}" alt="TTD Kepala Sekolah"
-                        style="max-height:80px; margin:10px 0; display:block; margin-left:auto; margin-right:auto;">
+                        style="max-height:80px; margin-top:20px; display:block; margin-left:auto; margin-right:auto; margin-bottom:-40px">
                 @endif
                 <div class="ttd-line">{{ $schoolPrincipalName ?: '________________________' }}</div>
                 <div class="nip">NIP. {{ $schoolPrincipalNip ?: '' }}</div>
