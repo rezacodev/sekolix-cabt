@@ -170,10 +170,10 @@ class GeneralSetting extends Page implements HasForms
                             ->columnSpan(1),
 
                         TextInput::make('school_nisn')
-                            ->label('NISN Sekolah')
+                            ->label('NPSN Sekolah')
                             ->maxLength(20)
-                            ->helperText('NISN sekolah untuk penggunaan administratif dan referensi.')
-                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'NISN Sekolah yang dapat ditampilkan pada cetakan dan laporan sekolah.')
+                            ->helperText('NPSN sekolah untuk penggunaan administratif dan referensi.')
+                            ->hintIcon('heroicon-m-question-mark-circle', tooltip: 'NPSN Sekolah yang dapat ditampilkan pada cetakan dan laporan sekolah.')
                             ->hintColor('info')
                             ->columnSpan(1),
 

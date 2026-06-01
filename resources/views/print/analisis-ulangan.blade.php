@@ -249,7 +249,7 @@
         @if ($schoolNisn || $schoolAddress)
             <div style="margin-bottom: 25px; font-size: 10pt; line-height: 1.5;">
                 @if ($schoolNisn)
-                    NISN: {{ $schoolNisn }}
+                    NPSN: {{ $schoolNisn }}
                 @endif
                 @if ($schoolNisn && $schoolAddress)
                     <br>
