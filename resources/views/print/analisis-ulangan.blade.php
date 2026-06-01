@@ -131,17 +131,32 @@
             margin-top: 20px;
             display: flex;
             justify-content: space-between;
+            align-items: flex-end;
             font-size: 10pt;
+            gap: 20px;
         }
 
         .ttd-block {
             text-align: center;
             width: 200px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            min-height: 160px;
+        }
+
+        .ttd-block img {
+            position: absolute;
+            top: 38px;
+            left: 50%;
+            transform: translateX(-50%);
+            max-height: 80px;
+            max-width: 180px;
+            display: block;
         }
 
         .ttd-block .ttd-line {
-            margin-top: 80px;
-            /* border-top: 1px solid #000; */
+            margin-top: auto;
             padding-top: 2px;
             font-weight: bold;
         }
@@ -476,8 +491,7 @@
                 <div>Mengetahui,</div>
                 <div>Kepala Sekolah</div>
                 @if (!empty($schoolPrincipalSignatureUrl))
-                    <img src="{{ $schoolPrincipalSignatureUrl }}" alt="TTD Kepala Sekolah"
-                        style="max-height:80px; margin-top:20px; display:block; margin-left:auto; margin-right:auto; margin-bottom:-40px">
+                    <img src="{{ $schoolPrincipalSignatureUrl }}" alt="TTD Kepala Sekolah">
                 @endif
                 <div class="ttd-line">{{ $schoolPrincipalName ?: '________________________' }}</div>
                 <div class="nip">NIP. {{ $schoolPrincipalNip ?: '' }}</div>
@@ -563,8 +577,7 @@
                 <div>Mengetahui,</div>
                 <div>Kepala Sekolah</div>
                 @if (!empty($schoolPrincipalSignatureUrl))
-                    <img src="{{ $schoolPrincipalSignatureUrl }}" alt="TTD Kepala Sekolah"
-                        style="max-height:80px; margin:10px 0; display:block; margin-left:auto; margin-right:auto;">
+                    <img src="{{ $schoolPrincipalSignatureUrl }}" alt="TTD Kepala Sekolah">
                 @endif
                 <div class="ttd-line">{{ $schoolPrincipalName ?: '________________________' }}</div>
                 <div class="nip">NIP. {{ $schoolPrincipalNip ?: '' }}</div>
@@ -672,8 +685,7 @@
                 <div>Mengetahui,</div>
                 <div>Kepala Sekolah</div>
                 @if (!empty($schoolPrincipalSignatureUrl))
-                    <img src="{{ $schoolPrincipalSignatureUrl }}" alt="TTD Kepala Sekolah"
-                        style="max-height:80px; margin:10px 0; display:block; margin-left:auto; margin-right:auto;">
+                    <img src="{{ $schoolPrincipalSignatureUrl }}" alt="TTD Kepala Sekolah">
                 @endif
                 <div class="ttd-line">{{ $schoolPrincipalName ?: '________________________' }}</div>
                 <div class="nip">NIP. {{ $schoolPrincipalNip ?: '' }}</div>
@@ -747,8 +759,7 @@
                 <div>Mengetahui,</div>
                 <div>Kepala Sekolah</div>
                 @if (!empty($schoolPrincipalSignatureUrl))
-                    <img src="{{ $schoolPrincipalSignatureUrl }}" alt="TTD Kepala Sekolah"
-                        style="max-height:80px; margin:10px 0; display:block; margin-left:auto; margin-right:auto;">
+                    <img src="{{ $schoolPrincipalSignatureUrl }}" alt="TTD Kepala Sekolah">
                 @endif
                 <div class="ttd-line">{{ $schoolPrincipalName ?: '________________________' }}</div>
                 <div class="nip">NIP. {{ $schoolPrincipalNip ?: '' }}</div>
@@ -827,8 +838,7 @@
                 <div>Mengetahui,</div>
                 <div>Kepala Sekolah</div>
                 @if (!empty($schoolPrincipalSignatureUrl))
-                    <img src="{{ $schoolPrincipalSignatureUrl }}" alt="TTD Kepala Sekolah"
-                        style="max-height:80px; margin:10px 0; display:block; margin-left:auto; margin-right:auto;">
+                    <img src="{{ $schoolPrincipalSignatureUrl }}" alt="TTD Kepala Sekolah">
                 @endif
                 <div class="ttd-line">{{ $schoolPrincipalName ?: '________________________' }}</div>
                 <div class="nip">NIP. {{ $schoolPrincipalNip ?: '' }}</div>
