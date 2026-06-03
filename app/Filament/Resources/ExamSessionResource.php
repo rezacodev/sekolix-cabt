@@ -99,6 +99,12 @@ class ExamSessionResource extends Resource
                         ->default(ExamSession::STATUS_DRAFT)
                         ->native(false),
 
+                    Forms\Components\Toggle::make('sembunyikan_selesai')
+                        ->label('Sembunyikan dari Peserta yang Sudah Selesai')
+                        ->helperText('Jika aktif, sesi ini tidak akan tampil di dashboard peserta yang statusnya sudah selesai.')
+                        ->default(false)
+                        ->columnSpanFull(),
+
                     Forms\Components\TextInput::make('token_akses')
                         ->label('Token Akses')
                         ->nullable()

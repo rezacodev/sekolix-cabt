@@ -25,6 +25,14 @@ class DashboardController extends Controller
             ->where('user_id', $userId)
             ->get();
 
+        // Filter: sembunyikan sesi yang sudah selesai jika diaktifkan di pengaturan sesi
+        $participations = $participations->filter(function ($p) {
+            if ($p->session->sembunyikan_selesai && $p->status === ExamSessionParticipant::STATUS_SELESAI) {
+                return false;
+            }
+            return true;
+        });
+
         // Map ke data yang berguna untuk view
         $sessions = $participations->map(function ($p) use ($userId) {
             $session      = $p->session;

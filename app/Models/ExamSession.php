@@ -42,6 +42,7 @@ class ExamSession extends Model
         'kkm_klasikal',
         'pengayaan_max_1',
         'pengayaan_max_2',
+        'sembunyikan_selesai',
     ];
 
     protected function casts(): array
@@ -51,8 +52,9 @@ class ExamSession extends Model
             'waktu_selesai'     => 'datetime',
             'kkm'               => 'integer',
             'kkm_klasikal'      => 'integer',
-            'pengayaan_max_1'   => 'integer',
-            'pengayaan_max_2'   => 'integer',
+            'pengayaan_max_1'     => 'integer',
+            'pengayaan_max_2'     => 'integer',
+            'sembunyikan_selesai' => 'boolean',
         ];
     }
 
