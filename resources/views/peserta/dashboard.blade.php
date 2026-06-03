@@ -156,7 +156,7 @@
                     $sisaAttempt   = $item['sisa_attempt']; // null = tak terbatas, 0 = habis
                     $isAktif = $session->isAktif();
                     $bisaRemidi = $isAktif
-                        && $participation->status === 'selesai'
+                        && in_array($participation->status, ['selesai', 'diskualifikasi'])
                         && ($package->max_pengulangan == 0 || $attemptCount < $package->max_pengulangan);
 
                     // Determine card accent color
@@ -267,8 +267,8 @@
                             @elseif ($bisaRemidi)
                                 <div class="flex flex-col items-end gap-0.5">
                                     <a href="{{ route('ujian.show', $session->id) }}"
-                                        class="inline-flex items-center gap-1 text-sm font-semibold text-violet-600 hover:text-violet-700 transition-colors">
-                                        Kerjakan Ulang
+                                        class="inline-flex items-center gap-1 text-sm font-semibold {{ $participation->status === 'diskualifikasi' ? 'text-orange-600 hover:text-orange-700' : 'text-violet-600 hover:text-violet-700' }} transition-colors">
+                                        {{ $participation->status === 'diskualifikasi' ? 'Remidi' : 'Kerjakan Ulang' }}
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                                         </svg>
