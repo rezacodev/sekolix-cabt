@@ -19,84 +19,95 @@
             <div class="bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-5">
                 <p class="text-indigo-300 text-[10px] font-semibold uppercase tracking-widest mb-0.5">Sesi Ujian</p>
                 <h2 class="text-white font-bold text-lg leading-snug">{{ $session->nama_sesi }}</h2>
-                <p class="text-indigo-300 text-[10px] font-semibold uppercase tracking-widest mt-3 mb-0.5">Paket Ujian</p>
+                <p class="text-indigo-300 text-[10px] font-semibold uppercase tracking-widest mt-3 mb-0.5">Paket Ujian
+                </p>
                 <p class="text-white text-sm font-medium">{{ $session->package->nama }}</p>
                 @if ($session->package->mataPelajaran)
-                <div class="mt-3 flex flex-wrap gap-1.5">
-                    <span class="inline-flex items-center gap-1 text-xs font-semibold bg-white/20 text-white px-2.5 py-0.5 rounded-full">
-                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                        </svg>
-                        {{ $session->package->mataPelajaran->nama }}
-                    </span>
-                    @if ($session->package->category)
-                    <span class="inline-flex items-center text-xs font-medium bg-white/15 text-indigo-100 px-2.5 py-0.5 rounded-full">
-                        {{ $session->package->category->nama }}
-                    </span>
-                    @endif
-                </div>
+                    <div class="mt-3 flex flex-wrap gap-1.5">
+                        <span
+                            class="inline-flex items-center gap-1 text-xs font-semibold bg-white/20 text-white px-2.5 py-0.5 rounded-full">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                            {{ $session->package->mataPelajaran->nama }}
+                        </span>
+                        @if ($session->package->category)
+                            <span
+                                class="inline-flex items-center text-xs font-medium bg-white/15 text-indigo-100 px-2.5 py-0.5 rounded-full">
+                                {{ $session->package->category->nama }}
+                            </span>
+                        @endif
+                    </div>
                 @endif
             </div>
             <div class="p-6">
 
                 {{-- Jadwal & Status --}}
                 @php
-                    $isAktif   = $session->isAktif();
+                    $isAktif = $session->isAktif();
                     $isSelesai = $session->isSelesai();
                     $statusLabel = \App\Models\ExamSession::STATUS_LABELS[$session->status] ?? $session->status;
                     $statusClass = $isAktif ? 'bg-green-100 text-green-700 ring-green-200'
                         : ($isSelesai ? 'bg-blue-100 text-blue-700 ring-blue-200'
-                        : 'bg-gray-100 text-gray-500 ring-gray-200');
+                            : 'bg-gray-100 text-gray-500 ring-gray-200');
                 @endphp
                 <div class="flex flex-wrap items-center gap-x-4 gap-y-2 mb-5 pb-5 border-b border-gray-100">
-                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ring-1 {{ $statusClass }}">
+                    <span
+                        class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ring-1 {{ $statusClass }}">
                         {{ $statusLabel }}
                     </span>
                     @if ($session->waktu_mulai)
-                    <span class="flex items-center gap-1.5 text-sm text-gray-600">
-                        <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                        <span>
-                            <span class="font-medium">{{ $session->waktu_mulai->translatedFormat('l, d F Y') }}</span>
-                            <span class="text-gray-400 mx-1">&bull;</span>
-                            {{ $session->waktu_mulai->format('H:i') }}
-                            @if ($session->waktu_selesai)
-                                <span class="text-gray-400 mx-0.5">–</span>{{ $session->waktu_selesai->format('H:i') }} WIB
-                            @endif
+                        <span class="flex items-center gap-1.5 text-sm text-gray-600">
+                            <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span>
+                                <span class="font-medium">{{ $session->waktu_mulai->translatedFormat('l, d F Y') }}</span>
+                                <span class="text-gray-400 mx-1">&bull;</span>
+                                {{ $session->waktu_mulai->format('H:i') }}
+                                @if ($session->waktu_selesai)
+                                    <span class="text-gray-400 mx-0.5">–</span>{{ $session->waktu_selesai->format('H:i') }} WIB
+                                @endif
+                            </span>
                         </span>
-                    </span>
                     @endif
                     @if ($session->token_akses)
-                    <span class="flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full ring-1 ring-amber-200">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
-                        </svg>
-                        Perlu Token
-                    </span>
+                        <span
+                            class="flex items-center gap-1 text-xs font-semibold text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full ring-1 ring-amber-200">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                            </svg>
+                            Perlu Token
+                        </span>
                     @endif
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-gray-50 rounded-xl p-4">
                         <p class="text-xs text-gray-500 mb-1">Durasi</p>
-                        <p class="font-bold text-gray-900 text-lg">{{ $session->package->durasi_menit }}<span class="text-sm font-medium text-gray-500 ml-1">menit</span></p>
+                        <p class="font-bold text-gray-900 text-lg">{{ $session->package->durasi_menit }}<span
+                                class="text-sm font-medium text-gray-500 ml-1">menit</span></p>
                     </div>
                     @if ($session->package->waktu_minimal_menit)
                         <div class="bg-gray-50 rounded-xl p-4">
                             <p class="text-xs text-gray-500 mb-1">Minimal Submit</p>
-                            <p class="font-bold text-gray-900 text-lg">{{ $session->package->waktu_minimal_menit }}<span class="text-sm font-medium text-gray-500 ml-1">menit</span></p>
+                            <p class="font-bold text-gray-900 text-lg">{{ $session->package->waktu_minimal_menit }}<span
+                                    class="text-sm font-medium text-gray-500 ml-1">menit</span></p>
                         </div>
                     @endif
                     <div class="bg-gray-50 rounded-xl p-4">
                         <p class="text-xs text-gray-500 mb-1">Percobaan</p>
                         @if ($session->package->max_pengulangan == 0)
-                            <p class="font-bold text-gray-900 text-lg">ke-{{ $attemptCount + 1 }}<span class="text-sm font-medium text-gray-500 ml-1">(tak terbatas)</span></p>
+                            <p class="font-bold text-gray-900 text-lg">ke-{{ $attemptCount + 1 }}<span
+                                    class="text-sm font-medium text-gray-500 ml-1">(tak terbatas)</span></p>
                         @else
-                            <p class="font-bold text-gray-900 text-lg">ke-{{ $attemptCount + 1 }}<span class="text-sm font-medium text-gray-500 ml-1">dari {{ $session->package->max_pengulangan }}</span></p>
+                            <p class="font-bold text-gray-900 text-lg">ke-{{ $attemptCount + 1 }}<span
+                                    class="text-sm font-medium text-gray-500 ml-1">dari
+                                    {{ $session->package->max_pengulangan }}</span></p>
                         @endif
                     </div>
                     <div class="bg-gray-50 rounded-xl p-4">
@@ -106,54 +117,79 @@
                 </div>
 
                 @if ($seksiInfo !== null)
-                {{-- Tabel bagian ujian --}}
-                <div class="mt-5 border-t border-gray-100 pt-5">
-                    <div class="flex flex-wrap items-start justify-between gap-2 mb-3">
-                        <p class="text-sm font-semibold text-gray-700">
-                            Ujian ini terdiri dari <span class="text-indigo-600">{{ $seksiInfo->count() }} bagian</span>
-                            — total <span class="text-indigo-600">{{ $seksiInfo->sum('questions_count') }} soal</span>
-                        </p>
-                        @php $navLabel = \App\Models\ExamPackage::NAV_SEKSI_LABELS[$session->package->navigasi_seksi] ?? '—'; @endphp
-                        <span class="text-xs px-2 py-1 rounded-full font-medium
-                            {{ $session->package->navigasi_seksi === 'bebas' ? 'bg-green-100 text-green-700' :
-                               ($session->package->navigasi_seksi === 'urut_kembali' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600') }}">
-                            @if ($session->package->navigasi_seksi === 'bebas') 🔀 Bebas
-                            @elseif ($session->package->navigasi_seksi === 'urut_kembali') ↩ Bisa Kembali
-                            @else ➡ Wajib Urut @endif
-                        </span>
-                    </div>
-                    <div class="space-y-2">
-                        @foreach ($seksiInfo as $seksi)
-                        <div class="flex items-center gap-3 bg-indigo-50 rounded-xl px-4 py-3">
-                            <span class="w-7 h-7 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center shrink-0">
-                                {{ $seksi->urutan }}
-                            </span>
-                            <div class="flex-1 min-w-0">
-                                <p class="font-semibold text-gray-900 text-sm">{{ $seksi->nama }}</p>
-                                <p class="text-xs text-gray-500 mt-0.5">
-                                    {{ $seksi->questions_count }} soal &bull; {{ $seksi->durasi_menit }} menit
-                                    @if ($seksi->acak_soal) &bull; acak @endif
+                            {{-- Tabel bagian ujian --}}
+                            <div class="mt-5 border-t border-gray-100 pt-5">
+                                <div class="flex flex-wrap items-start justify-between gap-2 mb-3">
+                                    <p class="text-sm font-semibold text-gray-700">
+                                        Ujian ini terdiri dari <span class="text-indigo-600">{{ $seksiInfo->count() }} bagian</span>
+                                        — total <span class="text-indigo-600">{{ $seksiInfo->sum('questions_count') }} soal</span>
+                                    </p>
+                                    @php $navLabel = \App\Models\ExamPackage::NAV_SEKSI_LABELS[$session->package->navigasi_seksi] ?? '—'; @endphp
+                                    <span
+                                        class="text-xs px-2 py-1 rounded-full font-medium
+                                        {{ $session->package->navigasi_seksi === 'bebas' ? 'bg-green-100 text-green-700' :
+                    ($session->package->navigasi_seksi === 'urut_kembali' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600') }}">
+                                        @if ($session->package->navigasi_seksi === 'bebas') 🔀 Bebas
+                                        @elseif ($session->package->navigasi_seksi === 'urut_kembali') ↩ Bisa Kembali
+                                        @else ➡ Wajib Urut @endif
+                                    </span>
+                                </div>
+                                <div class="space-y-2">
+                                    @foreach ($seksiInfo as $seksi)
+                                        <div class="flex items-center gap-3 bg-indigo-50 rounded-xl px-4 py-3">
+                                            <span
+                                                class="w-7 h-7 rounded-full bg-indigo-600 text-white text-xs font-bold flex items-center justify-center shrink-0">
+                                                {{ $seksi->urutan }}
+                                            </span>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="font-semibold text-gray-900 text-sm">{{ $seksi->nama }}</p>
+                                                <p class="text-xs text-gray-500 mt-0.5">
+                                                    {{ $seksi->questions_count }} soal &bull; {{ $seksi->durasi_menit }} menit
+                                                    @if ($seksi->acak_soal) &bull; acak @endif
+                                                </p>
+                                            </div>
+                                            <span class="text-sm font-mono font-semibold text-indigo-700 shrink-0">
+                                                {{ str_pad($seksi->durasi_menit, 2, '0', STR_PAD_LEFT) }}:00
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <p class="text-xs text-gray-400 mt-3 leading-relaxed">
+                                    @if ($session->package->navigasi_seksi === 'bebas')
+                                        Anda dapat berpindah ke bagian mana saja kapan saja. Timer tiap bagian berjalan sejak pertama
+                                        kali dibuka.
+                                    @elseif ($session->package->navigasi_seksi === 'urut_kembali')
+                                        Kerjakan bagian secara berurutan. Setelah melanjutkan, Anda masih bisa kembali ke bagian
+                                        sebelumnya selama waktu belum habis.
+                                    @else
+                                        Kerjakan bagian secara berurutan. Setelah selesai satu bagian, <strong
+                                            class="text-gray-600">tidak bisa kembali</strong> ke bagian sebelumnya.
+                                    @endif
                                 </p>
                             </div>
-                            <span class="text-sm font-mono font-semibold text-indigo-700 shrink-0">
-                                {{ str_pad($seksi->durasi_menit, 2, '0', STR_PAD_LEFT) }}:00
-                            </span>
-                        </div>
-                        @endforeach
-                    </div>
-                    <p class="text-xs text-gray-400 mt-3 leading-relaxed">
-                        @if ($session->package->navigasi_seksi === 'bebas')
-                            Anda dapat berpindah ke bagian mana saja kapan saja. Timer tiap bagian berjalan sejak pertama kali dibuka.
-                        @elseif ($session->package->navigasi_seksi === 'urut_kembali')
-                            Kerjakan bagian secara berurutan. Setelah melanjutkan, Anda masih bisa kembali ke bagian sebelumnya selama waktu belum habis.
-                        @else
-                            Kerjakan bagian secara berurutan. Setelah selesai satu bagian, <strong class="text-gray-600">tidak bisa kembali</strong> ke bagian sebelumnya.
-                        @endif
-                    </p>
-                </div>
                 @endif
             </div>
         </div>
+
+        {{-- Banner Diskualifikasi Sebelumnya --}}
+        @if (!empty($wasDiskualifikasi))
+            <div class="bg-red-50 border border-red-200 rounded-2xl p-5 mb-5">
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center shrink-0 mt-0.5">
+                        <svg class="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="font-semibold text-red-800 mb-1">Percobaan sebelumnya didiskualifikasi</p>
+                        <p class="text-sm text-red-700">Anda pernah didiskualifikasi pada percobaan sebelumnya. Anda masih
+                            dapat melanjutkan dengan percobaan remidi ini. Pastikan Anda tidak melakukan pelanggaran aturan
+                            ujian.</p>
+                    </div>
+                </div>
+            </div>
+        @endif
 
         {{-- Warning box --}}
         <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-5">
@@ -182,7 +218,8 @@
                         @if ($session->package->waktu_minimal_menit)
                             <li class="flex items-start gap-2">
                                 <span class="shrink-0 mt-0.5">•</span>
-                                <span>Anda tidak dapat submit sebelum <strong>{{ $session->package->waktu_minimal_menit }} menit</strong> berlalu.</span>
+                                <span>Anda tidak dapat submit sebelum <strong>{{ $session->package->waktu_minimal_menit }}
+                                        menit</strong> berlalu.</span>
                             </li>
                         @endif
                         @if (($session->package->nilai_negatif ?? 0) > 0)
@@ -197,7 +234,8 @@
                         @if (($session->package->waktu_per_soal_detik ?? 0) > 0)
                             <li class="flex items-start gap-2">
                                 <span class="shrink-0 mt-0.5">•</span>
-                                <span>Setiap soal memiliki batas waktu <strong>{{ $session->package->waktu_per_soal_detik }} detik</strong>.
+                                <span>Setiap soal memiliki batas waktu <strong>{{ $session->package->waktu_per_soal_detik }}
+                                        detik</strong>.
                                     {{ $session->package->waktu_per_soal_navigasi === 'maju' ? 'Saat waktu habis, soal otomatis pindah ke berikutnya dan Anda tidak bisa kembali.' : 'Saat waktu habis, Anda masih bisa jawab soal lain.' }}
                                 </span>
                             </li>
@@ -208,8 +246,8 @@
         </div>
 
         {{-- Form --}}
-        <form action="{{ route('ujian.mulai', $session->id) }}" method="POST"
-            x-data="{ loading: false }" @submit="loading = true">
+        <form action="{{ route('ujian.mulai', $session->id) }}" method="POST" x-data="{ loading: false }"
+            @submit="loading = true">
             @csrf
 
             @if ($session->token_akses)
@@ -223,17 +261,16 @@
                             Token Akses dari Pengawas
                         </span>
                     </label>
-                    <input type="text" id="token" name="token"
-                        class="w-full rounded-xl border-gray-300 shadow-sm text-sm px-4 py-3 font-mono text-center tracking-widest text-lg
-                            focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition uppercase
-                            @error('token') border-red-400 ring-2 ring-red-100 @enderror"
-                        placeholder="XXXXXX"
-                        autocomplete="off"
-                        maxlength="20">
+                    <input type="text" id="token" name="token" class="w-full rounded-xl border-gray-300 shadow-sm text-sm px-4 py-3 font-mono text-center tracking-widest text-lg
+                                focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition uppercase
+                                @error('token') border-red-400 ring-2 ring-red-100 @enderror" placeholder="XXXXXX"
+                        autocomplete="off" maxlength="20">
                     @error('token')
                         <p class="mt-2 text-xs text-red-600 flex items-center gap-1">
                             <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                <path fill-rule="evenodd"
+                                    d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                    clip-rule="evenodd" />
                             </svg>
                             {{ $message }}
                         </p>
@@ -242,20 +279,24 @@
             @endif
 
             <div>
-                <button
-                    type="submit"
-                    :disabled="loading"
+                <button type="submit" :disabled="loading"
                     :class="loading ? 'opacity-70 cursor-not-allowed' : 'hover:bg-indigo-700 active:bg-indigo-800'"
                     class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-2xl shadow-sm transition-colors text-base flex items-center justify-center gap-2">
-                    <svg x-show="loading" class="animate-spin w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" style="display:none">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                    <svg x-show="loading" class="animate-spin w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24"
+                        style="display:none">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4">
+                        </circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z">
+                        </path>
                     </svg>
                     <svg x-show="!loading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span x-show="!loading">{{ $attemptCount === 0 ? 'Mulai Ujian Sekarang' : 'Kerjakan Ulang (ke-' . ($attemptCount + 1) . ')' }}</span>
+                    <span
+                        x-show="!loading">{{ $attemptCount === 0 ? 'Mulai Ujian Sekarang' : 'Kerjakan Ulang (ke-' . ($attemptCount + 1) . ')' }}</span>
                     <span x-show="loading" style="display:none">Memproses...</span>
                 </button>
             </div>

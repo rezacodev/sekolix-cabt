@@ -50,7 +50,19 @@ class ExamService
         }
 
         if ($participant->status === ExamSessionParticipant::STATUS_DISKUALIFIKASI) {
-            throw ValidationException::withMessages(['peserta' => 'Anda telah didiskualifikasi dari sesi ini.']);
+            // Cek apakah masih ada sisa attempt untuk remidi
+            $package      = $session->package;
+            $attemptCount = ExamAttempt::where('exam_session_id', $sesiId)
+                ->where('user_id', $userId)
+                ->count();
+
+            $masihBisaRemidi = $package->max_pengulangan === 0
+                || $attemptCount < $package->max_pengulangan;
+
+            if (! $masihBisaRemidi) {
+                throw ValidationException::withMessages(['peserta' => 'Anda telah didiskualifikasi dari sesi ini.']);
+            }
+            // Masih ada sisa attempt — lanjutkan ke pengecekan berikutnya
         }
 
         // 3. Cek attempt aktif (lanjutkan jika ada)

@@ -54,10 +54,14 @@ class UjianController extends Controller
             ? null
             : max(0, $package->max_pengulangan - $attemptCount);
 
-        // Batas percobaan habis
+        $wasDiskualifikasi = $participant->status === ExamSessionParticipant::STATUS_DISKUALIFIKASI;
+
+        // Batas percobaan habis (termasuk setelah diskualifikasi habis attempt)
         if ($sisaAttempt !== null && $sisaAttempt === 0) {
-            return redirect()->route('peserta.dashboard')
-                ->withErrors(['attempt' => 'Batas percobaan ujian telah habis.']);
+            $pesan = $wasDiskualifikasi
+                ? 'Anda telah didiskualifikasi dan batas percobaan ujian telah habis.'
+                : 'Batas percobaan ujian telah habis.';
+            return redirect()->route('peserta.dashboard')->withErrors(['attempt' => $pesan]);
         }
 
         // Info bagian untuk multi-section
@@ -69,7 +73,7 @@ class UjianController extends Controller
                 ->get();
         }
 
-        return view('peserta.konfirmasi', compact('session', 'participant', 'attemptCount', 'sisaAttempt', 'seksiInfo'));
+        return view('peserta.konfirmasi', compact('session', 'participant', 'attemptCount', 'sisaAttempt', 'seksiInfo', 'wasDiskualifikasi'));
     }
 
     // ─── Mulai ujian ──────────────────────────────────────────────────────
